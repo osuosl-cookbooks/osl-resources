@@ -1,19 +1,16 @@
-name 'osl-resources'
-maintainer 'The Authors'
-maintainer_email 'you@example.com'
-license 'All Rights Reserved'
-description 'Installs/Configures osl-resources'
-version '0.1.0'
-chef_version '>= 16.0'
+name             'osl-resources'
+maintainer       'Oregon State University'
+maintainer_email 'systems@osuosl.org'
+source_url       'https://github.com/osuosl-cookbooks/osl-resources'
+issues_url       'https://github.com/osuosl-cookbooks/osl-resources/issues'
+license          'Apache-2.0'
+chef_version     '>= 16.0'
+description      'Holds base resources for the OSUOSL'
+version          '0.1.0'
 
-# The `issues_url` points to the location where issues for this cookbook are
-# tracked.  A `View Issues` link will be displayed on this cookbook's page when
-# uploaded to a Supermarket.
-#
-# issues_url 'https://github.com/<insert_org_here>/osl-resources/issues'
+depends          'line'
 
-# The `source_url` points to the development repository for this cookbook.  A
-# `View Source` link will be displayed on this cookbook's page when uploaded to
-# a Supermarket.
-#
-# source_url 'https://github.com/<insert_org_here>/osl-resources'
+supports         'centos', '~> 7.0'
+supports         'centos', '~> 8.0'
+supports         'debian', '~> 10.0'
+supports         'debian', '~> 11.0'

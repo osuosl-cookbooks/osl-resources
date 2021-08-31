@@ -1,0 +1,90 @@
+# ifcfg config file written by Chef
+<% if @bcast -%>
+BROADCAST=<%= @bcast %>
+<% end -%>
+<% if @bonding_opts -%>
+BONDING_OPTS="<%= @bonding_opts %>"
+<% end -%>
+<% if @bootproto -%>
+BOOTPROTO=<%= @bootproto %>
+<% end -%>
+<% if @bridge -%>
+BRIDGE=<%= @bridge %>
+<% end -%>
+<% if @defroute -%>
+DEFROUTE=<%= @defroute %>
+<% end -%>
+<% if @delay -%>
+DELAY=<%= @delay %>
+<% end -%>
+<% if @device -%>
+DEVICE=<%= @device %>
+<% end -%>
+<% if @ethtool_opts -%>
+ETHTOOL_OPTS="<%= @ethtool_opts %>"
+<% end -%>
+<% if @gateway -%>
+GATEWAY=<%= @gateway %>
+<% end -%>
+<% if @hwaddr -%>
+HWADDR=<%= @hwaddr %>
+<% end -%>
+<% if @ipv6addr -%>
+IPV6ADDR=<%= @ipv6addr %>
+<% end -%>
+<% if @ipv6addrsec -%>
+IPV6ADDR_SECONDARIES='<%= @ipv6addrsec.join(' ') %>'
+<% end -%>
+<% if @ipv6_defaultgw -%>
+IPV6_DEFAULTGW=<%= @ipv6_defaultgw %>
+<% end -%>
+<% if @ipv6init -%>
+IPV6INIT=<%= @ipv6init %>
+<% end -%>
+<% if @mask -%>
+NETMASK=<%= @mask %>
+<% end -%>
+<% if @master -%>
+MASTER=<%= @master %>
+<% end -%>
+<% if @metric -%>
+METRIC=<%= @metric %>
+<% end -%>
+<% if @mtu -%>
+MTU=<%= @mtu %>
+<% end -%>
+<% if @network -%>
+NETWORK=<%= @network %>
+<% end -%>
+<% if @nm_controlled -%>
+NM_CONTROLLED=<%= @nm_controlled %>
+<% end -%>
+<% if @onboot -%>
+ONBOOT=<%= @onboot %>
+<% end -%>
+<% if @onparent -%>
+ONPARENT=<%= @onparent %>
+<% end -%>
+<% if @peerdns -%>
+PEERDNS=<%= @peerdns %>
+<% end -%>
+<% if @slave -%>
+SLAVE=<%= @slave %>
+<% end -%>
+<% if @target.instance_of?(String) -%>
+IPADDR=<%= @target %>
+<% else if @target.instance_of?(Array) -%>
+  <% @target.each_with_index do |ip, idx| -%>
+IPADDR<%= idx+1 %>=<%= ip %>
+  <% end -%>
+  <% end -%>
+<% end -%>
+<% if @type -%>
+TYPE=<%= @type %>
+<% end -%>
+<% if @userctl -%>
+USERCTL=<%= @userctl %>
+<% end -%>
+<% if @vlan -%>
+VLAN=<%= @vlan %>
+<% end -%>
