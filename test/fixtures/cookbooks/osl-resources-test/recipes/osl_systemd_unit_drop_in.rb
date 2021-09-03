@@ -13,14 +13,14 @@ end
 
 osl_systemd_unit_drop_in 'string_override' do
   unit_name 'testing'
-  content <<~EOU
-  [Unit]
-  Key4 = Val4
-  Key5 = Val5
+  content <<~EOF
+    [Unit]
+    Key4 = Val4
+    Key5 = Val5
 
-  [Install]
-  Key6 = Val6
-EOU
+    [Install]
+    Key6 = Val6
+  EOF
 end
 
 osl_systemd_unit_drop_in 'nonstandard' do

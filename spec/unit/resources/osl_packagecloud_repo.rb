@@ -9,43 +9,41 @@ describe 'osl_packagecloud_repo' do
     end
   end
 
-  ALL_PLATFORMS.each do |p|
-    context "#{p[:platform]} #{p[:version]}" do
-      platform p[:platform], p[:version]
-      cached(:subject) { chef_run }
-      step_into :osl_packagecloud_repo
+  context 'centos' do
+    platform 'centos'
+    cached(:subject) { chef_run }
+    step_into :osl_packagecloud_repo
 
-      case p
-      when *ALL_RHEL
-        it do
-          is_expected.to create_yum_repository('varnishcache_varnish60lts')
-            .with(
-              description: 'varnishcache_varnish60lts',
-              baseurl: 'https://packagecloud.io/varnishcache/varnish60lts/el/$releasever/$basearch',
-              repo_gpgcheck: true,
-              gpgcheck: false,
-              gpgkey: 'https://packagecloud.io/varnishcache/varnish60lts/gpgkey'
-            )
-        end
-        it do
-          is_expected.to remove_yum_repository('varnishcache_varnish40')
-        end
-      when *ALL_DEBIAN
-        it 'converges successfully' do
-          expect { chef_run }.to_not raise_error
-        end
-        it do
-          is_expected.to add_apt_repository('varnishcache_varnish60lts')
-            .with(
-              uri: 'https://packagecloud.io/varnishcache/varnish60lts/debian',
-              key: %w(https://packagecloud.io/varnishcache/varnish60lts/gpgkey),
-              components: %w(main)
-            )
-        end
-        it do
-          is_expected.to remove_apt_repository('varnishcache_varnish40')
-        end
-      end
+    it do
+      is_expected.to create_yum_repository('varnishcache_varnish60lts')
+        .with(
+          description: 'varnishcache_varnish60lts',
+          baseurl: 'https://packagecloud.io/varnishcache/varnish60lts/el/$releasever/$basearch',
+          repo_gpgcheck: true,
+          gpgcheck: false,
+          gpgkey: 'https://packagecloud.io/varnishcache/varnish60lts/gpgkey'
+        )
+    end
+    it do
+      is_expected.to remove_yum_repository('varnishcache_varnish40')
+    end
+  end
+
+  context 'debian' do
+    platform 'debian'
+    cached(:subject) { chef_run }
+    step_into :osl_packagecloud_repo
+
+    it do
+      is_expected.to add_apt_repository('varnishcache_varnish60lts')
+        .with(
+          uri: 'https://packagecloud.io/varnishcache/varnish60lts/debian',
+          key: %w(https://packagecloud.io/varnishcache/varnish60lts/gpgkey),
+          components: %w(main)
+        )
+    end
+    it do
+      is_expected.to remove_apt_repository('varnishcache_varnish40')
     end
   end
 end

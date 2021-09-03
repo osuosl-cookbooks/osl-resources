@@ -13,6 +13,7 @@ property :defroute, String
 property :delay, String
 property :device, String, identity: true
 property :ethtool_opts, String
+property :force, [true, false], default: false
 property :gateway, String
 property :hwaddr, String
 property :inet_addr, String
@@ -38,6 +39,9 @@ property :vlan, String
 action :add do
   package 'network-scripts' if node['platform_version'].to_i >= 8
   package 'bridge-utils' unless node['platform_version'].to_i >= 8
+
+  # Disable deprecation warnings as we know these will go away in RHEL9+
+  file '/etc/sysconfig/disable-deprecation-warnings' if node['platform_version'].to_i >= 8
 
   template "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
     source 'ifcfg.conf.erb'
@@ -85,7 +89,7 @@ end
 
 action :delete do
   file "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
-    content <<-EOF.gsub(/^\s+/, '')
+    content <<~EOF
       # ifcfg config file written by Chef
       DEVICE=#{new_resource.device}
       ONBOOT=no
@@ -101,12 +105,12 @@ end
 
 action :enable do
   execute "ifup #{new_resource.device}" do
-    not_if "ip link show dev #{new_resource.device} | grep 'UP'"
+    not_if "ip link show dev #{new_resource.device} | grep 'UP'" unless new_resource.force
   end
 end
 
 action :disable do
   execute "ifdown #{new_resource.device}" do
-    not_if "ip link show dev #{new_resource.device} | grep 'DOWN'"
+    not_if "ip link show dev #{new_resource.device} | grep 'DOWN'" unless new_resource.force
   end
 end

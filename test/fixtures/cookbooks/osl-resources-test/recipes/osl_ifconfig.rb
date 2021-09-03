@@ -1,31 +1,20 @@
-(1..6).each do |i|
+(1..5).each do |i|
   osl_fakenic "eth#{i}"
 end
 
-osl_fakenic 'eth7' do
+osl_fakenic 'eth6' do
   ip4 '192.168.0.100/24'
 end
 
-osl_fakenic 'eth8' do
+osl_fakenic 'eth7' do
   ip6 'fe80::6/64'
 end
 
-osl_fakenic 'eth9' do
+osl_fakenic 'eth8' do
   ip4 '192.168.1.100/24'
   ip6 'fe80::7/64'
   mac_address '00:1a:4b:a6:a7:c4'
   multicast true
-end
-
-file '/etc/sysconfig/network-scripts/ifcfg-eth5' do
-  content <<-EOF
-DEVICE=eth5
-BOOTPROTO=static
-IPADDR=10.1.1.20
-NETMASK=255.255.255.0
-NM_CONTROLLED=no
-TYPE=dummy
-  EOF
 end
 
 osl_ifconfig 'eth1' do
@@ -78,33 +67,36 @@ osl_ifconfig 'br10' do
   delay '0'
 end
 
-# bonding interfaces
-osl_ifconfig 'eth2' do
-  device 'eth2'
-  onboot 'yes'
-  bootproto 'none'
-  master 'bond0'
-  slave 'yes'
-  type 'dummy'
-end
+case node['platform_version']
+when '7'
+  # bonding interfaces
+  osl_ifconfig 'eth2' do
+    device 'eth2'
+    onboot 'yes'
+    bootproto 'none'
+    master 'bond0'
+    slave 'yes'
+    type 'dummy'
+  end
 
-osl_ifconfig 'eth3' do
-  device 'eth3'
-  onboot 'yes'
-  bootproto 'none'
-  master 'bond0'
-  slave 'yes'
-  type 'dummy'
-end
+  osl_ifconfig 'eth3' do
+    device 'eth3'
+    onboot 'yes'
+    bootproto 'none'
+    master 'bond0'
+    slave 'yes'
+    type 'dummy'
+  end
 
-osl_ifconfig 'bond0' do
-  target '172.16.20.10'
-  mask '255.255.255.0'
-  network '172.16.20.0'
-  device 'bond0'
-  bootproto 'static'
-  bonding_opts 'mode=4 miimon=100 lacp_rate=0'
-  onboot 'yes'
+  osl_ifconfig 'bond0' do
+    target '172.16.20.10'
+    mask '255.255.255.0'
+    network '172.16.20.0'
+    device 'bond0'
+    bootproto 'static'
+    bonding_opts 'mode=4 miimon=100 lacp_rate=0'
+    onboot 'yes'
+  end
 end
 
 osl_ifconfig 'eth4' do
@@ -122,12 +114,6 @@ end
 
 osl_ifconfig 'eth5' do
   device 'eth5'
-  type 'dummy'
-  action :enable
-end
-
-osl_ifconfig 'eth6' do
-  device 'eth6'
   target %w(
     10.1.30.20
     10.1.30.21

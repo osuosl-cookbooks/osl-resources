@@ -1,15 +1,13 @@
 control 'osl_ifconfig' do
-  %w(eth1 eth2 eth3 eth4 eth5 eth6 bond0 eth1.172 eth1.10 br172 br10).each do |i|
+  %w(eth1 eth2 eth3 eth4 eth5 eth1.172 eth1.10 br172 br10).each do |i|
     describe interface(i) do
       it { should exist }
     end
   end
 
-  # eth1 & eth5 should be up
-  %w(eth1 eth5).each do |int|
-    describe command("ip -0 -o addr show dev #{int}") do
-      its('stdout') { should match /BROADCAST,NOARP,UP,LOWER_UP/ }
-    end
+  # eth1 should be up
+  describe command('ip -0 -o addr show dev eth1') do
+    its('stdout') { should match /BROADCAST,NOARP,UP,LOWER_UP/ }
   end
 
   # These interfaces should NOT have an IP address
@@ -20,7 +18,7 @@ control 'osl_ifconfig' do
   end
 
   # Test Multiple IPs
-  describe command('ip -o addr show dev eth6') do
+  describe command('ip -o addr show dev eth5') do
     its('stdout') { should match /inet 10.1.30.20/ }
     its('stdout') { should match /inet 10.1.30.21/ }
     its('stdout') { should match %r{inet6 fe80::3/64} }
@@ -32,11 +30,6 @@ control 'osl_ifconfig' do
   describe command('ip -o addr show dev eth4') do
     its('stdout') { should match %r{inet 172.16.50.10/24} }
     its('stdout') { should match %r{inet6 fe80::2/64 scope link} }
-  end
-
-  # Test enable
-  describe command('ip -o addr show dev eth5') do
-    its('stdout') { should match %r{inet 10.1.1.20/24} }
   end
 
   # Ensure these vlans are setup properly
@@ -69,49 +62,56 @@ control 'osl_ifconfig' do
     its('stdout') { should match %r{inet 172.16.18.1/24} }
   end
 
-  # bonding tests
-  %w(eth2 eth3).each do |i|
-    describe command("ip -d -o link show dev #{i}") do
-      its('stdout') { should match /BROADCAST,NOARP,SLAVE,UP,LOWER_UP>.*master bond0/ }
+  case os.release
+  when '7'
+    # bonding tests
+    %w(eth2 eth3).each do |i|
+      describe command("ip -d -o link show dev #{i}") do
+        its('stdout') { should match /BROADCAST,NOARP,SLAVE,UP,LOWER_UP>.*master bond0/ }
+      end
     end
-  end
 
-  describe command('ip -d -o link show dev bond0') do
-    its('stdout') { should match /BROADCAST,MULTICAST,MASTER,UP,LOWER_UP>.*state UP/ }
-  end
+    describe interface('bond0') do
+      it { should exist }
+    end
 
-  describe command('ip -4 -o addr show dev bond0') do
-    its('stdout') { should match %r{inet 172.16.20.10/24} }
-  end
+    describe command('ip -d -o link show dev bond0') do
+      its('stdout') { should match /BROADCAST,MULTICAST,MASTER,UP,LOWER_UP>.*state UP/ }
+    end
 
-  describe file('/proc/net/bonding/bond0') do
-    [
-      /Bonding Mode: load balancing \(round-robin\)\nMII Status: up/,
-      /Slave Interface: eth2\nMII Status: up/,
-      /Slave Interface: eth3\nMII Status: up/,
-    ].each do |r|
-      its('content') { should match r }
+    describe command('ip -4 -o addr show dev bond0') do
+      its('stdout') { should match %r{inet 172.16.20.10/24} }
+    end
+
+    describe file('/proc/net/bonding/bond0') do
+      [
+        /Bonding Mode: load balancing \(round-robin\)\nMII Status: up/,
+        /Slave Interface: eth2\nMII Status: up/,
+        /Slave Interface: eth3\nMII Status: up/,
+      ].each do |r|
+        its('content') { should match r }
+      end
     end
   end
 
   # osl_fakenic tests
   # IPv4 only
-  describe interface 'eth7' do
+  describe interface 'eth6' do
     its('ipv4_cidrs') { should include %r{192.168.0.100/24} }
   end
 
   # IPv6 only
-  describe interface 'eth8' do
+  describe interface 'eth7' do
     its('ipv6_cidrs') { should include %r{fe80::6/64} }
   end
 
   # IPv4 & IPv6
-  describe interface 'eth9' do
+  describe interface 'eth8' do
     its('ipv4_cidrs') { should include %r{192.168.1.100/24} }
     its('ipv6_cidrs') { should include %r{fe80::7/64} }
   end
 
-  describe command 'ip -0 -o addr show dev eth9' do
+  describe command 'ip -0 -o addr show dev eth8' do
     its('stdout') { should match /MULTICAST/ }
     its('stdout') { should match /00:1a:4b:a6:a7:c4/ }
   end

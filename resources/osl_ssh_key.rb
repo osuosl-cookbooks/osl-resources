@@ -5,7 +5,7 @@ unified_mode true
 default_action :add
 
 property :key_name, String, name_property: true
-property :key, String, required: [:add]
+property :content, String, required: [:add]
 property :user, String, required: true
 property :group, String, default: lazy { user }
 property :dir_path, String, default: lazy { "/home/#{user}/.ssh" }
@@ -23,7 +23,7 @@ action :add do
     owner new_resource.user
     group new_resource.group
     mode '0600'
-    content new_resource.key
+    content new_resource.content
   end
 end
 

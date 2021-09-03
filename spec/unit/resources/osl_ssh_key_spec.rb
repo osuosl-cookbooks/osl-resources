@@ -12,7 +12,7 @@ describe 'osl_ssh_key' do
   recipe do
     osl_ssh_key 'id_rsa' do
       user 'test_user_1'
-      key 'test_key'
+      content 'test_key'
       action [:add, :remove]
     end
 
@@ -20,7 +20,7 @@ describe 'osl_ssh_key' do
       user 'test_user_2'
       group 'nobody'
       dir_path '/opt/test/.ssh'
-      key 'curvy_key'
+      content 'curvy_key'
     end
 
     osl_ssh_key 'id_rsa' do
