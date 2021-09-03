@@ -67,36 +67,33 @@ osl_ifconfig 'br10' do
   delay '0'
 end
 
-case node['platform_version']
-when '7'
-  # bonding interfaces
-  osl_ifconfig 'eth2' do
-    device 'eth2'
-    onboot 'yes'
-    bootproto 'none'
-    master 'bond0'
-    slave 'yes'
-    type 'dummy'
-  end
+# bonding interfaces
+osl_ifconfig 'bond0' do
+  target '172.16.20.10'
+  mask '255.255.255.0'
+  network '172.16.20.0'
+  device 'bond0'
+  bootproto 'static'
+  bonding_opts 'mode=0 miimon=100 lacp_rate=0'
+  onboot 'yes'
+end
 
-  osl_ifconfig 'eth3' do
-    device 'eth3'
-    onboot 'yes'
-    bootproto 'none'
-    master 'bond0'
-    slave 'yes'
-    type 'dummy'
-  end
+osl_ifconfig 'eth2' do
+  device 'eth2'
+  onboot 'yes'
+  bootproto 'none'
+  master 'bond0'
+  slave 'yes'
+  type 'dummy'
+end
 
-  osl_ifconfig 'bond0' do
-    target '172.16.20.10'
-    mask '255.255.255.0'
-    network '172.16.20.0'
-    device 'bond0'
-    bootproto 'static'
-    bonding_opts 'mode=4 miimon=100 lacp_rate=0'
-    onboot 'yes'
-  end
+osl_ifconfig 'eth3' do
+  device 'eth3'
+  onboot 'yes'
+  bootproto 'none'
+  master 'bond0'
+  slave 'yes'
+  type 'dummy'
 end
 
 osl_ifconfig 'eth4' do

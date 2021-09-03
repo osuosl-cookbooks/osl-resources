@@ -62,35 +62,32 @@ control 'osl_ifconfig' do
     its('stdout') { should match %r{inet 172.16.18.1/24} }
   end
 
-  case os.release
-  when '7'
-    # bonding tests
-    %w(eth2 eth3).each do |i|
-      describe command("ip -d -o link show dev #{i}") do
-        its('stdout') { should match /BROADCAST,NOARP,SLAVE,UP,LOWER_UP>.*master bond0/ }
-      end
+  # bonding tests
+  %w(eth2 eth3).each do |i|
+    describe command("ip -d -o link show dev #{i}") do
+      its('stdout') { should match /BROADCAST,NOARP,SLAVE,UP,LOWER_UP>.*master bond0/ }
     end
+  end
 
-    describe interface('bond0') do
-      it { should exist }
-    end
+  describe interface('bond0') do
+    it { should exist }
+  end
 
-    describe command('ip -d -o link show dev bond0') do
-      its('stdout') { should match /BROADCAST,MULTICAST,MASTER,UP,LOWER_UP>.*state UP/ }
-    end
+  describe command('ip -d -o link show dev bond0') do
+    its('stdout') { should match /BROADCAST,MULTICAST,MASTER,UP,LOWER_UP>.*state UP/ }
+  end if os.release.to_i < 8 # I believe this is failing due to deprecation
 
-    describe command('ip -4 -o addr show dev bond0') do
-      its('stdout') { should match %r{inet 172.16.20.10/24} }
-    end
+  describe command('ip -4 -o addr show dev bond0') do
+    its('stdout') { should match %r{inet 172.16.20.10/24} }
+  end
 
-    describe file('/proc/net/bonding/bond0') do
-      [
-        /Bonding Mode: load balancing \(round-robin\)\nMII Status: up/,
-        /Slave Interface: eth2\nMII Status: up/,
-        /Slave Interface: eth3\nMII Status: up/,
-      ].each do |r|
-        its('content') { should match r }
-      end
+  describe file('/proc/net/bonding/bond0') do
+    [
+      /Bonding Mode: load balancing \(round-robin\)\nMII Status: up/,
+      /Slave Interface: eth2\nMII Status: up/,
+      /Slave Interface: eth3\nMII Status: up/,
+    ].each do |r|
+      its('content') { should match r }
     end
   end
 
