@@ -6,10 +6,10 @@ unified_mode true
 default_action :create
 
 property :override_name, String, name_property: true
-property :unit_name, String, required: true
+property :unit_name, String, required: [:create]
 property :content, [String, Hash], required: false
 property :triggers_reload, [true, false], default: true
-property :instance, kind_of: String, default: 'system'
+property :instance, String, default: 'system'
 
 action_class do
   def get_override_dir

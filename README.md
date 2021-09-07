@@ -12,15 +12,15 @@ The following platforms and versions are tested and supported using [test-kitche
 
 ## Resources
 
-- `osl_authorzed_keys`: Manages an `authorized_keys` file to add or remove public keys.
-- `osl_fakenic`:  Manages `dummy` NICs. (RHEL Only)
-- `osl_ifconfig`: Manages network interfaces. (RHEL Only)
-- `osl_packagecloud_repo`: Manages PackageCloud repos.
-- `osl_route`:    Manages routes. (RHEL Only)
-- `osl_shell_alias`: Creates and manages shell aliases.
-- `osl_shell_environment`: Creates and manages shell environment variables.
-- `osl_ssh_key`: Manages public and private ssh keys.
-- `osl_systemd_unit_drop_in`: Creates and manages systemd_unit drop-in files.
+- [osl_authorized_keys](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_authorized_keys.md)
+- [osl_fakenic](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_fakenic.md)
+- [osl_ifconfig](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_ifconfig.md)
+- [osl_packagecloud_repo](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_packagecloud_repo.md)
+- [osl_route](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_route.md)
+- [osl_shell_alias](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_shell_alias.md)
+- [osl_shell_environment](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_shell_environment.md)
+- [osl_ssh_key](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_ssh_key.md)
+- [osl_systemd_unit_drop_in](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_systemd_unit_drop_in.md)
 
 ## Kitchen Dokken
 

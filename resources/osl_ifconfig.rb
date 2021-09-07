@@ -16,7 +16,6 @@ property :ethtool_opts, String
 property :force, [true, false], default: false
 property :gateway, String
 property :hwaddr, String
-property :inet_addr, String
 property :ipv6addr, String
 property :ipv6addrsec, Array
 property :ipv6_defaultgw, String

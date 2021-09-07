@@ -1,6 +1,6 @@
 name             'osl-resources'
 maintainer       'Oregon State University'
-maintainer_email 'systems@osuosl.org'
+maintainer_email 'chef@osuosl.org'
 source_url       'https://github.com/osuosl-cookbooks/osl-resources'
 issues_url       'https://github.com/osuosl-cookbooks/osl-resources/issues'
 license          'Apache-2.0'
