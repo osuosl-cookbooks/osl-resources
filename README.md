@@ -8,19 +8,18 @@ The following platforms and versions are tested and supported using [test-kitche
 
 - CentOS 7/8
 - Debian 10/11
-- Ubuntu 18.04 / 20.04
 
 ## Resources
 
-- [osl_authorized_keys](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_authorized_keys.md)
-- [osl_fakenic](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_fakenic.md)
-- [osl_ifconfig](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_ifconfig.md)
-- [osl_packagecloud_repo](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_packagecloud_repo.md)
-- [osl_route](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_route.md)
-- [osl_shell_alias](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_shell_alias.md)
-- [osl_shell_environment](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_shell_environment.md)
-- [osl_ssh_key](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_ssh_key.md)
-- [osl_systemd_unit_drop_in](https://github.com/osuosl-cookbooks/osl-resources/blob/REK/Initial_PR/documentation/osl_systemd_unit_drop_in.md)
+- [osl_authorized_keys](documentation/osl_authorized_keys.md)
+- [osl_fakenic](documentation/osl_fakenic.md)
+- [osl_ifconfig](documentation/osl_ifconfig.md)
+- [osl_packagecloud_repo](documentation/osl_packagecloud_repo.md)
+- [osl_route](documentation/osl_route.md)
+- [osl_shell_alias](documentation/osl_shell_alias.md)
+- [osl_shell_environment](documentation/osl_shell_environment.md)
+- [osl_ssh_key](documentation/osl_ssh_key.md)
+- [osl_systemd_unit_drop_in](documentation/osl_systemd_unit_drop_in.md)
 
 ## Kitchen Dokken
 

@@ -2,16 +2,16 @@
 
 ## Actions
 
-- `add`: Adds a key to the specefied `dir_path`.
-- `remove`: Removes a key from the specefied `dir_path`.
+- `:add`: Adds a key to the specefied `dir_path`.
+- `:remove`: Removes a key from the specefied `dir_path`.
 
 ## Properties
 
 | Property   | Type   | Default          | Required | Description                                          |
 |------------|--------|------------------|----------|------------------------------------------------------|
-| `key_name` | String | None             | yes      | Key name (name property)                             |
-| `content`  | String | None             | [:add]   | The content of the `key_name` file                   |
-| `user`     | String | None             | yes      | The user who owns the `key_name` file at `dir_path`  |
+| `key_name` | String | Resource Name    | yes      | Key name                          |
+| `content`  | String |                  | [:add]   | The content of the `key_name` file                   |
+| `user`     | String |                  | yes      | The user who owns the `key_name` file at `dir_path`  |
 | `group`    | String | `user`           | no       | The group who owns the `key_name` file at `dir_path` |
 | `dir_path` | String | `/home/#{user}'` | no       | Path to the directory containing the `key_name` file |
 

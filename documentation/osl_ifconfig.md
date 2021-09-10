@@ -2,44 +2,44 @@
 
 ## Actions
 
-- `create`: Creates an interface (default action)
-- `delete`: Deletes an interface
-- `enable`: Deletes an interface
-- `disable`: Deletes an interface
+- `:create`: Creates an interface (default action)
+- `:delete`: Deletes an interface
+- `:enable`: Deletes an interface
+- `:disable`: Deletes an interface
 
 ## Properties
 
-| Property         | Type          | Default                     | Required | Description                                                     |
-|------------------|---------------|-----------------------------|----------|-----------------------------------------------------------------|
-| `bcast`          | String        | None                        | No       | ifcfg option (BROADCAST)                                        |
-| `bonding_opts`   | String        | None                        | No       | ifcfg option (BONDING_OPTS)                                     |
-| `bootproto`      | String        | None                        | No       | ifcfg option (BOOTPROTO)                                        |
-| `bridge`         | String        | None                        | No       | ifcfg option (BRIDGE)                                           |
-| `defroute`       | String        | None                        | No       | ifcfg option (DEFROUTE)                                         |
-| `delay`          | String        | None                        | No       | ifcfg option (DELAY)                                            |
-| `device`         | String        | None                        | identity | ifcfg option (DEVICE)                                           |
-| `ethtool_opts`   | String        | None                        | No       | ifcfg option (ETHTOOL_OPTS)                                     |
-| `force`          | true, false   | None                        | No       | Force enable or disable action if interface is in desired state |
-| `gateway`        | String        | None                        | No       | ifcfg option (GATEWAY)                                          |
-| `hwaddr`         | String        | None                        | No       | ifcfg option (HWADDR)                                           |
-| `ipv6addr`       | String        | None                        | No       | ifcfg option (IPV6ADDR)                                         |
-| `ipv6addrsec`    | Array         | None                        | No       | ifcfg option (IPV6ADDR_SECONDARIES)                             |
-| `ipv6_defaultgw` | String        | None                        | No       | ifcfg option (IPV6_DEFAULTGW)                                   |
-| `ipv6init`       | String        | None                        | No       | ifcfg option (IPV6INIT)                                         |
-| `mask`           | String        | None                        | No       | ifcfg option (NETMASK)                                          |
-| `master`         | String        | None                        | No       | ifcfg option (MASTER)                                           |
-| `metric`         | String        | None                        | No       | ifcfg option (METRIC)                                           |
-| `mtu`            | String        | None                        | No       | ifcfg option (MTU)                                              |
-| `network`        | String        | None                        | No       | Deprecated: ifcfg option (NETWORK)                              |
-| `nm_controlled`  | String        | 'yes' if centos 8 else 'no' | No       | ifcfg option (NM_CONTROLLED)                                    |
-| `onboot`         | String        | 'yes'                       | No       | ifcfg option (ONBOOT)                                           |
-| `onparent`       | String        | None                        | No       | ifcfg option (ONPARENT)                                         |
-| `peerdns`        | String        | 'no'                        | No       | ifcfg option (PEERDNS)                                          |
-| `slave`          | String        | None                        | No       | ifcfg option (SLAVE)                                            |
-| `target`         | String, Array | None                        | yes      | Device to target (Name Property)                                |
-| `type`           | String        | None                        | No       | ifcfg option (TYPE)                                             |
-| `userctl`        | String        | None                        | No       | ifcfg option (USERCTL)                                          |
-| `vlan`           | String        | None                        | No       | ifcfg option (VLAN)                                             |
+| Property         | Type          | Default                     | Required  | Description                                                     |
+|------------------|---------------|-----------------------------|-----------|-----------------------------------------------------------------|
+| `bcast`          | String        |                             | No        | ifcfg option (BROADCAST)                                        |
+| `bonding_opts`   | String        |                             | No        | ifcfg option (BONDING_OPTS)                                     |
+| `bootproto`      | String        |                             | No        | ifcfg option (BOOTPROTO)                                        |
+| `bridge`         | String        |                             | No        | ifcfg option (BRIDGE)                                           |
+| `defroute`       | String        |                             | No        | ifcfg option (DEFROUTE)                                         |
+| `delay`          | String        |                             | No        | ifcfg option (DELAY)                                            |
+| `device`         | String        |                             | :identity | ifcfg option (DEVICE)                                           |
+| `ethtool_opts`   | String        |                             | No        | ifcfg option (ETHTOOL_OPTS)                                     |
+| `force`          | true, false   |                             | No        | Force enable or disable action if interface is in desired state |
+| `gateway`        | String        |                             | No        | ifcfg option (GATEWAY)                                          |
+| `hwaddr`         | String        |                             | No        | ifcfg option (HWADDR)                                           |
+| `ipv6addr`       | String        |                             | No        | ifcfg option (IPV6ADDR)                                         |
+| `ipv6addrsec`    | Array         |                             | No        | ifcfg option (IPV6ADDR_SECONDARIES)                             |
+| `ipv6_defaultgw` | String        |                             | No        | ifcfg option (IPV6_DEFAULTGW)                                   |
+| `ipv6init`       | String        |                             | No        | ifcfg option (IPV6INIT)                                         |
+| `mask`           | String        |                             | No        | ifcfg option (NETMASK)                                          |
+| `master`         | String        |                             | No        | ifcfg option (MASTER)                                           |
+| `metric`         | String        |                             | No        | ifcfg option (METRIC)                                           |
+| `mtu`            | String        |                             | No        | ifcfg option (MTU)                                              |
+| `network`        | String        |                             | No        | Deprecated: ifcfg option (NETWORK)                              |
+| `nm_controlled`  | String        | 'yes' if centos 8 else 'no' | No        | ifcfg option (NM_CONTROLLED)                                    |
+| `onboot`         | String        | 'yes'                       | No        | ifcfg option (ONBOOT)                                           |
+| `onparent`       | String        |                             | No        | ifcfg option (ONPARENT)                                         |
+| `peerdns`        | String        | 'no'                        | No        | ifcfg option (PEERDNS)                                          |
+| `slave`          | String        |                             | No        | ifcfg option (SLAVE)                                            |
+| `target`         | String, Array | Resource Name               | yes       | Device to target                                                |
+| `type`           | String        |                             | No        | ifcfg option (TYPE)                                             |
+| `userctl`        | String        |                             | No        | ifcfg option (USERCTL)                                          |
+| `vlan`           | String        |                             | No        | ifcfg option (VLAN)                                             |
 
 ## ifcfg Config Options
 

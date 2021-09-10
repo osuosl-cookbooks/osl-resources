@@ -2,14 +2,14 @@
 
 ## Actions
 
-- `Add`: Adds a packagecloud repository.
-- `Remove`: Removes a packagecloud repository.
+- `:add`: Adds a packagecloud repository.
+- `:remove`: Removes a packagecloud repository.
 
 ## Properties
 
 | Property     | Type   | Default                   | Required | Description                            |
 |--------------|--------|---------------------------|----------|----------------------------------------|
-| `repository` | String | None                      | yes      | Name of the repository (name property) |
+| `repository` | String | Resource Name             | yes      | Name of the repository                 |
 | `base_url`   | String | [https://packagecloud.io] | no       | Base url of the repository.            |
 
 ## Examples

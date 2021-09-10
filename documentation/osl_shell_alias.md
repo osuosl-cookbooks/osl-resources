@@ -2,15 +2,15 @@
 
 ## Actions
 
-- `add`: Adds a command alias to /etc/profile.d/
-- `remove`: Removes a command alias from /etc/profile.d/
+- `:add`: Adds a command alias to /etc/profile.d/
+- `:remove`: Removes a command alias from /etc/profile.d/
 
 ## Properties
 
-| Property       | Type   | Default | Required | Description                                         |
-|----------------|--------|---------|----------|-----------------------------------------------------|
-| `alias_name`   | String | None    | yes      | Alias name (name property)                          |
-| `command`      | String | None    | [:add]   | Command to set the alias to (name property)         |
+| Property       | Type   | Default       | Required | Description                 |
+|----------------|--------|---------------|----------|-----------------------------|
+| `alias_name`   | String | Resource Name | yes      | Alias name                  |
+| `command`      | String |               | [:add]   | Command to set the alias to |
 
 ## Examples
 

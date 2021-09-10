@@ -2,18 +2,18 @@
 
 ## Actions
 
-- `create`: Creates a dummy interface (default action)
-- `delete`: Deletes a dummy interface
+- `:create`: Creates a dummy interface (default action)
+- `:delete`: Deletes a dummy interface
 
 ## Properties
 
-| Property       | Type          | Default | Required | Description                                         |
-|----------------|---------------|---------|----------|-----------------------------------------------------|
-| `interface`    | String        | None    | yes      | Name for the interface (name property)              |
-| `ip4`          | String, Array | None    | yes      | IPv4 address(s) to assign to the interface          |
-| `ip6`          | String, Array | none    | no       | IPv6 address(s) to assign to the interface          |
-| `mac_address`  | String        | none    | no       | Mac address to assign to the interface              |
-| `multicast`    | true, false   | false   | no       | Wether or not to enable multicast for the interface |
+| Property       | Type          | Default         | Required | Description                                         |
+|----------------|---------------|-----------------|----------|-----------------------------------------------------|
+| `interface`    | String        | Resource Name   | yes      | Name for the interface                              |
+| `ip4`          | String, Array |                 | yes      | IPv4 address(s) to assign to the interface          |
+| `ip6`          | String, Array |                 | no       | IPv6 address(s) to assign to the interface          |
+| `mac_address`  | String        |                 | no       | Mac address to assign to the interface              |
+| `multicast`    | true, false   | false           | no       | Wether or not to enable multicast for the interface |
 
 ## Examples
 

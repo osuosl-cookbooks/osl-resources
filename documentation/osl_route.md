@@ -2,15 +2,15 @@
 
 ## Actions
 
-- `Add`: Adds a route to the route table.
-- `Remove`: Removes a route from the route table.
+- `:add`: Adds a route to the route table.
+- `:remove`: Removes a route from the route table.
 
 ## Properties
 
-| Property     | Type   | Default | Required | Description                          |
-|--------------|--------|---------|----------|--------------------------------------|
-| `device`     | String | None    | yes      | The device to target (name property) |
-| `routes`     | Array  | None    | [:add]   | A Hash array of routes               |
+| Property     | Type   | Default       | Required | Description            |
+|--------------|--------|---------------|----------|------------------------|
+| `device`     | String | Resource Name | yes      | The device to target   |
+| `routes`     | Array  |               | [:add]   | A Hash array of routes |
 
 ## Examples
 

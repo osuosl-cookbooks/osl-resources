@@ -2,17 +2,17 @@
 
 ## Actions
 
-- `Add`: Adds a key from selected file.
-- `Remove`: Removes a key from selected file.
+- `:add`: Adds a key from selected file.
+- `:remove`: Removes a key from selected file.
 
 ## Properties
 
-| Property     | Type   | Default          | Required | Description                                                 |
-|--------------|--------|------------------|----------|-------------------------------------------------------------|
-| `key`        | String | None             | yes      | The ssh public key to be added (name property)              |
-| `user`       | String | None             | yes      | The user who owns the `authorized_keys` file at `dir_path`  |
-| `group`      | String | `user`           | no       | The group who owns the `authorized_keys` file at `dir_path` |
-| `dir_path`   | String | `/home/#{user}'` | no       | Path to the directory containing the `authorized_keys` file |
+| Property     | Type   | Default              | Required | Description                                                 |
+|--------------|--------|----------------------|----------|-------------------------------------------------------------|
+| `key`        | String | Resource Name        | yes      | The ssh public key to be added                              |
+| `user`       | String |                      | yes      | The user who owns the `authorized_keys` file at `dir_path`  |
+| `group`      | String | `user`               | no       | The group who owns the `authorized_keys` file at `dir_path` |
+| `dir_path`   | String | `/home/#{user}/.ssh` | no       | Path to the directory containing the `authorized_keys` file |
 
 ## Examples
 
