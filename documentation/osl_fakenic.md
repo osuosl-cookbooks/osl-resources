@@ -7,17 +7,17 @@
 
 ## Properties
 
-| Property       | Type          | Default         | Required | Description                                         |
-|----------------|---------------|-----------------|----------|-----------------------------------------------------|
-| `interface`    | String        | Resource Name   | yes      | Name for the interface                              |
-| `ip4`          | String, Array |                 | yes      | IPv4 address(s) to assign to the interface          |
-| `ip6`          | String, Array |                 | no       | IPv6 address(s) to assign to the interface          |
-| `mac_address`  | String        |                 | no       | Mac address to assign to the interface              |
-| `multicast`    | true, false   | false           | no       | Wether or not to enable multicast for the interface |
+| Property       | Type          | Default         | Required | Description                                          |
+|----------------|---------------|-----------------|----------|------------------------------------------------------|
+| `interface`    | String        | Resource Name   | yes      | Name for the interface                               |
+| `ip4`          | String, Array |                 | yes      | IPv4 address(s) to assign to the interface           |
+| `ip6`          | String, Array |                 |          | IPv6 address(s) to assign to the interface           |
+| `mac_address`  | String        |                 |          | Mac address to assign to the interface               |
+| `multicast`    | true, false   | false           |          | Whether or not to enable multicast for the interface |
 
 ## Examples
 
-Create dummy interface with minimum properties.
+Create dummy interface with minimum properties:
 
 ```ruby
 osl_fakenic 'eth2' do
@@ -28,7 +28,7 @@ osl_fakenic 'eth2' do
 end
 ```
 
-Create dummy interface with all properties.
+Create dummy interface with all properties:
 
 ```ruby
 osl_fakenic 'eth2' do
@@ -39,7 +39,7 @@ osl_fakenic 'eth2' do
 end
 ```
 
-Remove dummy interface.
+Remove dummy interface:
 
 ```ruby
   osl_fakenic 'eth2' do

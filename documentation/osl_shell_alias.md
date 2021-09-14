@@ -2,19 +2,19 @@
 
 ## Actions
 
-- `:add`: Adds a command alias to /etc/profile.d/
-- `:remove`: Removes a command alias from /etc/profile.d/
+- `:add`: Adds a command alias to `/etc/profile.d/`
+- `:remove`: Removes a command alias from `/etc/profile.d/`
 
 ## Properties
 
 | Property       | Type   | Default       | Required | Description                 |
 |----------------|--------|---------------|----------|-----------------------------|
 | `alias_name`   | String | Resource Name | yes      | Alias name                  |
-| `command`      | String |               | [:add]   | Command to set the alias to |
+| `command`      | String |               | `:add`   | Command to set the alias to |
 
 ## Examples
 
-Add an alias.
+Add an alias:
 
 ```ruby
 osl_shell_alias 'll' do
@@ -22,7 +22,7 @@ osl_shell_alias 'll' do
 end
 ```
 
-Remove an alias.
+Remove an alias:
 
 ```ruby
 osl_shell_alias 'remove' do

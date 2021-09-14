@@ -10,17 +10,17 @@
 | Property     | Type   | Default                   | Required | Description                            |
 |--------------|--------|---------------------------|----------|----------------------------------------|
 | `repository` | String | Resource Name             | yes      | Name of the repository                 |
-| `base_url`   | String | [https://packagecloud.io] | no       | Base url of the repository.            |
+| `base_url`   | String | `https://packagecloud.io` |          | Base url of the repository.            |
 
 ## Examples
 
-Add a packagecloud repo from default URL
+Add a packagecloud repo from default URL:
 
 ```ruby
 osl_packagecloud_repo 'varnishcache/varnish60lts'
 ```
 
-Remove a packagecloud repo
+Remove a packagecloud repo:
 
 ```ruby
 osl_packagecloud_repo 'varnishcache/varnish40' do
@@ -28,7 +28,7 @@ osl_packagecloud_repo 'varnishcache/varnish40' do
 end
 ```
 
-Add a packagecloud repo from non-default URL
+Add a packagecloud repo from non-default URL:
 
 ```ruby
 osl_packagecloud_repo 'varnishcache/varnish60lts' do

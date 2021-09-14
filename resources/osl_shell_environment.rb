@@ -23,7 +23,7 @@ action :add do
       # Do NOT modify this file by hand!
       #
       export #{new_resource.environment_variable}="#{new_resource.value}"
-      EOF
+    EOF
   end
 end
 

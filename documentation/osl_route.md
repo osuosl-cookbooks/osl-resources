@@ -10,11 +10,11 @@
 | Property     | Type   | Default       | Required | Description            |
 |--------------|--------|---------------|----------|------------------------|
 | `device`     | String | Resource Name | yes      | The device to target   |
-| `routes`     | Array  |               | [:add]   | A Hash array of routes |
+| `routes`     | Array  |               | `:add`   | A Hash array of routes |
 
 ## Examples
 
-Add a route.
+Add a route:
 
 ```ruby
 osl_route 'eth1' do
@@ -28,7 +28,7 @@ osl_route 'eth1' do
 end
 ```
 
-Remove a route.
+Remove a route:
 
 ```ruby
 osl_route 'eth3' do

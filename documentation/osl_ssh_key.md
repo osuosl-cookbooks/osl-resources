@@ -2,22 +2,22 @@
 
 ## Actions
 
-- `:add`: Adds a key to the specefied `dir_path`.
-- `:remove`: Removes a key from the specefied `dir_path`.
+- `:add`: Adds a key to the specified `dir_path`.
+- `:remove`: Removes a key from the specified `dir_path`.
 
 ## Properties
 
 | Property   | Type   | Default          | Required | Description                                          |
 |------------|--------|------------------|----------|------------------------------------------------------|
-| `key_name` | String | Resource Name    | yes      | Key name                          |
-| `content`  | String |                  | [:add]   | The content of the `key_name` file                   |
+| `key_name` | String | Resource Name    | yes      | Key name                                             |
+| `content`  | String |                  | `:add`   | The content of the `key_name` file                   |
 | `user`     | String |                  | yes      | The user who owns the `key_name` file at `dir_path`  |
-| `group`    | String | `user`           | no       | The group who owns the `key_name` file at `dir_path` |
-| `dir_path` | String | `/home/#{user}'` | no       | Path to the directory containing the `key_name` file |
+| `group`    | String | `user`           |          | The group who owns the `key_name` file at `dir_path` |
+| `dir_path` | String | `/home/#{user}'` |          | Path to the directory containing the `key_name` file |
 
 ## Examples
 
-Add a key with default properties.
+Add a key with default properties:
 
 ```ruby
 osl_ssh_key 'id_rsa' do
@@ -26,7 +26,7 @@ osl_ssh_key 'id_rsa' do
 end
 ```
 
-Add a key with non-default properties.
+Add a key with non-default properties:
 
 ```ruby
 osl_ssh_key 'id_ed25519' do
@@ -37,7 +37,7 @@ osl_ssh_key 'id_ed25519' do
 end
 ```
 
-Remove a key.
+Remove a key:
 
 ```ruby
 osl_ssh_key 'id_rsa' do

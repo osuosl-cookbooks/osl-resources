@@ -16,7 +16,7 @@ action :add do
       # Do NOT modify this file by hand!
       #
       alias #{new_resource.alias_name}="#{new_resource.command}"
-      EOF
+    EOF
   end
 end
 

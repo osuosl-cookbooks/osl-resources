@@ -85,6 +85,7 @@ osl_ifconfig 'eth2' do
   master 'bond0'
   slave 'yes'
   type 'dummy'
+  notifies :enable, 'osl_ifconfig[bond0]', :immediately
 end
 
 osl_ifconfig 'eth3' do
@@ -94,6 +95,7 @@ osl_ifconfig 'eth3' do
   master 'bond0'
   slave 'yes'
   type 'dummy'
+  notifies :enable, 'osl_ifconfig[bond0]', :immediately
 end
 
 osl_ifconfig 'eth4' do

@@ -9,15 +9,15 @@
 
 | Property          | Type           | Default          | Required  | Description                                                       |
 |-------------------|----------------|------------------|-----------|-------------------------------------------------------------------|
-| `override_name`   | String         | Resource Name    | yes       | Override file name                               |
-| `content`         | [String, Hash] |                  | [:create] | The content of the unit file (will be converted to INI if a Hash) |
+| `override_name`   | String         | Resource Name    | yes       | Override file name                                                |
+| `content`         | [String, Hash] |                  | `:create` | The content of the unit file (will be converted to INI if a Hash) |
 | `unit_name`       | String         |                  | yes       | The service name for the unit                                     |
-| `triggers_reload` | true, false    | true             | no        | Should this trigget a reload of the service                       |
-| `instance`        | String         | 'system'         | no        | `system` or `user` unit                                           |
+| `triggers_reload` | true, false    | true             |           | Should this trigger a reload of the service                       |
+| `instance`        | String         | 'system'         |           | `system` or `user` unit                                           |
 
 ## Examples
 
-Create a drop-in unit at `/etc/systemd/system/testing/default.conf`
+Create a drop-in unit at `/etc/systemd/system/testing/default.conf`:
 
 ```ruby
 osl_systemd_unit_drop_in 'default' do
@@ -34,7 +34,7 @@ osl_systemd_unit_drop_in 'default' do
 end
 ```
 
-Create a drop-in unit with heredoc
+Create a drop-in unit with heredoc:
 
 ```ruby
 osl_systemd_unit_drop_in 'default' do
@@ -51,14 +51,14 @@ osl_systemd_unit_drop_in 'default' do
 end
 ```
 
-Create a drop-in unit at `/etc/systemd/user/testing/default.conf`
+Create a drop-in unit at `/etc/systemd/user/testing/default.conf`:
 
 ```ruby
 osl_systemd_unit_drop_in 'default' do
   unit_name 'testing'
   instance 'user'
   content <<~EOF
-  [Unit]
+    [Unit]
     Key1=Val1
     Key2=Val2
 
@@ -68,7 +68,7 @@ osl_systemd_unit_drop_in 'default' do
 end
 ```
 
-Delete a drop-in unit
+Delete a drop-in unit:
 
 ```ruby
 osl_systemd_unit_drop_in 'default' do

@@ -43,4 +43,4 @@ suites are *expected* to fail when using dokken.
 
 ## License and Authors
 
-Authors: Open Source Lab
+Authors: Oregon State University

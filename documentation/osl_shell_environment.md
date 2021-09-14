@@ -2,23 +2,23 @@
 
 ## Actions
 
-- `:add`: Adds an environment variable to /etc/profile.d/
-- `:remove`: Removes an environment variable from /etc/profile.d/
+- `:add`: Adds an environment variable to `/etc/profile.d/`
+- `:remove`: Removes an environment variable from `/etc/profile.d/`
 
 ## Properties
 
 | Property               | Type   | Default              | Required | Description                                         |
 |------------------------|--------|----------------------|----------|-----------------------------------------------------|
 | `environment_variable` | String | Resource Name        | yes      | Variable name                                       |
-| `command`              | String |                      | [:add]   | Content to set the variable to                      |
-| `user`                 | String | 'root'               | no       | The user who owns the environment variable file     |
-| `group`                | String | 'root'               | no       | The group who owns the environment variable file    |
+| `command`              | String |                      | `:add`   | Content to set the variable to                      |
+| `user`                 | String | `root`               |          | The user who owns the environment variable file     |
+| `group`                | String | `root`               |          | The group who owns the environment variable file    |
 | `mode`                 | String |                      | yes      | The file permissions for the created shell file     |
-| `destination`          | String | '/etc/profile.d/'    | no       | The location to create the file at                  |
+| `destination`          | String | `/etc/profile.d/`    |          | The location to create the file at                  |
 
 ## Examples
 
-Add an alias.
+Add an alias:
 
 ```ruby
 osl_shell_alias 'll' do
@@ -26,7 +26,7 @@ osl_shell_alias 'll' do
 end
 ```
 
-Remove an alias.
+Remove an alias:
 
 ```ruby
 osl_shell_alias 'remove' do
