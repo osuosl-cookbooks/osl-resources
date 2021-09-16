@@ -1,0 +1,18 @@
+# route config file written by Chef
+<% @count = 0 %>
+<% @routes.each do |route| -%>
+<% if route[:address].nil? %>
+ADDRESS<%= @count %>=<%= route['address'] %>
+NETMASK<%= @count %>=<%= route['netmask'] %>
+<% unless route['gateway'].nil? %>
+GATEWAY<%= @count %>=<%= route['gateway'] %>
+<% end %>
+<% else %>
+ADDRESS<%= @count %>=<%= route[:address] %>
+NETMASK<%= @count %>=<%= route[:netmask] %>
+<% unless route[:gateway].nil? %>
+GATEWAY<%= @count %>=<%= route[:gateway] %>
+<% end %>
+<% end %>
+<% @count += 1 %>
+<% end %>

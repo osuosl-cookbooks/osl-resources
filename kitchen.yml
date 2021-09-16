@@ -1,32 +1,104 @@
 ---
-driver:
-  name: vagrant
-
-## The forwarded_port port feature lets you connect to ports on the VM guest via
-## localhost on the host.
-## see also: https://www.vagrantup.com/docs/networking/forwarded_ports
-
-#  network:
-#    - ["forwarded_port", {guest: 80, host: 8080}]
-
 provisioner:
   name: chef_zero
-
-  ## product_name and product_version specifies a specific Chef product and version to install.
-  ## see the Chef documentation for more details: https://docs.chef.io/workstation/config_yml_kitchen/
-  #  product_name: chef
-  #  product_version: 17
+  enforce_idempotency: true
+  multiple_converge: 2
+  deprecations_as_errors: true
 
 verifier:
   name: inspec
 
-platforms:
-  - name: ubuntu-20.04
-  - name: centos-8
-
 suites:
-  - name: default
-    verifier:
-      inspec_tests:
-        - test/integration/default
-    attributes:
+  - name: osl_authorized_keys
+    run_list:
+      - recipe[osl-resources-test::osl_authorized_keys]
+  - name: osl_authorized_keys_remove
+    run_list:
+      - recipe[osl-resources-test::osl_authorized_keys_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_fakenic
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_fakenic]
+  - name: osl_fakenic_delete
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_fakenic_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_ifconfig
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_ifconfig]
+  - name: osl_ifconfig_non_idempotent
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_ifconfig_non_idempotent]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_packagecloud_repo
+    run_list:
+      - recipe[osl-resources-test::osl_packagecloud_repo]
+  - name: osl_route
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_route]
+  - name: osl_route_remove
+    excludes:
+      - debian-10
+      - debian-11
+    run_list:
+      - recipe[osl-resources-test::osl_route_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_shell_alias
+    run_list:
+      - recipe[osl-resources-test::osl_shell_alias]
+  - name: osl_shell_alias_remove
+    run_list:
+      - recipe[osl-resources-test::osl_shell_alias_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_shell_environment
+    run_list:
+      - recipe[osl-resources-test::osl_shell_environment]
+  - name: osl_shell_environment_remove
+    run_list:
+      - recipe[osl-resources-test::osl_shell_environment_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_ssh_key
+    run_list:
+      - recipe[osl-resources-test::osl_ssh_key]
+  - name: osl_ssh_key_remove
+    run_list:
+      - recipe[osl-resources-test::osl_ssh_key_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_systemd_unit_drop_in
+    run_list:
+      - recipe[osl-resources-test::osl_systemd_unit_drop_in]
+  - name: osl_systemd_unit_drop_in_delete
+    run_list:
+      - recipe[osl-resources-test::osl_systemd_unit_drop_in_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
