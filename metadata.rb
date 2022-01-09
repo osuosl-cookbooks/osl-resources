@@ -12,5 +12,4 @@ depends          'line'
 
 supports         'centos', '~> 7.0'
 supports         'centos', '~> 8.0'
-supports         'debian', '~> 10.0'
 supports         'debian', '~> 11.0'

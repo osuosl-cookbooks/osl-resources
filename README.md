@@ -7,7 +7,7 @@ This is the osl-resources cookbook for the OSL unmanaged and managed hosts.
 The following platforms and versions are tested and supported using [test-kitchen](http://kitchen.ci/)
 
 - CentOS 7/8
-- Debian 10/11
+- Debian 11
 
 ## Resources
 
