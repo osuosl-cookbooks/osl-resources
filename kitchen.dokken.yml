@@ -28,13 +28,6 @@ platforms:
       image: dokken/centos-8
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: debian-10
-    driver:
-      image: dokken/debian-10
-      pid_one_command: /bin/systemd
-      intermediate_instructions:
-        - RUN /usr/bin/apt-get update
-
   - name: debian-11
     driver:
       image: dokken/debian-11
