@@ -1,0 +1,4 @@
+cookbook=osl-resources
+version=1.0.0
+envs=~
+pr_link=https://github.com/osuosl-cookbooks/osl-resources/pull/1

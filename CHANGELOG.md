@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.1.0 (2022-01-14)
+------------------
+- removing-support-debian-10
+
 1.0.0 (2021-09-16)
 ------------------
 - Initial PR
