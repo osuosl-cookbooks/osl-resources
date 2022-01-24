@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.1.1 (2022-01-24)
+------------------
+- Add support for Debian on osl_fakenic
+
 1.1.0 (2022-01-14)
 ------------------
 - removing-support-debian-10
