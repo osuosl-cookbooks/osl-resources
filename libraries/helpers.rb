@@ -26,6 +26,30 @@ module OSLResources
           IniParse.parse(content.to_s).to_s
         end
       end
+
+      def virtualbox_package_name
+        case node['platform_family']
+        when 'rhel'
+          'VirtualBox'
+        when 'debian'
+          'virtualbox'
+        end
+      end
+
+      def virtualbox_packages
+        case node['platform_family']
+        when 'rhel'
+          [
+            "kernel-devel-#{node['kernel']['release']}",
+            'elfutils-libelf-devel',
+          ]
+        when 'debian'
+          [
+            'libelf-dev',
+            "linux-headers-#{node['kernel']['release']}",
+          ]
+        end
+      end
     end
   end
 end
