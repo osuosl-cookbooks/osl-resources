@@ -92,3 +92,11 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_virtualbox
+    # TODO(ramereth): This isn't actually working with openstack but it's a
+    # start. Just rerun kitchen to continue this suite.
+    provisioner:
+      # use non-tmpfs temp dir for persistence across reboots
+      data_path: /var/tmp/kitchen
+    run_list:
+      - recipe[osl-resources-test::osl_virtualbox]
