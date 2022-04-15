@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.2.0 (2022-04-15)
+------------------
+- Add osl_virtualbox resource
+
 1.1.1 (2022-01-24)
 ------------------
 - Add support for Debian on osl_fakenic
