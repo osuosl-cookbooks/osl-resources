@@ -39,6 +39,7 @@ describe 'osl_packagecloud_repo' do
       is_expected.to add_apt_repository('virtualbox')
         .with(
           uri: 'https://download.virtualbox.org/virtualbox/debian',
+          ignore_failure: true,
           key: %w(
             https://www.virtualbox.org/download/oracle_vbox_2016.asc
             https://www.virtualbox.org/download/oracle_vbox.asc
