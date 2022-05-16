@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.2.1 (2022-05-16)
+------------------
+- Work around constant upstream issues pulling gpg keys
+
 1.2.0 (2022-04-15)
 ------------------
 - Add osl_virtualbox resource
