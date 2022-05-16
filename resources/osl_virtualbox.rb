@@ -17,6 +17,8 @@ action :install do
   apt_repository 'virtualbox' do
     components %w(contrib)
     uri 'https://download.virtualbox.org/virtualbox/debian'
+    # Work around constant upstream issues pulling gpg keys
+    ignore_failure true
     key %w(
       https://www.virtualbox.org/download/oracle_vbox_2016.asc
       https://www.virtualbox.org/download/oracle_vbox.asc
