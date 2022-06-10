@@ -88,7 +88,7 @@ end
 
 action :delete do
   file "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
-    content <<~EOF
+    content <<-EOF.gsub(/^\s+/, '')
       # ifcfg config file written by Chef
       DEVICE=#{new_resource.device}
       ONBOOT=no
