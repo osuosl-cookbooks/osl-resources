@@ -1,0 +1,16 @@
+Include "/etc/awstats/awstats.model.conf"
+LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl<%= "_ftp" if @ftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-chi<%= "_ftp" if @ftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-nyc<%= "_ftp" if @ftp %>/<%= @log_file %> |"
+SiteDomain="<%= @site_domain %>"
+<% unless @host_aliases.empty? -%>
+HostAliases="<%= @host_aliases.join(' ') %>"
+<% end -%>
+
+# Uses CustomLog vhost format
+LogFormat="%virtualname %host %other %logname %time1 %methodurl %code %bytesd %refererquot %uaquot %other"
+
+<% unless @only_files.empty? -%>
+OnlyFiles="<% @only_files.each do |file| %><%= file %> <% end %>"
+<% end -%>
+<% @options.each do |key, value| -%>
+<%= key %>=<%= value %>
+<% end %>
