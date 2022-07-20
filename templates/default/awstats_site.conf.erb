@@ -1,5 +1,5 @@
 Include "/etc/awstats/awstats.model.conf"
-LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl<%= "_ftp" if @ftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-chi<%= "_ftp" if @ftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-nyc<%= "_ftp" if @ftp %>/<%= @log_file %> |"
+LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl<%= "_ftp" if @vsftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-chi<%= "_ftp" if @vsftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-nyc<%= "_ftp" if @vsftp %>/<%= @log_file %> |"
 SiteDomain="<%= @site_domain %>"
 <% unless @host_aliases.empty? -%>
 HostAliases="<%= @host_aliases.join(' ') %>"
