@@ -1,9 +1,9 @@
-control 'osl_awstats_host' do
+control 'osl_awstats_site' do
   describe directory('/etc/awstats') do
     it { should exist }
   end
 
-  describe file('/etc/awstats/awstats.test.conf') do
+  describe file('/etc/awstats/awstats.test.osuosl.org.conf') do
     it { should exist }
     its('content') { should match %r{ftp-osl\/\*\.log} }
     its('content') { should match %r{ftp-nyc\/\*\.log} }
