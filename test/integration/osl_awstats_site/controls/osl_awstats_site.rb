@@ -21,4 +21,15 @@ control 'osl_awstats_site' do
     its('content') { should match /optionA=true/ }
     its('content') { should match /optionB=50/ }
   end
+
+  describe file('/etc/awstats/awstats.non-osl-mirror.example.com.conf') do
+    it { should exist }
+    its('content') { should match /LogFile="external-mirror\.log"/ }
+    its('content') { should match /SiteDomain="non-osl-mirror\.example\.com"/ }
+  end
+
+  describe file('/etc/awstats/awstats.date-append.osuosl.org.conf') do
+    it { should exist }
+    its('content') { should match /custom\.log-%YYYY-2%MM-2%DD-2/ }
+  end
 end
