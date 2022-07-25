@@ -16,3 +16,13 @@ osl_awstats_site 'test-full' do
     optionB: 50
   )
 end
+
+osl_awstats_site 'non-osl-mirror.example.com' do
+  use_osl_mirror false
+  log_file 'external-mirror.log'
+end
+
+osl_awstats_site 'date-append.osuosl.org' do
+  log_file 'custom.log'
+  append_date true
+end

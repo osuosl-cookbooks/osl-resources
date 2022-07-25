@@ -1,5 +1,13 @@
 Include "/etc/awstats/awstats.model.conf"
-LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl<%= "_ftp" if @vsftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-chi<%= "_ftp" if @vsftp %>/<%= @log_file %> /var/lib/awstats/logs/ftp-nyc<%= "_ftp" if @vsftp %>/<%= @log_file %> |"
+<% if @osl_mirror -%>
+  <% if @vsftp -%>
+LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl_ftp/<%= @log_file %> /var/lib/awstats/logs/ftp-chi_ftp/<%= @log_file %> /var/lib/awstats/logs/ftp-nyc_ftp/<%= @log_file %> |"
+  <% else -%>
+LogFile="/usr/share/awstats/tools/logresolvemerge.pl /var/lib/awstats/logs/ftp-osl/<%= @log_file %><%= @date_format if @append_date %> /var/lib/awstats/logs/ftp-chi/<%= @log_file %><%= @date_format if @append_date %> /var/lib/awstats/logs/ftp-nyc/<%= @log_file %><%= @date_format if @append_date %> |"
+  <% end -%>
+<% else -%>
+LogFile="<%= @log_file %>"
+<% end -%>
 SiteDomain="<%= @site_domain %>"
 <% unless @host_aliases.empty? -%>
 HostAliases="<%= @host_aliases.join(' ') %>"
