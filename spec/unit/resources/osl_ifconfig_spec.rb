@@ -60,6 +60,15 @@ describe 'osl_ifconfig' do
       action [:add, :delete]
     end
 
+    osl_ifconfig 'eth6' do
+      device 'eth6'
+      onboot 'yes'
+      bootproto 'static'
+      ipv6init 'yes'
+      ipv6_autoconf 'no'
+      type 'dummy'
+    end
+
     osl_ifconfig 'bond0' do
       target '172.16.20.10'
       mask '255.255.255.0'
@@ -117,6 +126,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
@@ -165,6 +175,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: 'fe80::2/64',
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: 'fe80::1/64',
             ipv6init: 'yes',
             mask: '255.255.255.0',
@@ -216,6 +227,7 @@ describe 'osl_ifconfig' do
               fe80::4/64
               fe80::5/64
             ),
+            ipv6_autoconf: nil,
             ipv6_defaultgw: 'fe80::1/64',
             ipv6init: 'yes',
             mask: nil,
@@ -290,6 +302,56 @@ describe 'osl_ifconfig' do
     end
 
     it do
+      is_expected.to create_template('/etc/sysconfig/network-scripts/ifcfg-eth6')
+        .with(
+          source: 'ifcfg.conf.erb',
+          cookbook: 'osl-resources',
+          owner: 'root',
+          group: 'root',
+          mode: '0640',
+          variables: {
+            bcast: nil,
+            bonding_opts: nil,
+            bootproto: 'static',
+            bridge: nil,
+            defroute: nil,
+            delay: nil,
+            device: 'eth6',
+            ethtool_opts: nil,
+            gateway: nil,
+            hwaddr: nil,
+            ipv6addr: nil,
+            ipv6addrsec: nil,
+            ipv6_autoconf: 'no',
+            ipv6_defaultgw: nil,
+            ipv6init: 'yes',
+            mask: nil,
+            master: nil,
+            metric: nil,
+            mtu: nil,
+            network: nil,
+            nm_controlled: 'no',
+            onboot: 'yes',
+            onparent: nil,
+            peerdns: 'no',
+            slave: nil,
+            target: 'eth6',
+            type: 'dummy',
+            userctl: nil,
+            vlan: nil,
+          }
+        )
+    end
+    it do
+      expect(chef_run.template('/etc/sysconfig/network-scripts/ifcfg-eth6')).to \
+        notify('execute[ifup eth6]').immediately
+    end
+
+    it do
+      expect(chef_run).to nothing_execute('ifup eth6')
+    end
+
+    it do
       is_expected.to create_template('/etc/sysconfig/network-scripts/ifcfg-bond0')
         .with(
           source: 'ifcfg.conf.erb',
@@ -310,6 +372,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: '255.255.255.0',
@@ -358,6 +421,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
@@ -406,6 +470,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
@@ -460,6 +525,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
@@ -508,6 +574,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: 'fe80::2/64',
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: 'fe80::1/64',
             ipv6init: 'yes',
             mask: '255.255.255.0',
@@ -559,6 +626,7 @@ describe 'osl_ifconfig' do
               fe80::4/64
               fe80::5/64
             ),
+            ipv6_autoconf: nil,
             ipv6_defaultgw: 'fe80::1/64',
             ipv6init: 'yes',
             mask: nil,
@@ -653,6 +721,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: '255.255.255.0',
@@ -701,6 +770,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
@@ -749,6 +819,7 @@ describe 'osl_ifconfig' do
             hwaddr: nil,
             ipv6addr: nil,
             ipv6addrsec: nil,
+            ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
             mask: nil,
