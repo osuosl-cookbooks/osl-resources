@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.2.2 (2022-08-19)
+------------------
+- Add ipv6_autoconf parameter to osl_ifconfig
+
 1.2.1 (2022-05-16)
 ------------------
 - Work around constant upstream issues pulling gpg keys
