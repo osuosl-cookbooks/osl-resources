@@ -17,6 +17,8 @@ osl_fakenic 'eth8' do
   multicast true
 end
 
+osl_fakenic 'eth9'
+
 osl_ifconfig 'eth1' do
   target ''
   bootproto 'none'
@@ -125,6 +127,16 @@ osl_ifconfig 'eth5' do
     fe80::5/64
   )
   ipv6_defaultgw 'fe80::1/64'
+  nm_controlled 'yes'
+  type 'dummy'
+end
+
+osl_ifconfig '172.16.50.11' do
+  device 'eth9'
+  onboot 'yes'
+  bootproto 'static'
+  ipv6init 'yes'
+  ipv6_autoconf 'no'
   nm_controlled 'yes'
   type 'dummy'
 end

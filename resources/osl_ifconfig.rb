@@ -18,6 +18,7 @@ property :gateway, String
 property :hwaddr, String
 property :ipv6addr, String
 property :ipv6addrsec, Array
+property :ipv6_autoconf, String
 property :ipv6_defaultgw, String
 property :ipv6init, String
 property :mask, String
@@ -61,6 +62,7 @@ action :add do
       hwaddr: new_resource.hwaddr,
       ipv6addr: new_resource.ipv6addr,
       ipv6addrsec: new_resource.ipv6addrsec,
+      ipv6_autoconf: new_resource.ipv6_autoconf,
       ipv6_defaultgw: new_resource.ipv6_defaultgw,
       ipv6init: new_resource.ipv6init,
       mask: new_resource.mask,
