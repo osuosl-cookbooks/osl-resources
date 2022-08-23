@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.2.3 (2022-08-23)
+------------------
+- Use a short checksum of the key name for resource names
+
 1.2.2 (2022-08-19)
 ------------------
 - Add ipv6_autoconf parameter to osl_ifconfig
