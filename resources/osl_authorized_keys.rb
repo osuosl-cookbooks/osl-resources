@@ -17,7 +17,7 @@ action :add do
     recursive true
   end
 
-  line_append_if_no_line "#{new_resource.user}-#{new_resource.key}" do
+  line_append_if_no_line "#{new_resource.user}-#{key_sha}" do
     path "#{new_resource.dir_path}/authorized_keys"
     line new_resource.key
     owner new_resource.user
@@ -27,7 +27,7 @@ action :add do
 end
 
 action :remove do
-  line_delete_lines "#{new_resource.user}-#{new_resource.key}" do
+  line_delete_lines "#{new_resource.user}-#{key_sha}" do
     path "#{new_resource.dir_path}/authorized_keys"
     pattern "^#{new_resource.key}$"
   end
@@ -40,5 +40,15 @@ action :remove do
   directory new_resource.dir_path do
     action :delete
     only_if { ::Dir.empty?(new_resource.dir_path) }
+  end
+end
+
+action_class do
+  require 'digest/sha1'
+
+  private
+
+  def key_sha
+    Digest::SHA1.hexdigest(new_resource.key)[0, 8]
   end
 end
