@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.2.4 (2022-08-26)
+------------------
+- Migrate osl_local_ipv4? and osl_local_ipv6? methods from base cookbook
+
 1.2.3 (2022-08-23)
 ------------------
 - Use a short checksum of the key name for resource names
