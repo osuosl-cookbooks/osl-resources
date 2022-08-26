@@ -13,7 +13,7 @@ property :append_date, [true, false], default: false
 property :date_format, String, default: '-%YYYY-2%MM-2%DD-2'
 property :only_files, Array, default: []
 property :vsftp_logs, [true, false], default: false
-property :use_osl_mirror, [true, false], default: true
+property :use_osl_mirror, [true, false], default: false
 property :options, Hash, default: {}
 
 action :create do
