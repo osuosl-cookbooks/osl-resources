@@ -18,6 +18,9 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_awstats_site
+    run_list:
+      - recipe[osl-resources-test::osl_awstats_site]
   - name: osl_fakenic
     run_list:
       - recipe[osl-resources-test::osl_fakenic]
