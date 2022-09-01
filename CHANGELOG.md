@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.3.0 (2022-09-01)
+------------------
+- Added osl_awstats_host
+
 1.2.4 (2022-08-26)
 ------------------
 - Migrate osl_local_ipv4? and osl_local_ipv6? methods from base cookbook
