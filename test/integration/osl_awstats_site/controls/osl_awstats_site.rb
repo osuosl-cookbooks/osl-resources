@@ -30,6 +30,6 @@ control 'osl_awstats_site' do
 
   describe file('/etc/awstats/awstats.date-append.osuosl.org.conf') do
     it { should exist }
-    its('content') { should match /custom\.log-%YYYY-2%MM-2%DD-2/ }
+    its('content') { should match /custom-%YYYY-2%MM-2%DD-2\.log/ }
   end
 end
