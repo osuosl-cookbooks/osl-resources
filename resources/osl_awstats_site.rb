@@ -11,19 +11,7 @@ property :date_format, String, default: '-%YYYY-2%MM-2%DD-2'
 property :vsftp_logs, [true, false], default: false
 property :site_domain, [String, Array], name_property: true
 property :host_aliases, [String, Array], default: ''
-property :log_format, String, default: %w(
-  %virtualname
-  %host
-  %other
-  %logname
-  %time1
-  %methodurl
-  %code
-  %bytesd
-  %refererquot
-  %uaquot
-  %other
-).join(' ')
+property :log_format, [String, Array], default: lazy { awstats_default_log_format }
 property :only_files, [String, Array], default: []
 property :use_osl_mirror, [true, false], default: false
 property :options, Hash, default: {}
@@ -61,24 +49,12 @@ action :create do
       log_file.concat(new_resource.log_ext)
     end
 
-    # Determine the site domain parameter
-    site_domain = new_resource.site_domain
-    site_domain = site_domain.join(' ') if site_domain.is_a?(Array)
-
-    # Determine the host aliases parameter
-    host_aliases = new_resource.host_aliases
-    host_aliases = host_aliases.join(' ') if host_aliases.is_a?(Array)
-
-    # Determine the only files parameter
-    only_files = new_resource.only_files
-    only_files = only_files.join(' ') if only_files.is_a?(Array)
-
     variables(
       log_file: log_file,
-      site_domain: site_domain,
-      host_aliases: host_aliases,
-      log_format: new_resource.log_format,
-      only_files: only_files,
+      site_domain: array_to_string(new_resource.site_domain),
+      host_aliases: array_to_string(new_resource.host_aliases),
+      log_format: array_to_string(new_resource.log_format),
+      only_files: array_to_string(new_resource.only_files),
       options: new_resource.options
     )
   end
