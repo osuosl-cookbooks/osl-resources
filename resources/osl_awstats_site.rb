@@ -24,7 +24,6 @@ action :create do
     source 'awstats_site.conf.erb'
 
     # Determine the log file parameter
-    log_file = ''
     if new_resource.use_osl_mirror
       log_file = '/usr/share/awstats/tools/logresolvemerge.pl '
       dir_base = '/var/lib/awstats/logs/ftp-'
