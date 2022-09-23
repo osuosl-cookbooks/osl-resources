@@ -13,6 +13,22 @@ osl_awstats_site 'test-full' do
   site_domain 'test-full.osuosl.org'
   host_aliases 'test.osuosl.org'
   log_file 'full'
+  log_format %w(
+    %time3
+    %other
+    %host
+    %bytesd
+    %url
+    %other
+    %other
+    %method
+    %other
+    %logname
+    %other
+    %code
+    %other
+    %other
+  )
   vsftp_logs true
   options(
     optionA: true,
