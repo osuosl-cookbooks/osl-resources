@@ -100,6 +100,26 @@ module OSLResources
           '2605:bc80:3010::/48',
         ]
       end
+
+      def awstats_default_log_format
+        %w(
+          %virtualname
+          %host
+          %other
+          %logname
+          %time1
+          %methodurl
+          %code
+          %bytesd
+          %refererquot
+          %uaquot
+          %other
+        )
+      end
+
+      def array_to_string(val)
+        val.is_a?(Array) ? val.join(' ') : val
+      end
     end
   end
 end
