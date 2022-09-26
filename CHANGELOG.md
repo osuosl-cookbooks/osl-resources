@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.3.1 (2022-09-26)
+------------------
+- Improved awstats_site resource
+
 1.3.0 (2022-09-01)
 ------------------
 - Added osl_awstats_host
