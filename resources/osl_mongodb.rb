@@ -12,7 +12,7 @@ action :install do
     gpgkey 'https://www.mongodb.org/static/pgp/server-6.0.asc'
   end
 
-  package mongodb-org
+  package 'mongodb-org'
 
   template '/etc/mongod.conf' do
     source 'mongod.erb'
