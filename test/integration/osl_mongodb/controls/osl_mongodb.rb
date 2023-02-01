@@ -1,5 +1,5 @@
 control 'osl_mongodb' do
-  describe yum.repo('') do
+  describe yum.repo('mongodb-org') do
     it { should exist }
     its('baseurl') { should cmp 'https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/6.0/x86_64/' }
     it { should be_enabled }
