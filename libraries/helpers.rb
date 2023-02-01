@@ -4,6 +4,29 @@ module OSLResources
       require 'ipaddr'
       require 'iniparse'
 
+      def osl_systemd_unit_enabled?(unit)
+        require 'mixlib/shellout'
+        begin
+          unit_status = Mixlib::ShellOut.new("/bin/systemctl is-enabled #{unit}")
+          unit_status.run_command
+          unit_status.error!
+
+          if unit_status.stdout.match(/enabled/)
+            true
+          else
+            false
+          end
+        rescue Mixlib::ShellOut::ShellCommandFailed
+          false
+        end
+      end
+
+      # TODO: Workaround the following upstream issue:
+      # https://github.com/chef/chef/issues/11742
+      def osl_systemd_unit_enable(unit)
+        execute "systemctl enable #{unit}" unless osl_systemd_unit_enabled?(unit)
+      end
+
       # osl_ifconfig helpers
       def default_nm_controlled
         node['platform_version'].to_i >= 8 ? 'yes' : 'no'
@@ -79,6 +102,43 @@ module OSLResources
       end
 
       private
+
+      def dnsdist_servers(servers)
+        s = {}
+        servers.each do |server, option|
+          i = ["address='#{server}'"]
+          option.each do |opt, val|
+            if val.instance_of?(String)
+              i.push "#{opt}='#{val}'"
+            else
+              i.push "#{opt}=#{val}"
+            end
+          end
+          s[server] = i.sort.join(', ')
+        end
+        s
+      end
+
+      def dnsdist_netmask_groups
+        nmg = []
+        if new_resource.netmask_groups
+          new_resource.netmask_groups.sort.each do |name, networks|
+            nmg.push "#{name} = newNMG()"
+            networks.sort.each do |network|
+              nmg.push "#{name}:addMask('#{network}')"
+            end
+          end
+        end
+        nmg.join("\n")
+      end
+
+      def dnsdist_service
+        "dnsdist@#{new_resource.name}.service"
+      end
+
+      def dnsdist_ver
+        new_resource.version.gsub('.', '')
+      end
 
       def osl_local_ip
         # These are local to the OSU campus

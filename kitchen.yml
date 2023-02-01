@@ -8,6 +8,9 @@ provisioner:
 verifier:
   name: inspec
 
+driver:
+  flavor_ref: "m1.medium"
+
 suites:
   - name: osl_authorized_keys
     run_list:
@@ -21,6 +24,11 @@ suites:
   - name: osl_awstats_site
     run_list:
       - recipe[osl-resources-test::osl_awstats_site]
+  - name: osl_dnsdist
+    run_list:
+      - recipe[osl-resources-test::osl_dnsdist]
+    excludes:
+      - debian-11
   - name: osl_fakenic
     run_list:
       - recipe[osl-resources-test::osl_fakenic]
