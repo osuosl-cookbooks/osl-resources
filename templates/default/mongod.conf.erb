@@ -1,0 +1,11 @@
+# mongodb config file written by Chef
+net:
+  port: "<%= @port %>"
+  bindIp: "<%= @bindIp %>"
+storage:
+  dbPath: "<%= @data_dir %>"
+systemLog:
+  destination: "<%= @log_dest %>"
+<% if not @log_path.nil? -%>
+  path: "<%= @log_path %>"
+<% end -%>
