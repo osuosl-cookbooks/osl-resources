@@ -1,7 +1,8 @@
 # mongodb config file written by Chef
 net:
   port: "<%= @port %>"
-  bindIp: "<%= @bindIp %>"
+  bindIp: "<%= @bind_ip %>"
+  maxIncomingconnections: <%= @max_connections %>
 storage:
   dbPath: "<%= @data_dir %>"
 systemLog:

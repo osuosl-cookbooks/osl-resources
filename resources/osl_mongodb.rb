@@ -10,7 +10,8 @@ property :data_dir, String, default: '/var/lib/mongo'
 property :log_dest, %w(syslog file), default: 'syslog'
 property :log_path, String
 property :port, String, default: '27017'
-property :bind_ip, String, default: 'localhost'
+property :bind_ip, String, default: '127.0.0.1'
+property :max_connections, Integer, default: 51200
 
 action :install do
   yum_repository 'mongodb-org' do
@@ -31,7 +32,6 @@ action :install do
     secontext 'mongod_port_t'
   end
 =end
-
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
     cookbook 'osl-resources'
@@ -48,6 +48,10 @@ action :install do
     notifies :restart, 'service[mongod]', :immediately
   end
 
+  sysctl 'vm.max_map_count' do
+    value "#{new_resource.max_connections * 2}"
+  end
+  
   service 'mongod' do
     action [ :enable, :start ]
   end

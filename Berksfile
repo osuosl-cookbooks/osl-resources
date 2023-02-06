@@ -6,5 +6,6 @@ cookbook 'osl-gpu', git: 'git@github.com:osuosl-cookbooks/osl-gpu', branch: 'mai
 cookbook 'osl-repos', git: 'git@github.com:osuosl-cookbooks/osl-repos'
 
 cookbook 'osl-resources-test', path: 'test/fixtures/cookbooks/osl-resources-test'
+cookbook 'osl-selinux', git: 'git@github.com:osuosl-cookbooks/osl-selinux.git'
 
 metadata
