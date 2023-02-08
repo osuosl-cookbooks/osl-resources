@@ -1,7 +1,7 @@
 control 'osl_mongodb' do
   describe yum.repo('mongodb-org') do
     it { should exist }
-    its('baseurl') { should cmp /https:\/\/repo\.mongodb\.org\/yum\/redhat\/\$releasever\/mongodb-org\/[0-9]+\.[0-9]\/.+/ }
+    its('baseurl') { should cmp /https:\/\/repo\.mongodb\.org\/yum\/redhat\/[0-9]+\/mongodb-org\/[0-9]+\.[0-9]\/.+/ }
     it { should be_enabled }
   end
 
@@ -33,7 +33,7 @@ control 'osl_mongodb' do
   end
 
    describe file('/etc/sysctl.d/99-chef-vm.max_map_count.conf') do
-    its('content') { should cmp /vm\.max_map_count=[0-9]+/ }
+    its('content') { should cmp /vm\.max_map_count = [0-9]+/ }
   end
 
   describe service('mongod') do
@@ -56,7 +56,7 @@ control 'osl_mongodb' do
     its('group') { should cmp 'mongod' }
   end
 
-  describe file('/var/lib/mongodb') do
+  describe file('/var/log/mongodb/mongod.log') do
     it { should exist }
     its('owner') { should cmp 'mongod' }
     its('group') { should cmp 'mongod' }
