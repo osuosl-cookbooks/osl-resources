@@ -2,7 +2,9 @@
 net:
   port: "<%= @port %>"
   bindIp: "<%= @bind_ip %>"
-  maxIncomingconnections: <%= @max_connections %>
+  maxIncomingConnections: <%= @max_connections %>
+processManagement:  
+  pidFilePath: "/var/run/mongodb/mongod.pid"
 storage:
   dbPath: "<%= @data_dir %>"
 systemLog:

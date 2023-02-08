@@ -35,15 +35,16 @@ action :install do
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
     cookbook 'osl-resources'
-    owner 'root'
-    group 'root'
+    owner 'mongod'
+    group 'mongod'
     mode '0644'
     variables(
       data_dir: new_resource.data_dir,
       log_dest: new_resource.log_dest,
       log_path: new_resource.log_path,
       port: new_resource.port,
-      bind_ip: new_resource.bind_ip
+      bind_ip: new_resource.bind_ip,
+      max_connections: new_resource.max_connections
     )
     notifies :restart, 'service[mongod]', :immediately
   end
