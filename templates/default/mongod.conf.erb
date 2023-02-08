@@ -1,14 +1,17 @@
 # mongodb config file written by Chef
 net:
-  port: "<%= @port %>"
-  bindIp: "<%= @bind_ip %>"
+  port: <%= @port %>
+  bindIp: <%= @bind_ip %>
   maxIncomingConnections: <%= @max_connections %>
-processManagement:  
-  pidFilePath: "/var/run/mongodb/mongod.pid"
+processManagement:
+  fork: true
+  pidFilePath: /var/run/mongodb/mongod.pid
+  timeZoneInfo: /usr/share/zoneinfo
 storage:
-  dbPath: "<%= @data_dir %>"
+  dbPath: <%= @data_dir %>
+  journal:
+    enabled: true
 systemLog:
-  destination: "<%= @log_dest %>"
-<% if not @log_path.nil? -%>
-  path: "<%= @log_path %>"
-<% end -%>
+  destination: <%= @log_dest %>
+  logAppend: true
+  path: <%= @log_path %>

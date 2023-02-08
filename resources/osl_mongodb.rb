@@ -7,8 +7,8 @@ default_action :install
 property :version, String, default: '6.0'
 property :install_selinux_policy, [true, false], default: true
 property :data_dir, String, default: '/var/lib/mongo'
-property :log_dest, %w(syslog file), default: 'syslog'
-property :log_path, String
+property :log_dest, %w(syslog file), default: 'file'
+property :log_path, String, default: '/var/log/mongodb/mongod.log'
 property :port, String, default: '27017'
 property :bind_ip, String, default: '127.0.0.1'
 property :max_connections, Integer, default: 51200
@@ -20,7 +20,8 @@ action :install do
     gpgkey "https://www.mongodb.org/static/pgp/server-#{new_resource.version}.asc"
   end
 
-  package 'mongodb-org'
+package 'mongodb-org'
+include_recipe 'osl-selinux'
 
 =begin
   selinux_install 'mongodb-selinux' do
@@ -57,7 +58,7 @@ action :install do
     action [ :enable, :start ]
   end
 
-  file "#{new_resource.data_dir}" do
+  directory "#{new_resource.data_dir}" do
     owner 'mongod'
     group 'mongod'
   end
@@ -65,6 +66,5 @@ action :install do
   file "#{new_resource.log_path}" do
     owner 'mongod'
     group 'mongod'
-    not_if { new_resource.log_path.nil? }
   end
 end
