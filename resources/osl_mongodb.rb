@@ -20,19 +20,9 @@ action :install do
     gpgkey "https://www.mongodb.org/static/pgp/server-#{new_resource.version}.asc"
   end
 
-package 'mongodb-org'
-include_recipe 'osl-selinux'
+  package 'mongodb-org'
+  include_recipe 'osl-selinux'
 
-=begin
-  selinux_install 'mongodb-selinux' do
-    only_if { "#{new_resource.install_selinux_policy}" }
-  end
-
-  selinux_port "#{new_resource.port}" do
-    protocol 'tcp'
-    secontext 'mongod_port_t'
-  end
-=end
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
     cookbook 'osl-resources'
@@ -53,7 +43,7 @@ include_recipe 'osl-selinux'
   sysctl 'vm.max_map_count' do
     value "#{new_resource.max_connections * 2}"
   end
-  
+
   service 'mongod' do
     action [ :enable, :start ]
   end
@@ -61,6 +51,7 @@ include_recipe 'osl-selinux'
   directory "#{new_resource.data_dir}" do
     owner 'mongod'
     group 'mongod'
+    recursive true
   end
 
   file "#{new_resource.log_path}" do
