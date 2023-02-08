@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'osl_packagecloud_repo' do
+describe 'osl_virtualbox' do
   recipe do
     osl_virtualbox '6.1'
   end

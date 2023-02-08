@@ -4,12 +4,12 @@ unified_mode true
 
 default_action :install
 
-property :version, String, default: '6.0'
+property :version, String, name_property: true
 property :install_selinux_policy, [true, false], default: true
 property :data_dir, String, default: '/var/lib/mongo'
 property :log_dest, %w(syslog file), default: 'file'
 property :log_path, String, default: '/var/log/mongodb/mongod.log'
-property :port, String, default: '27017'
+property :port, Integer, default: 27017
 property :bind_ip, String, default: '127.0.0.1'
 property :max_connections, Integer, default: 51200
 

@@ -1,2 +1,1 @@
-osl_mongodb '5.0' do
-end
+osl_mongodb '6.0'
