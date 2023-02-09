@@ -9,6 +9,10 @@ control 'osl_mongodb' do
     it { should be_installed }
   end
 
+  describe directory('/etc/selinux') do
+    it { should exist }
+  end
+
   describe file('/etc/mongod.conf') do
     it { should exist }
     its('owner') { should cmp 'mongod' }

@@ -56,7 +56,6 @@ suites:
       - debian-11
     run_list:
       - recipe[osl-resources-test::osl_mongodb]
-      - recipe[osl-selinux::default]
   - name: osl_packagecloud_repo
     run_list:
       - recipe[osl-resources-test::osl_packagecloud_repo]

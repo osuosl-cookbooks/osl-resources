@@ -9,8 +9,6 @@ describe 'osl_mongodb' do
     osl_mongodb '6.0'
   end
 
-  it { is_expected.to include_recipe('osl-selinux') }
-
   it do
     is_expected.to create_yum_repository('mongodb-org-6.0')
       .with(
@@ -35,7 +33,7 @@ describe 'osl_mongodb' do
           data_dir: '/var/lib/mongo',
           log_dest: 'file',
           log_path: '/var/log/mongodb/mongod.log',
-          port: 80,
+          port: 27017,
           bind_ip: '127.0.0.1',
           max_connections: 51200,
         }
@@ -76,16 +74,6 @@ describe 'osl_mongodb' do
     end
   end
 
-  context 'install_selinux_policy false' do
-    recipe do
-      osl_mongodb '6.0' do
-        install_selinux_policy false
-      end
-    end
-
-    it { is_expected.to_not include_recipe('osl-selinux') }
-  end
-
   context 'data_dir /var/lib/mongo2' do
     recipe do
       osl_mongodb '6.0' do
@@ -105,7 +93,7 @@ describe 'osl_mongodb' do
             data_dir: '/var/lib/mongo2',
             log_dest: 'file',
             log_path: '/var/log/mongodb/mongod.log',
-            port: 80,
+            port: 27017,
             bind_ip: '127.0.0.1',
             max_connections: 51200,
           }
@@ -140,7 +128,7 @@ describe 'osl_mongodb' do
           variables: {
             data_dir: '/var/lib/mongo',
             log_dest: 'syslog',
-            port: 80,
+            port: 27017,
             bind_ip: '127.0.0.1',
             max_connections: 51200,
           }
@@ -148,5 +136,122 @@ describe 'osl_mongodb' do
     end
 
     it { is_expected.to_not create_file('/var/log/mongodb/mongod.log') }
+  end
+
+  context 'log_path /var/log/mongodb/mongod2.log' do
+    recipe do
+      osl_mongodb '6.0' do
+        log_path '/var/log/mongodb/mongod2.log'
+      end
+    end
+
+    it do
+      is_expected.to create_template('/etc/mongod.conf')
+        .with(
+          source: 'mongod.erb',
+          cookbook: 'osl-resources',
+          owner: 'mongod',
+          group: 'mongod',
+          mode: '0644',
+          variables: {
+            data_dir: '/var/lib/mongo',
+            log_dest: 'file',
+            log_path: '/var/log/mongodb/mongod2.log',
+            port: 27017,
+            bind_ip: '127.0.0.1',
+            max_connections: 51200,
+          }
+        )
+    end
+
+    it do
+      is_expected.to_not create_directory('var/log/mongodb/mongod.log')
+      is_expected.to create_directory('/var/lib/mongodb/mongod2.log')
+        .with(
+          owner: mongod,
+          group: mongod
+        )
+    end
+  end
+
+  context 'port 27072' do
+    recipe do
+      osl_mongodb '6.0' do
+        port 27072
+      end
+    end
+
+    it do
+      is_expected.to create_template('/etc/mongod.conf')
+        .with(
+          source: 'mongod.erb',
+          cookbook: 'osl-resources',
+          owner: 'mongod',
+          group: 'mongod',
+          mode: '0644',
+          variables: {
+            data_dir: '/var/lib/mongo',
+            log_dest: 'file',
+            log_path: '/var/log/mongodb/mongod.log',
+            port: 27072,
+            bind_ip: '127.0.0.1',
+            max_connections: 51200,
+          }
+        )
+    end
+  end
+
+  context 'bind_ip 0.0.0.0' do
+    recipe do
+      osl_mongodb '6.0' do
+        bind_ip '0.0.0.0'
+      end
+    end
+
+    it do
+      is_expected.to create_template('/etc/mongod.conf')
+        .with(
+          source: 'mongod.erb',
+          cookbook: 'osl-resources',
+          owner: 'mongod',
+          group: 'mongod',
+          mode: '0644',
+          variables: {
+            data_dir: '/var/lib/mongo',
+            log_dest: 'file',
+            log_path: '/var/log/mongodb/mongod.log',
+            port: 27017,
+            bind_ip: '0.0.0.0',
+            max_connections: 51200,
+          }
+        )
+    end
+  end
+
+  context 'max_connections 102400' do
+    recipe do
+      osl_mongodb '6.0' do
+        max_connections 102400
+      end
+    end
+
+    it do
+      is_expected.to create_template('/etc/mongod.conf')
+        .with(
+          source: 'mongod.erb',
+          cookbook: 'osl-resources',
+          owner: 'mongod',
+          group: 'mongod',
+          mode: '0644',
+          variables: {
+            data_dir: '/var/lib/mongo',
+            log_dest: 'file',
+            log_path: '/var/log/mongodb/mongod.log',
+            port: 27017,
+            bind_ip: '127.0.0.1',
+            max_connections: 102400,
+          }
+        )
+    end
   end
 end
