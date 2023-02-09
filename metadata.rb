@@ -9,6 +9,7 @@ description      'Holds base resources for the OSUOSL'
 version          '1.3.1'
 
 depends          'line'
+depends          'osl-repos'
 
 supports         'centos', '~> 7.0'
 supports         'centos_stream', '~> 8.0'
