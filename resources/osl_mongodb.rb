@@ -21,7 +21,10 @@ action :install do
   end
 
   package 'mongodb-org'
-  include_recipe 'osl-selinux'
+
+  if install_selinux_policy
+    include_recipe 'osl-selinux'
+  end
 
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
@@ -57,5 +60,6 @@ action :install do
   file "#{new_resource.log_path}" do
     owner 'mongod'
     group 'mongod'
+    only_if { log_dest == 'file' }
   end
 end
