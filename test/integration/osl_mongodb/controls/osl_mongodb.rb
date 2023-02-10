@@ -9,14 +9,10 @@ control 'osl_mongodb' do
     it { should be_installed }
   end
 
-  describe directory('/etc/selinux') do
-    it { should exist }
-  end
-
   describe file('/etc/mongod.conf') do
     it { should exist }
-    its('owner') { should cmp 'mongod' }
-    its('group') { should cmp 'mongod' }
+    its('owner') { should cmp 'root' }
+    its('group') { should cmp 'root' }
     its('mode') { should cmp '0644' }
     its('content') { should cmp /net:/ }
     its('content') { should cmp /port: [0-9]+/ }
@@ -34,10 +30,6 @@ control 'osl_mongodb' do
     its('content') { should cmp /destination: .+/ }
     its('content') { should cmp /logAppend: [false|true]/ }
     its('content') { should cmp /path: .+/ }
-  end
-
-  describe file('/etc/sysctl.d/99-chef-vm.max_map_count.conf') do
-    its('content') { should cmp /vm\.max_map_count = [0-9]+/ }
   end
 
   describe service('mongod') do

@@ -35,7 +35,7 @@ describe 'osl_mongodb' do
           log_path: '/var/log/mongodb/mongod.log',
           port: 27017,
           bind_ip: '127.0.0.1',
-          max_connections: 51200,
+          max_connections: 65536,
         }
       )
   end
@@ -95,7 +95,7 @@ describe 'osl_mongodb' do
             log_path: '/var/log/mongodb/mongod.log',
             port: 27017,
             bind_ip: '127.0.0.1',
-            max_connections: 51200,
+            max_connections: 65536,
           }
         )
     end
@@ -130,7 +130,7 @@ describe 'osl_mongodb' do
             log_dest: 'syslog',
             port: 27017,
             bind_ip: '127.0.0.1',
-            max_connections: 51200,
+            max_connections: 65536,
           }
         )
     end
@@ -159,7 +159,7 @@ describe 'osl_mongodb' do
             log_path: '/var/log/mongodb/mongod2.log',
             port: 27017,
             bind_ip: '127.0.0.1',
-            max_connections: 51200,
+            max_connections: 65536,
           }
         )
     end
@@ -195,7 +195,7 @@ describe 'osl_mongodb' do
             log_path: '/var/log/mongodb/mongod.log',
             port: 27072,
             bind_ip: '127.0.0.1',
-            max_connections: 51200,
+            max_connections: 65536,
           }
         )
     end
@@ -222,7 +222,7 @@ describe 'osl_mongodb' do
             log_path: '/var/log/mongodb/mongod.log',
             port: 27017,
             bind_ip: '0.0.0.0',
-            max_connections: 51200,
+            max_connections: 65536,
           }
         )
     end
@@ -240,8 +240,8 @@ describe 'osl_mongodb' do
         .with(
           source: 'mongod.erb',
           cookbook: 'osl-resources',
-          owner: 'mongod',
-          group: 'mongod',
+          owner: 'root',
+          group: 'root',
           mode: '0644',
           variables: {
             data_dir: '/var/lib/mongo',

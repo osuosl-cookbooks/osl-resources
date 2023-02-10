@@ -5,13 +5,12 @@ unified_mode true
 default_action :install
 
 property :version, String, name_property: true
-property :install_selinux_policy, [true, false], default: true
 property :data_dir, String, default: '/var/lib/mongo'
 property :log_dest, %w(syslog file), default: 'file'
 property :log_path, String, default: '/var/log/mongodb/mongod.log'
 property :port, Integer, default: 27017
 property :bind_ip, String, default: '127.0.0.1'
-property :max_connections, Integer, default: 51200
+property :max_connections, Integer, default: 65536
 
 action :install do
   yum_repository 'mongodb-org' do
@@ -22,15 +21,11 @@ action :install do
 
   package 'mongodb-org'
 
-  if new_resource.install_selinux_policy
-    selinux_install 'selinux'
-  end
-
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
     cookbook 'osl-resources'
-    owner 'mongod'
-    group 'mongod'
+    owner 'root'
+    group 'root'
     mode '0644'
     variables(
       data_dir: new_resource.data_dir,
@@ -41,10 +36,6 @@ action :install do
       max_connections: new_resource.max_connections
     )
     notifies :restart, 'service[mongod]', :immediately
-  end
-
-  sysctl 'vm.max_map_count' do
-    value "#{new_resource.max_connections * 2}"
   end
 
   service 'mongod' do
