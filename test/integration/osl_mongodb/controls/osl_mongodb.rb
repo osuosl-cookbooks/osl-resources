@@ -14,22 +14,26 @@ control 'osl_mongodb' do
     its('owner') { should cmp 'root' }
     its('group') { should cmp 'root' }
     its('mode') { should cmp '0644' }
-    its('content') { should cmp /net:/ }
-    its('content') { should cmp /port: [0-9]+/ }
-    its('content') { should cmp /bindIp: [0-9]+\.[0-9]+\.[0-9]+.[0-9]+/ }
-    its('content') { should cmp /maxIncomingConnections: [0-9]+/ }
-    its('content') { should cmp /processManagement:/ }
-    its('content') { should cmp /fork: [false|true]/ }
-    its('content') { should cmp /pidFilePath: .+/ }
-    its('content') { should cmp /timeZoneInfo: .+/ }
-    its('content') { should cmp /storage:/ }
-    its('content') { should cmp /dbPath: .+/ }
-    its('content') { should cmp /journal:/ }
-    its('content') { should cmp /enabled: true/ }
-    its('content') { should cmp /systemLog:/ }
-    its('content') { should cmp /destination: .+/ }
-    its('content') { should cmp /logAppend: [false|true]/ }
-    its('content') { should cmp /path: .+/ }
+    its('content') do
+        should match <<~EOF.strip
+          net:
+            port: 27017
+            bindIp: 127.0.0.1
+            maxIncomingConnections: 65536
+          processManagement:
+            fork: true
+            pidFilePath: /var/run/mongodb/mongod.pid
+            timeZoneInfo: /usr/share/zoneinfo
+          storage:
+            dbPath: /var/lib/mongo
+            journal:
+              enabled: true
+          systemLog:
+            destination: file
+            logAppend: true
+            path: /var/log/mongodb/mongod.log
+        EOF
+    end
   end
 
   describe service('mongod') do
