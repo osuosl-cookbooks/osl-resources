@@ -39,7 +39,7 @@ action :install do
   end
 
   service 'mongod' do
-    action [ :enable, :start ]
+    action [:enable, :start]
   end
 
   directory "#{new_resource.data_dir}" do
