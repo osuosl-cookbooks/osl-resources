@@ -35,7 +35,7 @@ action :install do
       bind_ip: new_resource.bind_ip,
       max_connections: new_resource.max_connections
     )
-    notifies :restart, 'service[mongod]', :immediately
+    notifies :restart, 'service[mongod]'
   end
 
   service 'mongod' do
