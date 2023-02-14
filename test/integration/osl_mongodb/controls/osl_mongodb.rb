@@ -15,7 +15,7 @@ control 'osl_mongodb' do
     its('group') { should cmp 'root' }
     its('mode') { should cmp '0644' }
     its('content') do
-        should match <<~EOF.strip
+      should match <<~EOF.strip
           net:
             port: 27017
             bindIp: 127.0.0.1
