@@ -1,7 +1,7 @@
-control 'osl_mongodb' do
+control 'osl_mongodb_paramters' do
   describe yum.repo('mongodb-org') do
     it { should exist }
-    its('baseurl') { should cmp %r{https\:\/\/repo\.mongodb\.org\/yum\/redhat\/[0-9]+\/mongodb-org\/6.0\/.+} }
+    its('baseurl') { should cmp %r{https\:\/\/repo\.mongodb\.org\/yum\/redhat\/[0-9]+\/mongodb-org\/4\.4\/.+} }
     it { should be_enabled }
   end
 
@@ -17,21 +17,20 @@ control 'osl_mongodb' do
     its('content') do
       should match <<~EOF.strip
           net:
-            port: 27017
-            bindIp: 127.0.0.1
-            maxIncomingConnections: 65536
+            port: 27072
+            bindIp: 0.0.0.0
+            maxIncomingConnections: 102400
           processManagement:
             fork: true
             pidFilePath: /var/run/mongodb/mongod.pid
             timeZoneInfo: /usr/share/zoneinfo
           storage:
-            dbPath: /var/lib/mongo
+            dbPath: /var/lib/mongo2
             journal:
               enabled: true
           systemLog:
-            destination: file
+            destination: syslog
             logAppend: true
-            path: /var/log/mongodb/mongod.log
         EOF
     end
   end
@@ -41,22 +40,21 @@ control 'osl_mongodb' do
     it { should be_running }
   end
 
-  describe port(27017) do
+  describe port(27072) do
     it { should be_listening }
   end
 
-  describe host('127.0.0.1', port: 27017) do
+  describe host('127.0.0.1', port: 27072) do
     it { should be_reachable }
     it { should be_resolvable }
   end
 
-  describe directory('/var/lib/mongo') do
-    it { should exist }
-    its('owner') { should cmp 'mongod' }
-    its('group') { should cmp 'mongod' }
+  describe host('126.0.0.1', port: 27072) do
+    it { should be_reachable }
+    it { should be_resolvable }
   end
 
-  describe file('/var/log/mongodb/mongod.log') do
+  describe directory('/var/lib/mongo2') do
     it { should exist }
     its('owner') { should cmp 'mongod' }
     its('group') { should cmp 'mongod' }
