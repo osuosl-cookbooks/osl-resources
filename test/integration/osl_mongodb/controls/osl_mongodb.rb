@@ -9,6 +9,18 @@ control 'osl_mongodb' do
     it { should be_installed }
   end
 
+  describe directory('/var/lib/mongo') do
+    it { should exist }
+    its('owner') { should cmp 'mongod' }
+    its('group') { should cmp 'mongod' }
+  end
+
+  describe file('/var/log/mongodb/mongod.log') do
+    it { should exist }
+    its('owner') { should cmp 'mongod' }
+    its('group') { should cmp 'mongod' }
+  end
+
   describe file('/etc/mongod.conf') do
     it { should exist }
     its('owner') { should cmp 'root' }
@@ -48,17 +60,5 @@ control 'osl_mongodb' do
   describe host('127.0.0.1', port: 27017) do
     it { should be_reachable }
     it { should be_resolvable }
-  end
-
-  describe directory('/var/lib/mongo') do
-    it { should exist }
-    its('owner') { should cmp 'mongod' }
-    its('group') { should cmp 'mongod' }
-  end
-
-  describe file('/var/log/mongodb/mongod.log') do
-    it { should exist }
-    its('owner') { should cmp 'mongod' }
-    its('group') { should cmp 'mongod' }
   end
 end

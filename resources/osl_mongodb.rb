@@ -21,6 +21,18 @@ action :install do
 
   package 'mongodb-org'
 
+  directory "#{new_resource.data_dir}" do
+    owner 'mongod'
+    group 'mongod'
+    recursive true
+  end
+
+  file "#{new_resource.log_path}" do
+    owner 'mongod'
+    group 'mongod'
+    only_if { new_resource.log_dest == 'file' }
+  end
+
   template '/etc/mongod.conf' do
     source 'mongod.conf.erb'
     cookbook 'osl-resources'
@@ -40,17 +52,5 @@ action :install do
 
   service 'mongod' do
     action [:enable, :start]
-  end
-
-  directory "#{new_resource.data_dir}" do
-    owner 'mongod'
-    group 'mongod'
-    recursive true
-  end
-
-  file "#{new_resource.log_path}" do
-    owner 'mongod'
-    group 'mongod'
-    only_if { new_resource.log_dest == 'file' }
   end
 end

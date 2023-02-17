@@ -22,6 +22,22 @@ describe 'osl_mongodb' do
   it { is_expected.to install_package('mongodb-org') }
 
   it do
+    is_expected.to create_directory('/var/lib/mongo')
+      .with(
+        owner: mongod,
+        group: mongod
+      )
+  end
+
+  it do
+    is_expected.to create_file('/var/log/mongodb/mongod.log')
+      .with(
+        owner: mongod,
+        group: mongod
+      )
+  end
+
+  it do
     is_expected.to create_template('/etc/mongod.conf')
       .with(
         source: 'mongod.erb',
@@ -82,6 +98,15 @@ describe 'osl_mongodb' do
     end
 
     it do
+      is_expected.to_not create_directory('var/lib/mongo')
+      is_expected.to create_directory('/var/lib/mongo2')
+        .with(
+          owner: mongod,
+          group: mongod
+        )
+    end
+
+    it do
       is_expected.to create_template('/etc/mongod.conf')
         .with(
           source: 'mongod.erb',
@@ -99,15 +124,6 @@ describe 'osl_mongodb' do
           }
         )
     end
-
-    it do
-      is_expected.to_not create_directory('var/lib/mongo')
-      is_expected.to create_directory('/var/lib/mongo2')
-        .with(
-          owner: mongod,
-          group: mongod
-        )
-    end
   end
 
   context 'log_dest syslog' do
@@ -116,6 +132,8 @@ describe 'osl_mongodb' do
         log_dest 'syslog'
       end
     end
+
+    it { is_expected.to_not create_file('/var/log/mongodb/mongod.log') }
 
     it do
       is_expected.to create_template('/etc/mongod.conf')
@@ -134,8 +152,6 @@ describe 'osl_mongodb' do
           }
         )
     end
-
-    it { is_expected.to_not create_file('/var/log/mongodb/mongod.log') }
   end
 
   context 'log_path /var/log/mongodb/mongod2.log' do
@@ -143,6 +159,15 @@ describe 'osl_mongodb' do
       osl_mongodb '6.0' do
         log_path '/var/log/mongodb/mongod2.log'
       end
+    end
+
+    it do
+      is_expected.to_not create_directory('var/log/mongodb/mongod.log')
+      is_expected.to create_directory('/var/lib/mongodb/mongod2.log')
+        .with(
+          owner: mongod,
+          group: mongod
+        )
     end
 
     it do
@@ -163,21 +188,12 @@ describe 'osl_mongodb' do
           }
         )
     end
-
-    it do
-      is_expected.to_not create_directory('var/log/mongodb/mongod.log')
-      is_expected.to create_directory('/var/lib/mongodb/mongod2.log')
-        .with(
-          owner: mongod,
-          group: mongod
-        )
-    end
   end
 
-  context 'port 27072' do
+  context 'port 27019' do
     recipe do
       osl_mongodb '6.0' do
-        port 27072
+        port 27019
       end
     end
 
@@ -193,7 +209,7 @@ describe 'osl_mongodb' do
             data_dir: '/var/lib/mongo',
             log_dest: 'file',
             log_path: '/var/log/mongodb/mongod.log',
-            port: 27072,
+            port: 27019,
             bind_ip: '127.0.0.1',
             max_connections: 65536,
           }
@@ -228,10 +244,10 @@ describe 'osl_mongodb' do
     end
   end
 
-  context 'max_connections 102400' do
+  context 'max_connections 5120' do
     recipe do
       osl_mongodb '6.0' do
-        max_connections 102400
+        max_connections 5120
       end
     end
 
@@ -249,7 +265,7 @@ describe 'osl_mongodb' do
             log_path: '/var/log/mongodb/mongod.log',
             port: 27017,
             bind_ip: '127.0.0.1',
-            max_connections: 102400,
+            max_connections: 5120,
           }
         )
     end

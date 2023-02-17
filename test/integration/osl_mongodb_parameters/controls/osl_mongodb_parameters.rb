@@ -9,6 +9,12 @@ control 'osl_mongodb_paramters' do
     it { should be_installed }
   end
 
+  describe directory('/var/lib/mongo2') do
+    it { should exist }
+    its('owner') { should cmp 'mongod' }
+    its('group') { should cmp 'mongod' }
+  end
+
   describe file('/etc/mongod.conf') do
     it { should exist }
     its('owner') { should cmp 'root' }
@@ -17,9 +23,9 @@ control 'osl_mongodb_paramters' do
     its('content') do
       should match <<~EOF.strip
           net:
-            port: 27072
+            port: 27019
             bindIp: 0.0.0.0
-            maxIncomingConnections: 102400
+            maxIncomingConnections: 5120
           processManagement:
             fork: true
             pidFilePath: /var/run/mongodb/mongod.pid
@@ -40,23 +46,17 @@ control 'osl_mongodb_paramters' do
     it { should be_running }
   end
 
-  describe port(27072) do
+  describe port(27019) do
     it { should be_listening }
   end
 
-  describe host('127.0.0.1', port: 27072) do
+  describe host('127.0.0.1', port: 27019) do
     it { should be_reachable }
     it { should be_resolvable }
   end
 
-  describe host('126.0.0.1', port: 27072) do
+  describe host('126.0.0.1', port: 27019) do
     it { should be_reachable }
     it { should be_resolvable }
-  end
-
-  describe directory('/var/lib/mongo2') do
-    it { should exist }
-    its('owner') { should cmp 'mongod' }
-    its('group') { should cmp 'mongod' }
   end
 end
