@@ -11,6 +11,7 @@ version          '1.4.0'
 depends          'line'
 depends          'osl-repos'
 
+supports         'almalinux', '~> 8.0'
 supports         'centos', '~> 7.0'
 supports         'centos_stream', '~> 8.0'
 supports         'debian', '~> 11.0'
