@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.4.1 (2023-02-24)
+------------------
+- Add AlmaLinux 8 support
+
 1.4.0 (2023-02-09)
 ------------------
 - Create osl_dnsdist resource
