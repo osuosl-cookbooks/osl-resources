@@ -5,7 +5,6 @@ net:
   bindIp: <%= @bind_ip %>
   maxIncomingConnections: <%= @max_connections %>
 processManagement:
-  fork: true
   pidFilePath: /var/run/mongodb/mongod.pid
   timeZoneInfo: /usr/share/zoneinfo
 storage:

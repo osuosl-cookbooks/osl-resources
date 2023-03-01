@@ -24,12 +24,14 @@ action :install do
   directory "#{new_resource.data_dir}" do
     owner 'mongod'
     group 'mongod'
+    mode '0770'
     recursive true
   end
 
   file "#{new_resource.log_path}" do
     owner 'mongod'
     group 'mongod'
+    mode '0600'
     only_if { new_resource.log_dest == 'file' }
   end
 
