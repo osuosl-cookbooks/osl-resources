@@ -13,7 +13,6 @@ storage:
     enabled: true
 systemLog:
   destination: <%= @log_dest %>
-  logAppend: true
-  <% if @log_dest == 'file' -%>
+  logAppend: true<% if @log_dest == 'file' -%>
   path: <%= @log_path %>
   <% end -%>
