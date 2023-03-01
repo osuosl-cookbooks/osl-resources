@@ -13,13 +13,14 @@ control 'osl_mongodb_paramters' do
     it { should exist }
     its('owner') { should cmp 'mongod' }
     its('group') { should cmp 'mongod' }
+    its('mode') { should cmp '0770' }
   end
 
   describe file('/etc/mongod.conf') do
     it { should exist }
     its('owner') { should cmp 'root' }
     its('group') { should cmp 'root' }
-    its('mode') { should cmp '0644' }
+    its('mode') { should cmp '0600' }
     its('content') do
       should match <<~EOF.strip
           net:
@@ -27,7 +28,6 @@ control 'osl_mongodb_paramters' do
             bindIp: 0.0.0.0
             maxIncomingConnections: 5120
           processManagement:
-            fork: true
             pidFilePath: /var/run/mongodb/mongod.pid
             timeZoneInfo: /usr/share/zoneinfo
           storage:

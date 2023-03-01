@@ -13,12 +13,14 @@ control 'osl_mongodb' do
     it { should exist }
     its('owner') { should cmp 'mongod' }
     its('group') { should cmp 'mongod' }
+    its('mode') { should cmp '0770' }
   end
 
   describe file('/var/log/mongodb/mongod.log') do
     it { should exist }
     its('owner') { should cmp 'mongod' }
     its('group') { should cmp 'mongod' }
+    its('mode') { should cmp '0600' }
   end
 
   describe file('/etc/mongod.conf') do
@@ -33,7 +35,6 @@ control 'osl_mongodb' do
             bindIp: 127.0.0.1
             maxIncomingConnections: 65536
           processManagement:
-            fork: true
             pidFilePath: /var/run/mongodb/mongod.pid
             timeZoneInfo: /usr/share/zoneinfo
           storage:
