@@ -5,9 +5,9 @@ net:
   bindIp: <%= @bind_ip %>
   maxIncomingConnections: <%= @max_connections %>
 processManagement:
-  fork: <%= @forking %>
-  pidFilePath: <%= @pid_file_path %>
-  #timeZoneInfo: /usr/share/zoneinfo
+  fork: <%= @forking %><% if @pid_file_path %>
+  pidFilePath: <%= @pid_file_path %><% end -%>
+  timeZoneInfo: /usr/share/zoneinfo
 storage:
   dbPath: <%= @data_dir %>
   journal:
