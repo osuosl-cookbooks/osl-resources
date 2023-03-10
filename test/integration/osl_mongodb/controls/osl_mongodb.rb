@@ -37,6 +37,7 @@ control 'osl_mongodb' do
           bindIp: 127.0.0.1
           maxIncomingConnections: 65536
         processManagement:
+          fork: true
           pidFilePath: /var/run/mongodb/mongod.pid
           timeZoneInfo: /usr/share/zoneinfo
         storage:
