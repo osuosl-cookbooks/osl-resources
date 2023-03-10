@@ -52,7 +52,6 @@ describe 'osl_mongodb' do
           port: 27017,
           bind_ip: '127.0.0.1',
           max_connections: 65536,
-          forking: true,
           pid_file_path: '/var/run/mongodb/mongod.pid',
         }
       )
@@ -268,36 +267,6 @@ describe 'osl_mongodb' do
             port: 27017,
             bind_ip: '127.0.0.1',
             max_connections: 5120,
-          }
-        )
-    end
-  end
-
-  context 'forking false, pid_file_path nil' do
-    recipe do
-      osl_mongodb '6.0' do
-        forking 'false'
-        pid_file_path nil
-      end
-    end
-
-    it do
-      is_expected.to create_template('/etc/mongod.conf')
-        .with(
-          source: 'mongod.erb',
-          cookbook: 'osl-resources',
-          owner: 'mongod',
-          group: 'mongod',
-          mode: '0644',
-          variables: {
-            data_dir: '/var/lib/mongo',
-            log_dest: 'file',
-            log_path: '/var/log/mongodb/mongod.log',
-            port: 27017,
-            bind_ip: '0.0.0.0',
-            max_connections: 65536,
-            forking: false,
-            pid_file_path: nil,
           }
         )
     end

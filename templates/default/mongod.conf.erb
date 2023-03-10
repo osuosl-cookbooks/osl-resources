@@ -5,7 +5,7 @@ net:
   bindIp: <%= @bind_ip %>
   maxIncomingConnections: <%= @max_connections %>
 processManagement:
-  fork: <%= @forking %><% if @pid_file_path %>
+  fork: true<% if @pid_file_path %>
   pidFilePath: <%= @pid_file_path %><% end -%>
   timeZoneInfo: /usr/share/zoneinfo
 storage:

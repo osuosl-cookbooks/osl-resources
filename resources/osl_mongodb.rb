@@ -11,7 +11,6 @@ property :log_path, String, default: '/var/log/mongodb/mongod.log'
 property :port, Integer, default: 27017
 property :bind_ip, String, default: '127.0.0.1'
 property :max_connections, Integer, default: 65536
-property :forking, %w(true false), default: 'true'
 property :pid_file_path, String, default: '/var/run/mongodb/mongod.pid'
 
 action :install do
@@ -50,7 +49,6 @@ action :install do
       port: new_resource.port,
       bind_ip: new_resource.bind_ip,
       max_connections: new_resource.max_connections,
-      forking: new_resource.forking,
       pid_file_path: new_resource.pid_file_path
     )
     notifies :restart, 'service[mongod]'

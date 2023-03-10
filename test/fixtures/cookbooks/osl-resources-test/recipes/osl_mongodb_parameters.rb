@@ -4,6 +4,5 @@ osl_mongodb '6.0' do
   port 27019
   bind_ip '0.0.0.0'
   max_connections 5120
-  forking 'false'
   pid_file_path nil
 end
