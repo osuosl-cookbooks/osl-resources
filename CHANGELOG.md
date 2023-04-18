@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.5.1 (2023-04-18)
+------------------
+- Fix gpgkey used in yum repository for virtualbox
+
 1.5.0 (2023-03-10)
 -----------------
 - Create osl_mongodb resource
