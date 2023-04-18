@@ -13,10 +13,14 @@ describe 'osl_virtualbox' do
     it do
       is_expected.to create_yum_repository('virtualbox')
         .with(
+          description: 'VirtualBox - 6.1',
           baseurl: 'http://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch',
           repo_gpgcheck: true,
           gpgcheck: true,
-          gpgkey: 'https://www.virtualbox.org/download/oracle_vbox.asc'
+          gpgkey: %w(
+            https://www.virtualbox.org/download/oracle_vbox_2016.asc
+            https://www.virtualbox.org/download/oracle_vbox.asc
+          )
         )
     end
     it { is_expected.to unload_kernel_module('kvm_amd') }
