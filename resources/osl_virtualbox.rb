@@ -8,10 +8,14 @@ property :version, String, name_property: true
 
 action :install do
   yum_repository 'virtualbox' do
+    description "VirtualBox - #{new_resource.version}"
     baseurl 'http://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch'
     gpgcheck true
     repo_gpgcheck true
-    gpgkey 'https://www.virtualbox.org/download/oracle_vbox.asc'
+    gpgkey %w(
+      https://www.virtualbox.org/download/oracle_vbox_2016.asc
+      https://www.virtualbox.org/download/oracle_vbox.asc
+    )
   end if platform_family?('rhel')
 
   apt_repository 'virtualbox' do
