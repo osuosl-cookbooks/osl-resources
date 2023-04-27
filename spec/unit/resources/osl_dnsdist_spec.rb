@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_dnsdist' do
-  platform 'centos', '8'
+  platform 'almalinux', '8'
   cached(:subject) { chef_run }
   step_into :osl_dnsdist
 

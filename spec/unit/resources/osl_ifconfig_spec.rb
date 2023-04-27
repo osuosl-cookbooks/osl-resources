@@ -499,8 +499,8 @@ describe 'osl_ifconfig' do
     end
   end
 
-  context 'centos 8' do
-    platform 'centos', '8'
+  context 'almalinux 8' do
+    platform 'almalinux', '8'
     cached(:subject) { chef_run }
     step_into :osl_ifconfig
 
