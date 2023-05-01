@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_awstats_site' do
-  platform 'centos'
+  platform 'almalinux'
   step_into :osl_awstats_site
 
   recipe do

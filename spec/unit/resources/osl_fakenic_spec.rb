@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_fakenic' do
-  platform 'centos'
+  platform 'almalinux'
   cached(:subject) { chef_run }
   step_into :osl_fakenic
 

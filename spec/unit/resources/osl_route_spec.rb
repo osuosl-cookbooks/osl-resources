@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'osl_route' do
-  platform 'centos'
+  platform 'almalinux'
   step_into :osl_route
 
   recipe do

@@ -5,8 +5,8 @@ describe 'osl_virtualbox' do
     osl_virtualbox '6.1'
   end
 
-  context 'centos' do
-    platform 'centos'
+  context 'almalinux' do
+    platform 'almalinux'
     cached(:subject) { chef_run }
     step_into :osl_virtualbox
 
