@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_authorized_keys' do
-  platform 'centos'
+  platform 'almalinux'
   step_into :osl_authorized_keys
 
   before do

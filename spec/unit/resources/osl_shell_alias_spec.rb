@@ -11,8 +11,8 @@ describe 'osl_shell_alias' do
     end
   end
 
-  context 'centos' do
-    platform 'centos'
+  context 'almalinux' do
+    platform 'almalinux'
     cached(:subject) { chef_run }
     step_into :osl_shell_alias
 

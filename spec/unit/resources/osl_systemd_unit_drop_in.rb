@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_systemd_unit_drop_in' do
-  platform 'centos'
+  platform 'almalinux'
   step_into :osl_systemd_unit_drop_in
 
   context 'create_delete' do

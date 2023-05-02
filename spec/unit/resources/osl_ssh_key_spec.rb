@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 describe 'osl_ssh_key' do
-  platform 'centos'
+  platform 'almalinux'
   step_into :osl_ssh_key
 
   before do
