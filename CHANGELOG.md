@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.5.2 (2023-05-02)
+------------------
+- Remove CentOS Stream 8
+
 1.5.1 (2023-04-18)
 ------------------
 - Fix gpgkey used in yum repository for virtualbox
