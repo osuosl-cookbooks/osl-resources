@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.6.0 (2023-06-15)
+------------------
+- osl_conntrackd resource
+
 1.5.2 (2023-05-02)
 ------------------
 - Remove CentOS Stream 8
