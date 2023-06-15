@@ -1,0 +1,58 @@
+Sync {
+  Mode FTFW {
+    ResendQueueSize 131072
+    CommitTimeout 180
+    PurgeTimeout 5
+    ACKWindowSize 300
+    DisableExternalCache Off
+  }
+
+  UDP {
+    IPv4_address <%= @ipv4_address %>
+    IPv4_Destination_Address <%= @ipv4_destination_address %>
+    Port 3780
+    Interface <%= @interface %>
+    SndSocketBuffer 1249280
+    RcvSocketBuffer 1249280
+    Checksum on
+  }
+}
+
+General {
+  <% if node['platform_version'].to_i >= 8 -%>
+  Systemd on
+  <% end -%>
+  Nice -20
+  HashSize 32768
+  HashLimit 131072
+  LogFile on
+  Syslog on
+  NetlinkOverrunResync 5
+  NetlinkEventsReliable on
+  PollSecs 5
+  EventIterationLimit 200
+  LockFile /var/lock/conntrack.lock
+
+  UNIX {
+    Path /var/run/conntrackd.ctl
+    Backlog 20
+  }
+
+  NetlinkBufferSize 2097152
+  NetlinkBufferSizeMaxGrowth 8388608
+
+  Filter From Userspace {
+    Protocol Accept {
+      TCP
+      UDP
+      ICMP
+      IPv6-ICMP
+    }
+
+    Address Ignore {
+      <% @address_ignore.each do |ip| -%>
+      IPv4_address <%= ip %>
+      <% end -%>
+    }
+  }
+}
