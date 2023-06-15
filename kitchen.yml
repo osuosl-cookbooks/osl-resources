@@ -24,6 +24,11 @@ suites:
   - name: osl_awstats_site
     run_list:
       - recipe[osl-resources-test::osl_awstats_site]
+  - name: osl_conntrackd
+    run_list:
+      - recipe[osl-resources-test::osl_conntrackd]
+    excludes:
+      - debian-11
   - name: osl_dnsdist
     run_list:
       - recipe[osl-resources-test::osl_dnsdist]
