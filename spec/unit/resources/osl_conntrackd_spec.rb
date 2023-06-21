@@ -13,6 +13,14 @@ describe 'osl_conntrackd' do
     end
   end
 
+  it do
+    is_expected.to create_osl_conntrackd('192.168.0.2').with(
+      interface: 'eth0',
+      ipv4_destination_address: '192.168.0.3',
+      address_ignore: %w(127.0.0.1 192.168.0.1 192.168.0.2 192.168.0.3)
+    )
+  end
+
   it { is_expected.to install_package 'conntrack-tools' }
 
   it do
@@ -53,6 +61,15 @@ describe 'osl_conntrackd' do
         address_ignore %w(127.0.0.1 192.168.0.1 192.168.0.2 192.168.0.3)
       end
     end
+
+    it do
+      is_expected.to create_osl_conntrackd('192.168.0.2').with(
+        interface: 'eth0',
+        ipv4_destination_address: '192.168.0.3',
+        address_ignore: %w(127.0.0.1 192.168.0.1 192.168.0.2 192.168.0.3)
+      )
+    end
+
     it do
       is_expected.to create_remote_file('/etc/conntrackd/primary-backup.sh').with(
         source: 'file:///usr/share/doc/conntrack-tools-1.4.4/doc/sync/primary-backup.sh',

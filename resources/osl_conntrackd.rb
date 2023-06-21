@@ -2,14 +2,14 @@ resource_name :osl_conntrackd
 provides :osl_conntrackd
 unified_mode true
 
-default_action :install
+default_action :create
 
 property :interface, String, required: true
 property :ipv4_address, String, name_property: true
 property :ipv4_destination_address, String, required: true
 property :address_ignore, Array, default: %w(127.0.0.1)
 
-action :install do
+action :create do
   package 'conntrack-tools'
 
   template '/etc/conntrackd/conntrackd.conf' do
