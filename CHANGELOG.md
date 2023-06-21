@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.7.0 (2023-06-21)
+------------------
+- Change default action of osl_conntrackd to :create
+
 1.6.0 (2023-06-15)
 ------------------
 - osl_conntrackd resource
