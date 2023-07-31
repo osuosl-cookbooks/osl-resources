@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.7.1 (2023-07-31)
+------------------
+- Add support for debian 12
+
 1.7.0 (2023-06-21)
 ------------------
 - Change default action of osl_conntrackd to :create
