@@ -75,6 +75,9 @@ suites:
   - name: osl_packagecloud_repo
     run_list:
       - recipe[osl-resources-test::osl_packagecloud_repo]
+  - name: osl_python
+    run_list:
+      - recipe[osl-resources-test::osl_python]
   - name: osl_route
     excludes:
       - debian-11

@@ -101,6 +101,56 @@ module OSLResources
         local
       end
 
+      def osl_python_packages
+        case node['platform_family']
+        when 'rhel'
+          case node['platform_version'].to_i
+          when 8
+            %w(
+              python2
+              python2-devel
+              python2-pip
+              python2-setuptools
+              python2-virtualenv
+              python3-pip
+              python3-setuptools
+              python3-virtualenv
+              python36
+              python36-devel
+            )
+          when 7
+            %w(
+              python
+              python2-pip
+              python3
+              python3-devel
+              python3-pip
+              python3-setuptools
+              python-devel
+              python-setuptools
+              python-virtualenv
+            )
+          end
+        when 'debian'
+          case node['platform_version'].to_i
+          when 11
+            %w(
+              python3
+              python3-dev
+              python3-pip
+              python3-setuptools
+              python3-virtualenv
+              python3-wheel
+              python2-dev
+              python-pip-whl
+              python-setuptools
+              virtualenv
+              python-wheel-common
+            )
+          end
+        end
+      end
+
       private
 
       def dnsdist_servers(servers)
