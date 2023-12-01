@@ -10,6 +10,7 @@ version          '1.7.1'
 
 depends          'line'
 depends          'osl-repos'
+depends          'ark'
 
 supports         'almalinux', '~> 8.0'
 supports         'centos', '~> 7.0'
