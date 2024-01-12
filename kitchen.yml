@@ -18,9 +18,6 @@ suites:
   - name: osl_authorized_keys_remove
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys_remove]
-    provisioner:
-      enforce_idempotency: false
-      multiple_converge: 1
   - name: osl_awstats_site
     run_list:
       - recipe[osl-resources-test::osl_awstats_site]
