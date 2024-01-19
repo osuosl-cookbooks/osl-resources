@@ -15,11 +15,11 @@ describe 'osl_hugo' do
     end
     it do
       is_expected.to install_ark('hugo')
-      .with(
-          url 'https://github.com/gohugoio/hugo/releases/download/v1.20.4_Linux-64bit.tar.gz',
+        .with(
+          url('https://github.com/gohugoio/hugo/releases/download/v1.20.4_Linux-64bit.tar.gz',
           has_binaries: 'hugo',
           prefix_root: '/opt',
-          prefix_home: '/opt',
+          prefix_home: '/opt')
         )
     end
   end
