@@ -126,9 +126,6 @@ suites:
   - name: osl_hugo
     run_list:
       - recipe[osl-resources-test::osl_hugo]
-    provisioner:
-      enforce_idempotency: true
-      multiple_converge: 2
   - name: osl_virtualbox
     # TODO(ramereth): This isn't actually working with openstack but it's a
     # start. Just rerun kitchen to continue this suite.
