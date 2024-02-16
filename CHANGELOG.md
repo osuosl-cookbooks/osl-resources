@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.8.0 (2024-02-16)
+------------------
+- Initial Hugo resource
+
 1.7.1 (2023-07-31)
 ------------------
 - Add support for debian 12
