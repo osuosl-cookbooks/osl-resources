@@ -18,9 +18,6 @@ suites:
   - name: osl_authorized_keys_remove
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys_remove]
-    provisioner:
-      enforce_idempotency: false
-      multiple_converge: 1
   - name: osl_awstats_site
     run_list:
       - recipe[osl-resources-test::osl_awstats_site]
@@ -126,6 +123,9 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_hugo
+    run_list:
+      - recipe[osl-resources-test::osl_hugo]
   - name: osl_virtualbox
     # TODO(ramereth): This isn't actually working with openstack but it's a
     # start. Just rerun kitchen to continue this suite.
