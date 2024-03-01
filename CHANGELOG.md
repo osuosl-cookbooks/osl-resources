@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.9.0 (2024-03-01)
+------------------
+- Create osl_udev_rules custom resource
+
 1.8.0 (2024-02-16)
 ------------------
 - Initial Hugo resource
