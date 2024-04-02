@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.10.0 (2024-04-02)
+-------------------
+- Allow key to be an array in osl_authorized_keys
+
 1.9.0 (2024-03-01)
 ------------------
 - Create osl_udev_rules custom resource
