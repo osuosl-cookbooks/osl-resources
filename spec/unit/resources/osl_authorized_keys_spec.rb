@@ -35,12 +35,11 @@ describe 'osl_authorized_keys' do
       end
     end
 
-    %w(key_1 key_2 key_3).each do |k|
-      osl_authorized_keys k do
-        user 'test_user_2'
-        group 'nobody'
-        dir_path '/opt/test/.ssh'
-      end
+    osl_authorized_keys 'test_user_2' do
+      key %w(key_1 key_2 key_3)
+      user 'test_user_2'
+      group 'nobody'
+      dir_path '/opt/test/.ssh'
     end
 
     osl_authorized_keys 'key_2' do

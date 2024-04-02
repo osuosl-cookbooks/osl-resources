@@ -4,7 +4,9 @@ unified_mode true
 
 default_action :add
 
-property :key, String, name_property: true
+property :key, [String, Array],
+  name_property: true,
+  coerce: proc { |k| Array(k) }
 property :user, String, required: true
 property :group, String, default: lazy { user }
 property :dir_path, String, default: lazy { "/home/#{user}/.ssh" }
@@ -17,19 +19,23 @@ action :add do
     recursive true
   end
 
-  line_append_if_no_line "#{new_resource.user}-#{key_sha}" do
-    path "#{new_resource.dir_path}/authorized_keys"
-    line new_resource.key
-    owner new_resource.user
-    group new_resource.group
-    mode '0600'
+  new_resource.key.each do |key|
+    line_append_if_no_line "#{new_resource.user}-#{key_sha(key)}" do
+      path "#{new_resource.dir_path}/authorized_keys"
+      line key
+      owner new_resource.user
+      group new_resource.group
+      mode '0600'
+    end
   end
 end
 
 action :remove do
-  line_delete_lines "#{new_resource.user}-#{key_sha}" do
-    path "#{new_resource.dir_path}/authorized_keys"
-    pattern "^#{new_resource.key}$"
+  new_resource.key.each do |key|
+    line_delete_lines "#{new_resource.user}-#{key_sha(key)}" do
+      path "#{new_resource.dir_path}/authorized_keys"
+      pattern "^#{key}$"
+    end
   end
 
   file "#{new_resource.dir_path}/authorized_keys" do
@@ -48,7 +54,7 @@ action_class do
 
   private
 
-  def key_sha
-    Digest::SHA1.hexdigest(new_resource.key)[0, 8]
+  def key_sha(key)
+    Digest::SHA1.hexdigest(key)[0, 8]
   end
 end
