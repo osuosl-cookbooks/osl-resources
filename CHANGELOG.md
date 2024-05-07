@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.10.1 (2024-05-07)
+-------------------
+- Remove support for Debian 11
+
 1.10.0 (2024-04-02)
 -------------------
 - Allow key to be an array in osl_authorized_keys
