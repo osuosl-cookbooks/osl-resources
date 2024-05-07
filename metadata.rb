@@ -14,5 +14,4 @@ depends          'ark'
 
 supports         'almalinux', '~> 8.0'
 supports         'centos', '~> 7.0'
-supports         'debian', '~> 11.0'
 supports         'debian', '~> 12.0'
