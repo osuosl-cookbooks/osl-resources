@@ -3,7 +3,7 @@ driver:
   name: dokken
   privileged: true  # because Docker and SystemD/Upstart
   chef_image: cincproject/cinc
-  chef_version: <%= ENV['CHEF_VERSION'] || '16' %>
+  chef_version: <%= ENV['CHEF_VERSION'] || '17' %>
   pull_chef_image: false
   pull_platform_image: false
   ipv6: true
@@ -28,7 +28,7 @@ platforms:
       image: dokken/centos-7
       pid_one_command: /usr/lib/systemd/systemd
 
-  - name: debian-11
+  - name: debian-12
     driver:
-      image: dokken/debian-11
+      image: dokken/debian-12
       pid_one_command: /bin/systemd

@@ -28,13 +28,11 @@ suites:
     run_list:
       - recipe[osl-resources-test::osl_conntrackd]
     excludes:
-      - debian-11
       - debian-12
   - name: osl_dnsdist
     run_list:
       - recipe[osl-resources-test::osl_dnsdist]
     excludes:
-      - debian-11
       - debian-12
   - name: osl_fakenic
     run_list:
@@ -47,13 +45,11 @@ suites:
       multiple_converge: 1
   - name: osl_ifconfig
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_ifconfig]
   - name: osl_ifconfig_non_idempotent
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_ifconfig_non_idempotent]
@@ -62,13 +58,11 @@ suites:
       multiple_converge: 1
   - name: osl_mongodb
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_mongodb]
   - name: osl_mongodb_parameters
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_mongodb_parameters]
@@ -77,13 +71,11 @@ suites:
       - recipe[osl-resources-test::osl_packagecloud_repo]
   - name: osl_route
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_route]
   - name: osl_route_remove
     excludes:
-      - debian-11
       - debian-12
     run_list:
       - recipe[osl-resources-test::osl_route_remove]
@@ -133,7 +125,6 @@ suites:
     run_list:
       - recipe[osl-resources-test::osl_udev_rules]
     excludes:
-      - debian-11
       - debian-12
   - name: osl_virtualbox
     # TODO(ramereth): This isn't actually working with openstack but it's a

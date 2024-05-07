@@ -8,7 +8,7 @@ The following platforms and versions are tested and supported using [test-kitche
 
 - AlmaLinux 8
 - CentOS 7
-- Debian 11
+- Debian 12
 
 ## Resources
 
