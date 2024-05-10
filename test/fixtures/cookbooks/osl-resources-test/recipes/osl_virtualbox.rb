@@ -9,4 +9,4 @@ if debian?
   reboot 'upgrade kernel'
 end
 
-osl_virtualbox '6.1'
+osl_virtualbox '7.0'
