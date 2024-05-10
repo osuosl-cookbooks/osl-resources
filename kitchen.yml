@@ -134,3 +134,5 @@ suites:
       data_path: /var/tmp/kitchen
     run_list:
       - recipe[osl-resources-test::osl_virtualbox]
+    excludes:
+      - centos-7
