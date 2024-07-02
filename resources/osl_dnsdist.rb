@@ -22,8 +22,6 @@ property :webserver_password, String, sensitive: true
 action :create do
   include_recipe 'osl-repos::epel'
 
-  package 'yum-plugin-priorities' if node['platform_version'].to_i <= 7
-
   yum_repository 'dnsdist' do
     baseurl "https://repo.powerdns.com/el/$basearch/$releasever/dnsdist-#{dnsdist_ver}"
     description "PowerDNS repository for dnsdist - version #{new_resource.version}"

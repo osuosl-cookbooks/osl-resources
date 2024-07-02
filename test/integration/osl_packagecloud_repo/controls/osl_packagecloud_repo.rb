@@ -5,11 +5,7 @@ control 'osl_packagecloud_repo' do
     describe yum.repo 'varnishcache_varnish60lts' do
       it { should exist }
       it { should be_enabled }
-      if release >= 8
-        its('baseurl') { should cmp "https://packagecloud.io/varnishcache/varnish60lts/el/#{release}/x86_64" }
-      else
-        its('baseurl') { should cmp "https://packagecloud.io/varnishcache/varnish60lts/el/#{release}/x86_64/" }
-      end
+      its('baseurl') { should cmp "https://packagecloud.io/varnishcache/varnish60lts/el/#{release}/x86_64" }
     end
     describe yum.repo 'varnishcache_varnish40' do
       it { should_not exist }

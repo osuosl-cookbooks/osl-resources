@@ -1,13 +1,7 @@
-os_version = os.release.to_i
-
 control 'osl_dnsdist' do
   describe package 'dnsdist' do
     it { should be_installed }
   end
-
-  describe package 'yum-plugin-priorities' do
-    it { should be_installed }
-  end if os_version <= 7
 
   %w(
     dnsdist@auth
