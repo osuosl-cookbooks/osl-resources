@@ -11,7 +11,7 @@ property :mac_address, String
 property :multicast, [true, false], default: false
 
 action :create do
-  package 'network-scripts' if platform_family?('rhel')
+  package 'network-scripts' if platform_family?('rhel') && node['platform_version'].to_i == 8
 
   kernel_module 'dummy'
 
@@ -51,7 +51,7 @@ action :create do
 end
 
 action :delete do
-  package 'network-scripts' if platform_family?('rhel')
+  package 'network-scripts' if platform_family?('rhel') && node['platform_version'].to_i == 8
 
   kernel_module 'dummy'
 

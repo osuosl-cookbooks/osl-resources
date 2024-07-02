@@ -7,12 +7,12 @@ osl_fakenic 'eth6' do
 end
 
 osl_fakenic 'eth7' do
-  ip6 'fe80::6/64'
+  ip6 '2001:db8::6/64'
 end
 
 osl_fakenic 'eth8' do
   ip4 '192.168.1.100/24'
-  ip6 'fe80::7/64'
+  ip6 '2001:db8::7/64'
   mac_address '00:1a:4b:a6:a7:c4'
   multicast true
 end
@@ -20,27 +20,12 @@ end
 osl_fakenic 'eth9'
 
 osl_ifconfig 'eth1' do
-  target ''
   bootproto 'none'
   nm_controlled 'no'
-  device 'eth1'
   type 'dummy'
 end
 
-osl_ifconfig 'eth1vlan172' do
-  target ''
-  device 'eth1.172'
-  onboot 'yes'
-  bootproto 'none'
-  nm_controlled 'no'
-  userctl 'no'
-  vlan 'yes'
-  bridge 'br172'
-end
-
-osl_ifconfig 'eth1vlan10' do
-  target ''
-  device 'eth1.10'
+osl_ifconfig 'eth1.10' do
   onboot 'yes'
   bootproto 'none'
   nm_controlled 'no'
@@ -49,9 +34,18 @@ osl_ifconfig 'eth1vlan10' do
   vlan 'yes'
 end
 
+osl_ifconfig 'eth1.172' do
+  onboot 'yes'
+  bootproto 'none'
+  nm_controlled 'no'
+  userctl 'no'
+  vlan 'yes'
+  bridge 'br172'
+end
+
 osl_ifconfig 'br172' do
-  target ''
-  device 'br172'
+  type 'linux-bridge'
+  bridge_ports %w(eth1.172)
   onboot 'yes'
   bootproto 'none'
   nm_controlled 'no'
@@ -59,10 +53,11 @@ osl_ifconfig 'br172' do
 end
 
 osl_ifconfig 'br10' do
-  target '172.16.18.1'
+  type 'linux-bridge'
+  bridge_ports %w(eth1.10)
+  ipv4addr '172.16.18.1'
   mask '255.255.255.0'
   network '172.16.18.0'
-  device 'br10'
   onboot 'yes'
   bootproto 'static'
   nm_controlled 'no'
@@ -71,17 +66,16 @@ end
 
 # bonding interfaces
 osl_ifconfig 'bond0' do
-  target '172.16.20.10'
+  ipv4addr '172.16.20.10'
   mask '255.255.255.0'
   network '172.16.20.0'
-  device 'bond0'
   bootproto 'static'
   bonding_opts 'mode=0 miimon=100 lacp_rate=0'
+  bond_ports %w(eth2 eth3)
   onboot 'yes'
 end
 
 osl_ifconfig 'eth2' do
-  device 'eth2'
   onboot 'yes'
   bootproto 'none'
   master 'bond0'
@@ -91,7 +85,6 @@ osl_ifconfig 'eth2' do
 end
 
 osl_ifconfig 'eth3' do
-  device 'eth3'
   onboot 'yes'
   bootproto 'none'
   master 'bond0'
@@ -101,40 +94,42 @@ osl_ifconfig 'eth3' do
 end
 
 osl_ifconfig 'eth4' do
-  device 'eth4'
-  target '172.16.50.10'
+  ipv4addr '172.16.50.10'
   mask '255.255.255.0'
   network '172.16.50.0'
   bootproto 'static'
   onboot 'yes'
   ipv6init 'yes'
-  ipv6addr 'fe80::2/64'
-  ipv6_defaultgw 'fe80::1/64'
+  ipv6addr '2001:db8::2/64'
+  ipv6_defaultgw '2001:db8::1/64'
   type 'dummy'
 end
 
 osl_ifconfig 'eth5' do
-  device 'eth5'
-  target %w(
+  ipv4addr %w(
     10.1.30.20
     10.1.30.21
   )
+  mask %w(
+    255.255.255.0
+    255.255.255.0
+  )
   onboot 'yes'
   ipv6init 'yes'
-  ipv6addr 'fe80::3/64'
+  ipv6addr '2001:db8::3/64'
   ipv6addrsec %w(
-    fe80::4/64
-    fe80::5/64
+    2001:db8::4/64
+    2001:db8::5/64
   )
-  ipv6_defaultgw 'fe80::1/64'
+  ipv6_defaultgw '2001:db8::1/64'
   nm_controlled 'yes'
   type 'dummy'
 end
 
-osl_ifconfig '172.16.50.11' do
-  device 'eth9'
+osl_ifconfig 'eth9' do
   onboot 'yes'
   bootproto 'static'
+  ipv4addr '172.16.50.11'
   ipv6init 'yes'
   ipv6_autoconf 'no'
   nm_controlled 'yes'

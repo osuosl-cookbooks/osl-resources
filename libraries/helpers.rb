@@ -32,6 +32,10 @@ module OSLResources
         'yes'
       end
 
+      def default_nmstate
+        node['platform_version'].to_i >= 9
+      end
+
       # Based on https://github.com/chef/chef/blob/61a8aa44ac33fc3bbeb21fa33acf919a97272eb7/lib/chef/resource/systemd_unit.rb#L66-L83
       def to_ini(content)
         case content
@@ -102,6 +106,59 @@ module OSLResources
       end
 
       private
+
+      def ifconfig_type
+        case new_resource.type
+        when 'linux-bridge'
+          'Bridge'
+        else
+          new_resource.type
+        end
+      end
+
+      def nmstate_ipaddrs(ips)
+        return unless ips
+        ipaddrs = []
+        ips.each_with_index do |i, idx|
+          return nil unless i
+          ip = if !new_resource.mask.empty? && IPAddr.new(i).ipv4?
+                 IPAddr.new("#{i}/#{new_resource.mask[idx]}")
+               else
+                 IPAddr.new(i)
+               end
+          ipaddrs << { ipaddress: IPAddr.new(i.split('/').first).to_s, prefix: ip.prefix }
+        end
+        ipaddrs
+      end
+
+      def nmstate_state
+        if new_resource.onboot == 'yes'
+          'up'
+        else
+          'down'
+        end
+      end
+
+      def nmstate_ipv6_autoconf
+        new_resource.ipv6_autoconf == 'yes'
+      end
+
+      def nmstate_vlan_device
+        new_resource.device.split('.')[0]
+      end
+
+      def nmstate_vlan_id
+        new_resource.device.split('.')[1]
+      end
+
+      def nmstate_bonding_opts
+        return unless new_resource.bonding_opts
+        opts = {}
+        new_resource.bonding_opts.split(' ').each do |opt|
+          opts.merge!(opt.split('=').then { |k, v| { k.to_sym => v.to_i } })
+        end
+        opts
+      end
 
       def dnsdist_servers(servers)
         s = {}

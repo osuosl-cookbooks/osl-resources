@@ -8,7 +8,6 @@ describe 'osl_ifconfig' do
 
   recipe do
     osl_ifconfig 'eth1' do
-      target ''
       bootproto 'none'
       nm_controlled 'no'
       device 'eth1'
@@ -17,31 +16,31 @@ describe 'osl_ifconfig' do
 
     osl_ifconfig 'eth2' do
       device 'eth2'
-      target '172.16.50.10'
+      ipv4addr '172.16.50.10'
       mask '255.255.255.0'
       network '172.16.50.0'
       bootproto 'static'
       onboot 'yes'
       ipv6init 'yes'
-      ipv6addr 'fe80::2/64'
-      ipv6_defaultgw 'fe80::1/64'
+      ipv6addr '2001:db8::2/32'
+      ipv6_defaultgw '2001:db8::1/32'
       type 'dummy'
     end
 
     osl_ifconfig 'eth3' do
       device 'eth3'
-      target %w(
+      ipv4addr %w(
         10.1.30.20
         10.1.30.21
       )
       onboot 'yes'
       ipv6init 'yes'
-      ipv6addr 'fe80::3/64'
+      ipv6addr '2001:db8::3/32'
       ipv6addrsec %w(
-        fe80::4/64
-        fe80::5/64
+        2001:db8::4/32
+        2001:db8::5/32
       )
-      ipv6_defaultgw 'fe80::1/64'
+      ipv6_defaultgw '2001:db8::1/32'
       nm_controlled 'yes'
       type 'dummy'
     end
@@ -56,7 +55,7 @@ describe 'osl_ifconfig' do
       device 'eth5'
       nm_controlled 'no'
       type 'dummy'
-      target '10.1.30.20'
+      ipv4addr '10.1.30.20'
       action [:add, :delete]
     end
 
@@ -70,7 +69,7 @@ describe 'osl_ifconfig' do
     end
 
     osl_ifconfig 'bond0' do
-      target '172.16.20.10'
+      ipv4addr '172.16.20.10'
       mask '255.255.255.0'
       network '172.16.20.0'
       device 'bond0'
@@ -79,24 +78,22 @@ describe 'osl_ifconfig' do
       onboot 'yes'
     end
 
-    osl_ifconfig 'br172' do
-      target ''
-      device 'br172'
-      onboot 'yes'
-      bootproto 'none'
-      nm_controlled 'no'
-      delay '0'
-    end
-
-    osl_ifconfig 'eth1vlan172' do
-      target ''
-      device 'eth1.172'
+    osl_ifconfig 'eth1.172' do
       onboot 'yes'
       bootproto 'none'
       nm_controlled 'no'
       userctl 'no'
       vlan 'yes'
       bridge 'br172'
+    end
+
+    osl_ifconfig 'br172' do
+      type 'linux-bridge'
+      bridge_ports %w(eth1.172)
+      onboot 'yes'
+      bootproto 'none'
+      nm_controlled 'no'
+      delay '0'
     end
   end
 
@@ -110,8 +107,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -124,12 +119,13 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: nil,
+            ipv4addr: [],
+            ipv6addr: [],
             ipv6addrsec: nil,
             ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
-            mask: nil,
+            mask: [],
             master: nil,
             metric: nil,
             mtu: nil,
@@ -139,7 +135,6 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: '',
             type: 'dummy',
             userctl: nil,
             vlan: nil,
@@ -159,8 +154,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -173,12 +166,13 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: 'fe80::2/64',
+            ipv4addr: %w(172.16.50.10),
             ipv6addrsec: nil,
+            ipv6addr: %w(2001:db8::2/32),
             ipv6_autoconf: nil,
-            ipv6_defaultgw: 'fe80::1/64',
+            ipv6_defaultgw: '2001:db8::1/32',
             ipv6init: 'yes',
-            mask: '255.255.255.0',
+            mask: %w(255.255.255.0),
             master: nil,
             metric: nil,
             mtu: nil,
@@ -188,7 +182,6 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: '172.16.50.10',
             type: 'dummy',
             userctl: nil,
             vlan: nil,
@@ -208,8 +201,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -222,15 +213,19 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: 'fe80::3/64',
+            ipv4addr: %w(
+              10.1.30.20
+              10.1.30.21
+            ),
+            ipv6addr: %w(2001:db8::3/32),
             ipv6addrsec: %w(
-              fe80::4/64
-              fe80::5/64
+              2001:db8::4/32
+              2001:db8::5/32
             ),
             ipv6_autoconf: nil,
-            ipv6_defaultgw: 'fe80::1/64',
+            ipv6_defaultgw: '2001:db8::1/32',
             ipv6init: 'yes',
-            mask: nil,
+            mask: [],
             master: nil,
             metric: nil,
             mtu: nil,
@@ -240,10 +235,6 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: %w(
-              10.1.30.20
-              10.1.30.21
-            ),
             type: 'dummy',
             userctl: nil,
             vlan: nil,
@@ -270,8 +261,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640'
         )
     end
@@ -306,8 +295,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -320,12 +307,13 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: nil,
+            ipv4addr: %w(172.16.20.10),
+            ipv6addr: [],
             ipv6addrsec: nil,
             ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
-            mask: '255.255.255.0',
+            mask: %w(255.255.255.0),
             master: nil,
             metric: nil,
             mtu: nil,
@@ -335,7 +323,6 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: '172.16.20.10',
             type: nil,
             userctl: nil,
             vlan: nil,
@@ -355,8 +342,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -369,12 +354,13 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: nil,
+            ipv4addr: [],
+            ipv6addr: [],
             ipv6addrsec: nil,
             ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
-            mask: nil,
+            mask: [],
             master: nil,
             metric: nil,
             mtu: nil,
@@ -384,8 +370,7 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: '',
-            type: nil,
+            type: 'Bridge',
             userctl: nil,
             vlan: nil,
           }
@@ -404,8 +389,6 @@ describe 'osl_ifconfig' do
         .with(
           source: 'ifcfg.conf.erb',
           cookbook: 'osl-resources',
-          owner: 'root',
-          group: 'root',
           mode: '0640',
           variables: {
             bcast: nil,
@@ -418,12 +401,13 @@ describe 'osl_ifconfig' do
             ethtool_opts: nil,
             gateway: nil,
             hwaddr: nil,
-            ipv6addr: nil,
+            ipv4addr: [],
+            ipv6addr: [],
             ipv6addrsec: nil,
             ipv6_autoconf: nil,
             ipv6_defaultgw: nil,
             ipv6init: nil,
-            mask: nil,
+            mask: [],
             master: nil,
             metric: nil,
             mtu: nil,
@@ -433,7 +417,6 @@ describe 'osl_ifconfig' do
             onparent: nil,
             peerdns: 'no',
             slave: nil,
-            target: '',
             type: nil,
             userctl: 'no',
             vlan: 'yes',
@@ -446,6 +429,574 @@ describe 'osl_ifconfig' do
     end
     it do
       expect(chef_run).to nothing_execute('ifup eth1.172')
+    end
+  end
+
+  context 'almalinux 9' do
+    platform 'almalinux', '9'
+    cached(:subject) { chef_run }
+    step_into :osl_ifconfig
+
+    it { is_expected.to install_package 'nmstate' }
+    it { is_expected.to_not install_package 'network-scripts' }
+    it { is_expected.to_not install_package 'bridge-utils' }
+    it { is_expected.to create_directory '/etc/nmstate' }
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth1.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth1',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth1',
+            ipv4addresses: [],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'up',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth1',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth2.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth2',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth2',
+            ipv4addresses: [{ ipaddress: '172.16.50.10', prefix: 24 }],
+            ipv6addrsec: nil,
+            ipv6addr: [{ ipaddress: '2001:db8::2', prefix: 32 }],
+            ipv6init: 'yes',
+            ipv6_autoconf: false,
+            ipv6_defaultgw: [{ ipaddress: '2001:db8::1', prefix: 32 }],
+            mac_address: nil,
+            mask: %w(255.255.255.0),
+            mtu: nil,
+            state: 'up',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth2',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth3.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth3',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth3',
+            ipv4addresses: [
+              { ipaddress: '10.1.30.20', prefix: 32 },
+              { ipaddress: '10.1.30.21', prefix: 32 },
+            ],
+            ipv6addrsec: [
+              { ipaddress: '2001:db8::4', prefix: 32 },
+              { ipaddress: '2001:db8::5', prefix: 32 },
+            ],
+            ipv6addr: [ipaddress: '2001:db8::3', prefix: 32],
+            ipv6init: 'yes',
+            ipv6_autoconf: false,
+            ipv6_defaultgw: [{ ipaddress: '2001:db8::1', prefix: 32 }],
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'up',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth3',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth4.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth4',
+            enabled: false,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth4',
+            ipv4addresses: [],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'down',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth4',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth5.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth5',
+            enabled: false,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth5',
+            ipv4addresses: [{ ipaddress: '10.1.30.20', prefix: 32 }],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'absent',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth5',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth6.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: [],
+            device: 'eth6',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth6',
+            ipv4addresses: [],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: 'yes',
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'up',
+            type: 'dummy',
+            vlan: nil,
+            vlan_device: 'eth6',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/bond0.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: { lacp_rate: 0, miimon: 100, mode: 4 },
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: [],
+            device: 'bond0',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'bond0',
+            ipv4addresses: [{ ipaddress: '172.16.20.10', prefix: 24 }],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: %w(255.255.255.0),
+            mtu: nil,
+            state: 'up',
+            type: nil,
+            vlan: nil,
+            vlan_device: 'bond0',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/eth1.172.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: 'br172',
+            bridge_ports: [],
+            device: 'eth1.172',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'eth1.172',
+            ipv4addresses: [],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'up',
+            type: nil,
+            vlan: 'yes',
+            vlan_device: 'eth1',
+            vlan_id: '172',
+          }
+        )
+    end
+
+    it do
+      is_expected.to create_template('/etc/nmstate/br172.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_ports: %w(eth1.172),
+            device: 'br172',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'br172',
+            ipv4addresses: [],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: [],
+            mtu: nil,
+            state: 'up',
+            type: 'linux-bridge',
+            vlan: nil,
+            vlan_device: 'br172',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth1.yml').with_content(
+        <<~EOF
+            # nmstate config file written by Chef
+            interfaces:
+              - name: eth1
+                type: dummy
+                state: up
+                ipv4:
+                  dhcp: false
+                  enabled: false
+                  address: []
+                ipv6:
+                  dhcp: false
+                  autoconf: false
+                  enabled: false
+                  address: []
+          EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth2.yml').with_content(
+        <<~EOF
+       # nmstate config file written by Chef
+       interfaces:
+         - name: eth2
+           type: dummy
+           state: up
+           ipv4:
+             dhcp: false
+             enabled: true
+             address:
+               - ip: 172.16.50.10
+                 prefix-length: 24
+           ipv6:
+             dhcp: false
+             autoconf: false
+             enabled: true
+             address:
+               - ip: "2001:db8::2"
+                 prefix-length: 32
+       routes:
+         config:
+           - destination: ::/0
+             metric: 100
+             next-hop-address: "2001:db8::1"
+             next-hop-interface: eth2
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth3.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: eth3
+              type: dummy
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: true
+                address:
+                  - ip: 10.1.30.20
+                    prefix-length: 32
+                  - ip: 10.1.30.21
+                    prefix-length: 32
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: true
+                address:
+                  - ip: "2001:db8::3"
+                    prefix-length: 32
+                  - ip: "2001:db8::4"
+                    prefix-length: 32
+                  - ip: "2001:db8::5"
+                    prefix-length: 32
+          routes:
+            config:
+              - destination: ::/0
+                metric: 100
+                next-hop-address: "2001:db8::1"
+                next-hop-interface: eth3
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth4.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: eth4
+              type: dummy
+              state: down
+              ipv4:
+                dhcp: false
+                enabled: false
+                address: []
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+         EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth5.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: eth5
+              type: dummy
+              state: absent
+              ipv4:
+                dhcp: false
+                enabled: false
+                address:
+                  - ip: 10.1.30.20
+                    prefix-length: 32
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth6.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: eth6
+              type: dummy
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: false
+                address: []
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/bond0.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: bond0
+              type: bond
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: true
+                address:
+                  - ip: 172.16.20.10
+                    prefix-length: 24
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+              link-aggregation:
+                mode: 4
+                options:
+                  miimon: 100
+                  lacp_rate: 0
+                port:
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/br172.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: br172
+              type: linux-bridge
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: false
+                address: []
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+              bridge:
+                port:
+                  - name: eth1.172
+        EOF
+      )
+    end
+
+    it do
+      is_expected.to render_file('/etc/nmstate/eth1.172.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: eth1.172
+              type: vlan
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: false
+                address: []
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+              vlan:
+                base-iface: eth1
+                id: 172
+        EOF
+      )
+    end
+
+    %w(
+      eth1
+      eth2
+      eth3
+      eth4
+      eth5
+      eth6
+      bond0
+      eth1.172
+      br172
+    ).each do |i|
+      it do
+        expect(chef_run.template("/etc/nmstate/#{i}.yml")).to \
+          notify("execute[nmstatectl apply -q /etc/nmstate/#{i}.yml]").to(:run).immediately
+      end
     end
   end
 end
