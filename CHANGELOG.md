@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+1.11.0 (2024-07-02)
+-------------------
+- Remove support for CentOS 7
+
 1.10.2 (2024-05-10)
 -------------------
 - Update testing to virtualbox 7.0
