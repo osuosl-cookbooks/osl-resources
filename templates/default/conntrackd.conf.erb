@@ -19,9 +19,7 @@ Sync {
 }
 
 General {
-  <% if node['platform_version'].to_i >= 8 -%>
   Systemd on
-  <% end -%>
   Nice -20
   HashSize 32768
   HashLimit 131072

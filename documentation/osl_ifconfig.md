@@ -33,7 +33,7 @@ Note: All ifcfg options can be found within `/usr/share/doc/initscripts-*/syscon
 | `metric`         | String        |                             |           | ifcfg option (METRIC)                                           |
 | `mtu`            | String        |                             |           | ifcfg option (MTU)                                              |
 | `network`        | String        |                             |           | Deprecated: ifcfg option (NETWORK)                              |
-| `nm_controlled`  | String        | 'yes' if centos 8 else 'no' |           | ifcfg option (NM_CONTROLLED)                                    |
+| `nm_controlled`  | String        | 'yes' if EL8 else 'no'      |           | ifcfg option (NM_CONTROLLED)                                    |
 | `onboot`         | String        | 'yes'                       |           | ifcfg option (ONBOOT)                                           |
 | `onparent`       | String        |                             |           | ifcfg option (ONPARENT)                                         |
 | `peerdns`        | String        | 'no'                        |           | ifcfg option (PEERDNS)                                          |

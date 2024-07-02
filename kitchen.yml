@@ -1,6 +1,6 @@
 ---
 provisioner:
-  name: chef_zero
+  name: chef_infra
   enforce_idempotency: true
   multiple_converge: 2
   deprecations_as_errors: true
@@ -134,5 +134,3 @@ suites:
       data_path: /var/tmp/kitchen
     run_list:
       - recipe[osl-resources-test::osl_virtualbox]
-    excludes:
-      - centos-7

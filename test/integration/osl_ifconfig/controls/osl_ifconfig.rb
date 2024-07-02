@@ -46,14 +46,8 @@ control 'osl_ifconfig' do
     end
 
     # Check to make sure the bridge is attached correctly
-    if os.release.to_i >= 8
-      describe command("bridge link show dev eth1.#{v}") do
-        its('stdout') { should match /eth1.#{v}@eth1: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 master br#{v}/ }
-      end
-    else
-      describe command("brctl show br#{v}") do
-        its('stdout') { should match /br#{v}.*8000.*no.*eth1.#{v}/ }
-      end
+    describe command("bridge link show dev eth1.#{v}") do
+      its('stdout') { should match /eth1.#{v}@eth1: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 master br#{v}/ }
     end
   end
 
@@ -72,10 +66,6 @@ control 'osl_ifconfig' do
   describe interface('bond0') do
     it { should exist }
   end
-
-  describe command('ip -d -o link show dev bond0') do
-    its('stdout') { should match /BROADCAST,MULTICAST,MASTER,UP,LOWER_UP>.*state UP/ }
-  end if os.release.to_i < 8 # I believe this is failing due to deprecation
 
   describe command('ip -4 -o addr show dev bond0') do
     its('stdout') { should match %r{inet 172.16.20.10/24} }

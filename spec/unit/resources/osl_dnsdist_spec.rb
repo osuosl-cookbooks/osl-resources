@@ -41,33 +41,6 @@ describe 'osl_dnsdist' do
   it { is_expected.to install_package 'dnsdist' }
   it { is_expected.to_not install_package 'yum-plugin-priorities' }
 
-  context 'centos 7' do
-    platform 'centos', '7'
-    cached(:subject) { chef_run }
-    step_into :osl_dnsdist
-
-    recipe do
-      osl_dnsdist 'default' do
-        servers(
-          '127.0.0.1' => {
-            'qps' => 1000,
-          }
-        )
-      end
-    end
-    it { is_expected.to install_package 'yum-plugin-priorities' }
-  end
-
-  it do
-    is_expected.to create_yum_repository('dnsdist').with(
-      baseurl: 'https://repo.powerdns.com/el/$basearch/$releasever/dnsdist-17',
-      gpgcheck: true,
-      gpgkey: 'https://repo.powerdns.com/FD380FBB-pub.asc',
-      priority: '90',
-      includepkgs: 'dnsdist*'
-    )
-  end
-
   it { is_expected.to_not create_template('/etc/dnsdist/acl-default') }
 
   it do

@@ -28,11 +28,7 @@ action :create do
   end
 
   remote_file '/etc/conntrackd/primary-backup.sh' do
-    if node['platform_version'].to_i >= 8
-      source 'file:///usr/share/doc/conntrack-tools/doc/sync/primary-backup.sh'
-    else
-      source 'file:///usr/share/doc/conntrack-tools-1.4.4/doc/sync/primary-backup.sh'
-    end
+    source 'file:///usr/share/doc/conntrack-tools/doc/sync/primary-backup.sh'
     mode '0755'
   end
 

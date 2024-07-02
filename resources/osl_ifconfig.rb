@@ -37,11 +37,10 @@ property :userctl, String
 property :vlan, String
 
 action :add do
-  package 'network-scripts' if node['platform_version'].to_i >= 8
-  package 'bridge-utils' unless node['platform_version'].to_i >= 8
+  package 'network-scripts'
 
   # Disable deprecation warnings as we know these will go away in RHEL9+
-  file '/etc/sysconfig/disable-deprecation-warnings' if node['platform_version'].to_i >= 8
+  file '/etc/sysconfig/disable-deprecation-warnings'
 
   template "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
     source 'ifcfg.conf.erb'

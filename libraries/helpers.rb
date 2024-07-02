@@ -29,7 +29,7 @@ module OSLResources
 
       # osl_ifconfig helpers
       def default_nm_controlled
-        node['platform_version'].to_i >= 8 ? 'yes' : 'no'
+        'yes'
       end
 
       # Based on https://github.com/chef/chef/blob/61a8aa44ac33fc3bbeb21fa33acf919a97272eb7/lib/chef/resource/systemd_unit.rb#L66-L83
