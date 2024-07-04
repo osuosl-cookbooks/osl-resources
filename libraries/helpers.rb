@@ -160,6 +160,23 @@ module OSLResources
         opts
       end
 
+      def nmstate_routes
+        routes = []
+        new_resource.routes.each do |route|
+          # Translate netmask to CIDR
+          routes << {
+            destination: "#{route[:address]}/#{netmask_to_cidr(route[:netmask])}",
+            next_hop_interface: new_resource.device,
+            next_hop_address: route[:gateway],
+          }
+        end
+        routes
+      end
+
+      def netmask_to_cidr(netmask)
+        IPAddr.new(netmask, Socket::AF_INET).to_i.to_s(2).count('1')
+      end
+
       def dnsdist_servers(servers)
         s = {}
         servers.each do |server, option|
