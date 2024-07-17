@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.0.0 (2024-07-17)
+------------------
+- Support for AlmaLinux 9
+
 1.11.0 (2024-07-02)
 -------------------
 - Remove support for CentOS 7
