@@ -1,0 +1,95 @@
+---
+# nmstate config file written by Chef
+interfaces:
+  - name: <%= @interface %>
+<% if @type -%>
+    type: <%= @type %>
+<% elsif @vlan -%>
+    type: vlan
+<% elsif @bonding_opts -%>
+    type: bond
+<% else -%>
+    type: ethernet
+<% end -%>
+    state: <%= @state %>
+<% if @mtu -%>
+    mtu: <%= @mtu %>
+<% end -%>
+<% if @mac_address -%>
+    mtu: <%= @mac_address %>
+<% end -%>
+    ipv4:
+      dhcp: false
+<% if @ipv4addresses.empty? -%>
+      enabled: false
+      address: []
+<% else -%>
+      enabled: <%= @enabled %>
+      address:
+<% @ipv4addresses.each do |ip| -%>
+        - ip: <%= ip[:ipaddress] %>
+          prefix-length: <%= ip[:prefix] %>
+<% end -%>
+<% end -%>
+<% if @ipv6addr || @ipv6init == 'yes' -%>
+    ipv6:
+      dhcp: false
+      autoconf: <%= @ipv6_autoconf %>
+<% if @ipv6addr.empty? -%>
+      enabled: false
+      address: []
+<% else -%>
+<% @ipv6addr.each do |ip| -%>
+      enabled: <%= @enabled %>
+      address:
+        - ip: "<%= ip[:ipaddress] %>"
+          prefix-length: <%= ip[:prefix] %>
+<% end -%>
+<% end -%>
+<% if @ipv6addrsec -%>
+<% @ipv6addrsec.each do |ip| -%>
+        - ip: "<%= ip[:ipaddress] %>"
+          prefix-length: <%= ip[:prefix] %>
+<% end -%>
+<% end -%>
+<% end -%>
+<% if @type == 'linux-bridge' -%>
+    bridge:
+      port:
+<% @bridge_ports.each do |port| -%>
+        - name: <%= port %>
+<% end -%>
+<% end -%>
+<% if @type == 'vlan' || @vlan == 'yes' -%>
+    vlan:
+      base-iface: <%= @vlan_device %>
+      id: <%= @vlan_id %>
+<% end -%>
+<% if @type == 'bond' || !@bonding_opts.nil? -%>
+    link-aggregation:
+      mode: <%= @bonding_opts[:mode] %>
+      options:
+<% @bonding_opts.reject { |k, _| k == :mode }.each do |opt, value| %>
+        <%= opt %>: <%= value %>
+<% end -%>
+      port:
+<% @bond_ports.each do |port| -%>
+        - <%= port %>
+<% end -%>
+<% end -%>
+<% if @gateway || @ipv6_defaultgw -%>
+routes:
+  config:
+<% if @gateway -%>
+    - destination: 0.0.0.0/0
+      metric: 100
+      next-hop-address: <%= @gateway %>
+      next-hop-interface: <%= @device %>
+<% end -%>
+<% if @ipv6_defaultgw -%>
+    - destination: ::/0
+      metric: 100
+      next-hop-address: "<%= @ipv6_defaultgw[0][:ipaddress] %>"
+      next-hop-interface: <%= @device %>
+<% end -%>
+<% end -%>

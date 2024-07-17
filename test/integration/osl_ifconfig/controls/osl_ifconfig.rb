@@ -19,17 +19,17 @@ control 'osl_ifconfig' do
 
   # Test Multiple IPs
   describe command('ip -o addr show dev eth5') do
-    its('stdout') { should match /inet 10.1.30.20/ }
-    its('stdout') { should match /inet 10.1.30.21/ }
-    its('stdout') { should match %r{inet6 fe80::3/64} }
-    its('stdout') { should match %r{inet6 fe80::4/64} }
-    its('stdout') { should match %r{inet6 fe80::5/64} }
+    its('stdout') { should match %r{inet 10.1.30.20/24} }
+    its('stdout') { should match %r{inet 10.1.30.21/24} }
+    its('stdout') { should match %r{inet6 2001:db8::3/64} }
+    its('stdout') { should match %r{inet6 2001:db8::4/64} }
+    its('stdout') { should match %r{inet6 2001:db8::5/64} }
   end
 
   # Test IPv6
   describe command('ip -o addr show dev eth4') do
     its('stdout') { should match %r{inet 172.16.50.10/24} }
-    its('stdout') { should match %r{inet6 fe80::2/64 scope link} }
+    its('stdout') { should match %r{inet6 2001:db8::2/64 scope global} }
   end
 
   # Ensure these vlans are setup properly
@@ -37,7 +37,7 @@ control 'osl_ifconfig' do
     # eth1.V should be up and be tagged on VLAN V
     describe command("ip -d -o link show dev eth1.#{v}") do
       its('stdout') { should match /BROADCAST,NOARP,UP,LOWER_UP/ }
-      its('stdout') { should match /vlan.*id #{v} <REORDER_HDR>/ }
+      its('stdout') { should match /vlan.*id #{v} (<REORDER_HDR>)?/ }
     end
 
     # bridge should be up
@@ -89,13 +89,13 @@ control 'osl_ifconfig' do
 
   # IPv6 only
   describe interface 'eth7' do
-    its('ipv6_cidrs') { should include %r{fe80::6/64} }
+    its('ipv6_cidrs') { should include %r{2001:db8::6/64} }
   end
 
   # IPv4 & IPv6
   describe interface 'eth8' do
     its('ipv4_cidrs') { should include %r{192.168.1.100/24} }
-    its('ipv6_cidrs') { should include %r{fe80::7/64} }
+    its('ipv6_cidrs') { should include %r{2001:db8::7/64} }
   end
 
   describe command 'ip -0 -o addr show dev eth8' do

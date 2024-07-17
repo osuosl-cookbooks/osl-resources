@@ -30,7 +30,7 @@ GATEWAY=<%= @gateway %>
 HWADDR=<%= @hwaddr %>
 <% end -%>
 <% if @ipv6addr -%>
-IPV6ADDR=<%= @ipv6addr %>
+IPV6ADDR=<%= @ipv6addr[0] %>
 <% end -%>
 <% if @ipv6addrsec -%>
 IPV6ADDR_SECONDARIES='<%= @ipv6addrsec.join(' ') %>'
@@ -44,8 +44,14 @@ IPV6INIT=<%= @ipv6init %>
 <% if @ipv6_autoconf -%>
 IPV6_AUTOCONF=<%= @ipv6_autoconf %>
 <% end -%>
-<% if @mask -%>
-NETMASK=<%= @mask %>
+<% unless @mask.empty? -%>
+<% @mask.each_with_index do |mask, idx| -%>
+<% if idx == 0 -%>
+NETMASK=<%= mask %>
+<% else -%>
+NETMASK<%= idx %>=<%= mask %>
+<% end -%>
+<% end -%>
 <% end -%>
 <% if @master -%>
 MASTER=<%= @master %>
@@ -74,13 +80,14 @@ PEERDNS=<%= @peerdns %>
 <% if @slave -%>
 SLAVE=<%= @slave %>
 <% end -%>
-<% if @target.instance_of?(String) -%>
-IPADDR=<%= @target %>
-<% else if @target.instance_of?(Array) -%>
-  <% @target.each_with_index do |ip, idx| -%>
-IPADDR<%= idx+1 %>=<%= ip %>
-  <% end -%>
-  <% end -%>
+<% unless @ipv4addr.empty? -%>
+<% @ipv4addr.each_with_index do |ip, idx| -%>
+<% if idx == 0 -%>
+IPADDR=<%= ip %>
+<% else -%>
+IPADDR<%= idx %>=<%= ip %>
+<% end -%>
+<% end -%>
 <% end -%>
 <% if @type -%>
 TYPE=<%= @type %>

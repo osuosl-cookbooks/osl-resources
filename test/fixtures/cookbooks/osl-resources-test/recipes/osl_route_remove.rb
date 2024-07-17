@@ -1,8 +1,8 @@
 osl_fakenic 'eth1'
 
-osl_ifconfig '10.30.0.1' do
+osl_ifconfig 'eth1' do
+  ipv4addr '10.30.0.1'
   mask '255.255.255.0'
-  device 'eth1'
   type 'dummy'
 end
 

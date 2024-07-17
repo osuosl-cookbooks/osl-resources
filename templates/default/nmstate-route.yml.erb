@@ -1,0 +1,12 @@
+---
+# nmstate config file written by Chef
+routes:
+  config:
+<% @routes.each do |route| -%>
+    - destination: <%= route[:destination] %>
+      next-hop-interface: <%= route[:next_hop_interface] %>
+      next-hop-address: <%= route[:next_hop_address] %>
+<% if @state -%>
+      state: <%= @state %>
+<% end -%>
+<% end -%>

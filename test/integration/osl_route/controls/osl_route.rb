@@ -1,3 +1,4 @@
+os_rel = os.release.to_i
 control 'osl_route' do
   # test route configs and files
   describe file('/etc/sysconfig/network-scripts/route-eth1') do
@@ -8,7 +9,7 @@ control 'osl_route' do
     ].each do |line|
       its('content') { should match line }
     end
-  end
+  end if os_rel < 9
 
   describe file('/etc/sysconfig/network-scripts/route-eth2') do
     [
@@ -21,11 +22,11 @@ control 'osl_route' do
       its('content') { should match line }
     end
     its('content') { should_not match(/^GATEWAY0/) }
-  end
+  end if os_rel < 9
 
   describe file('/etc/sysconfig/network-scripts/route-eth3') do
     it { should_not exist }
-  end
+  end if os_rel < 9
 
   describe command('ip route') do
     its('stdout') { should match %r{^10\.50\.0\.0\/23 via 10\.30\.0\.1.*eth1} }
@@ -46,7 +47,7 @@ control 'osl_route' do
         /^DEVICE=#{iface}$/,
       ].each do |line|
         its('content') { should match line }
-      end
+      end if os_rel < 9
     end
     describe command("ip -o addr show #{iface}") do
       its('stdout') { should match /#{iface}.*inet #{addr}/ }
