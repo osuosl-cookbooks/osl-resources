@@ -1,7 +1,9 @@
 if debian?
   apt_update
 
-  package 'linux-image-amd64' do
+  kernel_pkg = platform?('debian') ? 'linux-image-amd64' : 'linux-image-virtual'
+
+  package kernel_pkg do
     action :upgrade
     notifies :reboot_now, 'reboot[upgrade kernel]', :immediately
   end

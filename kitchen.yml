@@ -29,11 +29,13 @@ suites:
       - recipe[osl-resources-test::osl_conntrackd]
     excludes:
       - debian-12
+      - ubuntu-24.04
   - name: osl_dnsdist
     run_list:
       - recipe[osl-resources-test::osl_dnsdist]
     excludes:
       - debian-12
+      - ubuntu-24.04
   - name: osl_fakenic
     run_list:
       - recipe[osl-resources-test::osl_fakenic]
@@ -46,11 +48,13 @@ suites:
   - name: osl_ifconfig
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_ifconfig]
   - name: osl_ifconfig_non_idempotent
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_ifconfig_non_idempotent]
     provisioner:
@@ -59,11 +63,13 @@ suites:
   - name: osl_mongodb
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_mongodb]
   - name: osl_mongodb_parameters
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_mongodb_parameters]
   - name: osl_packagecloud_repo
@@ -72,11 +78,13 @@ suites:
   - name: osl_route
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_route]
   - name: osl_route_remove
     excludes:
       - debian-12
+      - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_route_remove]
     provisioner:
@@ -126,6 +134,7 @@ suites:
       - recipe[osl-resources-test::osl_udev_rules]
     excludes:
       - debian-12
+      - ubuntu-24.04
   - name: osl_virtualbox
     # TODO(ramereth): This isn't actually working with openstack but it's a
     # start. Just rerun kitchen to continue this suite.
