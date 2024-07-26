@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.0.1 (2024-07-26)
+------------------
+- Add support for Ubuntu
+
 2.0.0 (2024-07-17)
 ------------------
 - Support for AlmaLinux 9
