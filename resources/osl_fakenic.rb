@@ -13,7 +13,7 @@ property :multicast, [true, false], default: false
 action :create do
   package 'network-scripts' if platform_family?('rhel') && node['platform_version'].to_i == 8
 
-  kernel_module 'dummy'
+  kernel_module 'dummy' unless docker?
 
   execute "add fake interface #{new_resource.interface}" do
     command "ip link add name #{new_resource.interface} type dummy"
@@ -53,7 +53,7 @@ end
 action :delete do
   package 'network-scripts' if platform_family?('rhel') && node['platform_version'].to_i == 8
 
-  kernel_module 'dummy'
+  kernel_module 'dummy' unless docker?
 
   execute "bring fake #{new_resource.interface} offline" do
     command "ip link set dev #{new_resource.interface} down"
