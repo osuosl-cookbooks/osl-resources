@@ -39,9 +39,9 @@ interfaces:
       enabled: false
       address: []
 <% else -%>
-<% @ipv6addr.each do |ip| -%>
       enabled: <%= @enabled %>
       address:
+<% @ipv6addr.each do |ip| -%>
         - ip: "<%= ip[:ipaddress] %>"
           prefix-length: <%= ip[:prefix] %>
 <% end -%>
