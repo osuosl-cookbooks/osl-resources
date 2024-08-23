@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.0.2 (2024-08-23)
+------------------
+- Fix multiple ipv6 addresses with nmstate
+
 2.0.1 (2024-07-26)
 ------------------
 - Add support for Ubuntu
