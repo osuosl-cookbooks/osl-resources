@@ -44,8 +44,8 @@ module OSLResources
 
             action :nothing
             delayed_action :create
-            notifies :run, 'execute[reload udev]', :immediately
-            notifies :run, 'execute[dracut -f]'
+            notifies :run, 'execute[reload udev]', :immediately unless docker?
+            notifies :run, 'execute[dracut -f]' unless docker?
           end
 
           declare_resource(:directory, '/etc/dracut.conf.d') do
@@ -63,7 +63,7 @@ module OSLResources
 
             action :nothing
             delayed_action :create
-            notifies :run, 'execute[dracut -f]'
+            notifies :run, 'execute[dracut -f]' unless docker?
           end
         end
       end

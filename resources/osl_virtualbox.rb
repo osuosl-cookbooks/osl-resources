@@ -31,15 +31,15 @@ action :install do
 
   kernel_module 'kvm_amd' do
     action [:unload, :blacklist]
-  end
+  end unless docker?
 
   kernel_module 'kvm_intel' do
     action [:unload, :blacklist]
-  end
+  end unless docker?
 
   kernel_module 'kvm' do
     action [:unload, :blacklist]
-  end
+  end unless docker?
 
   build_essential 'osl_virtualbox'
 

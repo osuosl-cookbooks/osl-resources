@@ -1,15 +1,23 @@
 ---
-provisioner:
-  name: chef_infra
-  enforce_idempotency: true
-  multiple_converge: 2
-  deprecations_as_errors: true
+driver:
+  name: vagrant
 
 verifier:
   name: inspec
 
-driver:
-  flavor_ref: "m1.medium"
+provisioner:
+  name: chef_infra
+  product_name: cinc
+  product_version: '18'
+  enforce_idempotency: true
+  multiple_converge: 2
+  deprecations_as_errors: true
+
+platforms:
+  - name: almalinux-8
+  - name: almalinux-9
+  - name: debian-12
+  - name: ubuntu-22.04
 
 suites:
   - name: osl_authorized_keys
