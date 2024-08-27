@@ -37,10 +37,10 @@ platforms:
       image_ref: "Debian 12"
     transport:
       username: debian
-  - name: ubuntu-20.04
+  - name: ubuntu-24.04
     driver_plugin: openstack
     driver_config:
-      image_ref: "Ubuntu 20.04"
+      image_ref: "Ubuntu 24.04"
     transport:
       username: ubuntu
 
