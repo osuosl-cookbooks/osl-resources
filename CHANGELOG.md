@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.0.3 (2024-08-27)
+------------------
+- Test kitchen config refactor
+
 2.0.2 (2024-08-23)
 ------------------
 - Fix multiple ipv6 addresses with nmstate
