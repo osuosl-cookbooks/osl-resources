@@ -80,6 +80,12 @@ suites:
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_mongodb_parameters]
+  - name: osl_nfdump
+    excludes:
+      - debian-12
+      - ubuntu-24.04
+    run_list:
+      - recipe[osl-resources-test::osl_nfdump]
   - name: osl_packagecloud_repo
     run_list:
       - recipe[osl-resources-test::osl_packagecloud_repo]
