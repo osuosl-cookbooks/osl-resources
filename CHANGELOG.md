@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.1.0 (2024-09-24)
+------------------
+- Create osl_nfdump resource
+
 2.0.3 (2024-08-27)
 ------------------
 - Test kitchen config refactor
