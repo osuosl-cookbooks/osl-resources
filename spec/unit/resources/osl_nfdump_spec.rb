@@ -17,7 +17,7 @@ describe 'osl_nfdump' do
     is_expected.to create_systemd_unit('nfdump-default.service').with(
       content: <<~EOU
         [Unit]
-        Description=netflow capture daemon, default instance
+        Description=nfcapd capture daemon, default instance
         After=network.target auditd.service
 
         [Service]
@@ -39,5 +39,37 @@ describe 'osl_nfdump' do
   it do
     expect(chef_run.service('nfdump-default.service')).to \
       subscribe_to('systemd_unit[nfdump-default.service]').on(:restart)
+  end
+
+  context 'sflow' do
+    platform 'almalinux', '8'
+    cached(:subject) { chef_run }
+    step_into :osl_nfdump
+
+    recipe do
+      osl_nfdump 'default' do
+        type :sflow
+      end
+    end
+
+    it do
+      is_expected.to create_systemd_unit('nfdump-default.service').with(
+        content: <<~EOU
+          [Unit]
+          Description=sfcapd capture daemon, default instance
+          After=network.target auditd.service
+
+          [Service]
+          Type=forking
+          ExecStart=/usr/bin/sfcapd -D -P /run/sfcapd.default.pid -l /var/cache/nfdump/default -p 2055#{' '}
+          PIDFile=/run/sfcapd.default.pid
+          KillMode=process
+          Restart=no
+
+          [Install]
+          WantedBy=multi-user.target
+        EOU
+      )
+    end
   end
 end
