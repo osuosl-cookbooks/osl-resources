@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.2.0 (2024-09-25)
+------------------
+- Add sflow support to osl_nfdump
+
 2.1.0 (2024-09-24)
 ------------------
 - Create osl_nfdump resource
