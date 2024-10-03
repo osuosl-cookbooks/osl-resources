@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.3.0 (2024-10-03)
+------------------
+- Switch osl_hugo to pull latest release by default
+
 2.2.0 (2024-09-25)
 ------------------
 - Add sflow support to osl_nfdump
