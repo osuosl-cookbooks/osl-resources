@@ -4,18 +4,19 @@ unified_mode true
 
 default_action :install
 
-property :version, String, name_property: true
+property :version, String, default: '0'
 
 action :install do
   package 'tar'
 
+  hugo_version = osl_hugo_latest_version(new_resource.version)
+
   ark 'hugo' do
-    url "https://github.com/gohugoio/hugo/releases/download/v#{new_resource.version}/hugo_#{new_resource.version}_Linux-64bit.tar.gz"
+    url "https://github.com/gohugoio/hugo/releases/download/v#{hugo_version}/hugo_#{hugo_version}_Linux-64bit.tar.gz"
     prefix_root '/opt'
     prefix_home '/opt'
-    has_binaries [ 'hugo' ]
+    has_binaries %w(hugo)
     strip_components 0
-    version new_resource.version
-    action :install
+    version hugo_version
   end
 end
