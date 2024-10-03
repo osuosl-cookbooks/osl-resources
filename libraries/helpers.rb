@@ -107,6 +107,22 @@ module OSLResources
 
       private
 
+      # Get latest version of hugo from Github
+      def osl_hugo_latest_version(version)
+        releases = []
+        uri = URI('https://api.github.com/repos/gohugoio/hugo/releases')
+        response = JSON.parse(Net::HTTP.get(uri))
+        response.each do |rel|
+          # Match version given
+          if rel['name'].match?(/^v#{version}/)
+            # Remove leading 'v' from name
+            releases << rel['name'][1..-1]
+          end
+        end
+        # First one should be latest
+        releases[0]
+      end
+
       def ifconfig_type
         case new_resource.type
         when 'linux-bridge'

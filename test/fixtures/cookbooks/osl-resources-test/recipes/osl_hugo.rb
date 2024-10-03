@@ -1,1 +1,1 @@
-osl_hugo '0.120.4'
+osl_hugo 'default'
