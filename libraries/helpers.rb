@@ -108,9 +108,9 @@ module OSLResources
       private
 
       # Get latest version of hugo from Github
-      def osl_hugo_latest_version(version)
+      def osl_github_latest_version(repo, version)
         releases = []
-        uri = URI('https://api.github.com/repos/gohugoio/hugo/releases')
+        uri = URI("https://api.github.com/repos/#{repo}/releases")
         response = JSON.parse(Net::HTTP.get(uri))
         response.each do |rel|
           # Match version given
