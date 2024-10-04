@@ -149,6 +149,9 @@ suites:
   - name: osl_hugo
     run_list:
       - recipe[osl-resources-test::osl_hugo]
+  - name: osl_pagefind
+    run_list:
+      - recipe[osl-resources-test::osl_pagefind]
   - name: osl_udev_rules
     run_list:
       - recipe[osl-resources-test::osl_udev_rules]
