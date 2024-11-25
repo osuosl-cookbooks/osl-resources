@@ -68,6 +68,12 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_logstash
+    run_list:
+      - recipe[osl-resources-test::osl_logstash]
+    excludes:
+      - debian-12
+      - ubuntu-24.04
   - name: osl_mongodb
     excludes:
       - debian-12

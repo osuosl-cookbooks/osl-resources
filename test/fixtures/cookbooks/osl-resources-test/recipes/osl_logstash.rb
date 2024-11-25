@@ -1,0 +1,1 @@
+osl_elasticsearch 'default'
