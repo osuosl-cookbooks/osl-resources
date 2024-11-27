@@ -98,6 +98,14 @@ suites:
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_nfdump_sflow]
+  - name: osl_opensearch
+    driver:
+      user_data: userdata-opensearch.txt
+    run_list:
+      - recipe[osl-resources-test::osl_opensearch]
+    excludes:
+      - debian-12
+      - ubuntu-24.04
   - name: osl_packagecloud_repo
     run_list:
       - recipe[osl-resources-test::osl_packagecloud_repo]

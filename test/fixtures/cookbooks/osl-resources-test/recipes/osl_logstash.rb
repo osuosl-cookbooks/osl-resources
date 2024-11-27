@@ -1,1 +1,1 @@
-osl_elasticsearch 'default'
+osl_logstash 'default'

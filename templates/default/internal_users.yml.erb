@@ -1,0 +1,19 @@
+---
+# opensearch.yml written by Chef
+_meta:
+  type: "internalusers"
+  config_version: 2
+
+# Define your internal users here
+<% @internal_users.each do |u, opts| -%>
+<%= u %>:
+  hash: "<%= opts['hash'] %>"
+  reserved: <%= opts['reserved'] %>
+  <% if opts['backend_roles'] -%>
+  backend_roles:
+  <% opts['backend_roles'].each do |r| -%>
+    - "<%= r %>"
+  <% end -%>
+  <% end -%>
+  description: "<%= opts['description'] %>"
+<% end -%>

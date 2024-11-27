@@ -1,0 +1,4 @@
+#cloud-config
+manage_etc_hosts: true
+hostname: opensearch-node1
+fqdn: opensearch-node1.osuosl.org

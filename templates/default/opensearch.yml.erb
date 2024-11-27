@@ -1,0 +1,38 @@
+---
+# opensearch.yml written by Chef
+
+# Cluster
+cluster.name: <%= @cluster_name %>
+# Node
+node.name: <%= node['fqdn'] %>
+# Paths
+path.data: /var/lib/opensearch
+path.logs: /var/log/opensearch
+# Network
+network.host: <%= @network_host %>
+discovery.type: <%= @discovery_type %>
+plugins.security.disabled: <%= @security_disabled %>
+plugins.security.ssl.transport.pemcert_filepath: <%= @cert_path %>/<%= node['fqdn'] %>.crt
+plugins.security.ssl.transport.pemkey_filepath: <%= @key_path %>/<%= node['fqdn'] %>.key
+plugins.security.ssl.transport.pemtrustedcas_filepath: <%= @ca %>
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: <%= @cert_path %>/<%= node['fqdn'] %>.crt
+plugins.security.ssl.http.pemkey_filepath: <%= @key_path %>/<%= node['fqdn'] %>.key
+plugins.security.ssl.http.pemtrustedcas_filepath: <%= @ca %>
+plugins.security.allow_unsafe_democertificates: false
+plugins.security.allow_default_init_securityindex: true
+plugins.security.authcz.admin_dn:
+ - <%= @admin_dn %>
+plugins.security.nodes_dn:
+ - <%= @nodes_dn %>
+# Discovery
+discovery.seed_hosts:
+<% @discovery_seed_hosts.each do |s| -%>
+ - "<%= s %>"
+<% end -%>
+<% unless @initial_cluster_manager_nodes.empty? -%>
+initial_cluster_manager_nodes:
+<% @initial_cluster_manager_nodes.each do |m| -%>
+ - "<%= m %>"
+<% end -%>
+<% end -%>
