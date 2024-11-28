@@ -22,9 +22,9 @@ action :create do
   include_recipe 'osl-repos::epel' if new_resource.create_ca
 
   package 'opensearch'
-
   package 'easy-rsa' if new_resource.create_ca
 
+  secrets = osl_opensearch_secrets
   easy_rsa = '/etc/opensearch/easy-rsa/easyrsa --batch'
 
   directory '/etc/opensearch/easy-rsa' do
@@ -40,6 +40,27 @@ action :create do
     creates '/etc/opensearch/easy-rsa/easyrsa'
   end if new_resource.create_ca
 
+  cookbook_file '/etc/opensearch/easy-rsa/x509-types/client' do
+    owner 'opensearch'
+    group 'opensearch'
+    cookbook 'osl-resources'
+    source 'x509-types-client'
+  end if new_resource.create_ca
+
+  cookbook_file '/etc/opensearch/easy-rsa/x509-types/server' do
+    owner 'opensearch'
+    group 'opensearch'
+    cookbook 'osl-resources'
+    source 'x509-types-server'
+  end if new_resource.create_ca
+
+  cookbook_file '/etc/opensearch/easy-rsa/x509-types/serverClient' do
+    owner 'opensearch'
+    group 'opensearch'
+    cookbook 'osl-resources'
+    source 'x509-types-server'
+  end if new_resource.create_ca
+
   execute 'create vpn certificates' do
     user 'opensearch'
     group 'opensearch'
@@ -49,8 +70,8 @@ action :create do
       #{easy_rsa} build-ca nopass
       #{easy_rsa} gen-crl
       #{easy_rsa} gen-dh
-      #{easy_rsa} build-server-full #{node['fqdn']} nopass
-      #{easy_rsa} build-server-full admin nopass
+      #{easy_rsa} build-serverClient-full #{node['fqdn']} nopass
+      #{easy_rsa} build-client-full admin nopass
     EOC
     creates "/etc/opensearch/easy-rsa/pki/issued/#{node['fqdn']}.crt"
     only_if { new_resource.create_ca }
@@ -84,7 +105,7 @@ action :create do
     mode '0640'
     sensitive true
     variables(
-      internal_users: new_resource.internal_users
+      admin_hash: secrets['admin_hash']
     )
     notifies :restart, 'service[opensearch]'
   end

@@ -12,6 +12,7 @@ provisioner:
   enforce_idempotency: true
   multiple_converge: 2
   deprecations_as_errors: true
+  data_bags_path: test/integration/data_bags
 
 platforms:
   - name: almalinux-8
@@ -69,6 +70,8 @@ suites:
       enforce_idempotency: false
       multiple_converge: 1
   - name: osl_logstash
+    driver:
+      user_data: userdata-opensearch.txt
     run_list:
       - recipe[osl-resources-test::osl_logstash]
     excludes:

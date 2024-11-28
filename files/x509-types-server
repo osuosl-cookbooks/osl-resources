@@ -1,0 +1,7 @@
+basicConstraints = CA:FALSE
+nsCertType = server, client
+nsComment = "OpenSSL Generated Server Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
