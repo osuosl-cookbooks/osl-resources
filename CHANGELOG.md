@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.5.0 (2024-12-13)
+------------------
+- Add osl_geoip custom resource
+
 2.4.0 (2024-10-04)
 ------------------
 - Add osl_pagefind resource
