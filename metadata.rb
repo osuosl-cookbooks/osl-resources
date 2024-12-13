@@ -8,9 +8,10 @@ chef_version     '>= 16.0'
 description      'Holds base resources for the OSUOSL'
 version          '2.4.0'
 
+depends          'ark'
 depends          'line'
 depends          'osl-repos'
-depends          'ark'
+depends          'yum-osuosl'
 
 supports         'almalinux', '~> 8.0'
 supports         'almalinux', '~> 9.0'
