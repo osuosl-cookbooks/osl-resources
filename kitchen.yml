@@ -53,6 +53,11 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_geoip
+    run_list:
+      - recipe[osl-resources-test::osl_geoip]
+    includes:
+      - almalinux-9
   - name: osl_ifconfig
     excludes:
       - debian-12
