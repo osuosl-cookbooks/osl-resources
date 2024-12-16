@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.5.1 (2024-12-16)
+------------------
+- osl_hugo: Add rescue block around ark resource
+
 2.5.0 (2024-12-13)
 ------------------
 - Add osl_geoip custom resource
