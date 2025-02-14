@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.5.2 (2025-02-14)
+------------------
+- Use correct flags on AlmaLinux 8 for nmstate
+
 2.5.1 (2024-12-16)
 ------------------
 - osl_hugo: Add rescue block around ark resource
