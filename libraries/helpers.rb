@@ -230,6 +230,14 @@ module OSLResources
         new_resource.version.gsub('.', '')
       end
 
+      def nmstatectl_cmd
+        if node['platform_version'].to_i >= 9
+          'nmstatectl apply -q'
+        else
+          'nmstatectl apply'
+        end
+      end
+
       def osl_local_ip
         # These are local to the OSU campus
         [

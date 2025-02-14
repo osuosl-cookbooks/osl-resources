@@ -95,7 +95,7 @@ action :add do
       vlan_id: nmstate_vlan_id,
       vlan: new_resource.vlan
     )
-    notifies :run, "execute[nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml]", :immediately
+    notifies :run, "execute[#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml]", :immediately
   end if new_resource.nmstate
 
   template "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
@@ -140,7 +140,7 @@ action :add do
     action :nothing
   end unless new_resource.nmstate
 
-  execute "nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml" do
+  execute "#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml" do
     action :nothing
   end if new_resource.nmstate
 end
@@ -174,7 +174,7 @@ action :delete do
       vlan_id: nmstate_vlan_id,
       vlan: new_resource.vlan
     )
-    notifies :run, "execute[nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml]", :immediately
+    notifies :run, "execute[#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml]", :immediately
   end if new_resource.nmstate
 
   file "/etc/sysconfig/network-scripts/ifcfg-#{new_resource.device}" do
@@ -191,7 +191,7 @@ action :delete do
     action :nothing
   end unless new_resource.nmstate
 
-  execute "nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml" do
+  execute "#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml" do
     action :nothing
   end if new_resource.nmstate
 end
@@ -201,7 +201,7 @@ action :enable do
     not_if "ip link show dev #{new_resource.device} | grep 'UP'" unless new_resource.force
   end unless new_resource.nmstate
 
-  execute "nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml" do
+  execute "#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml" do
     not_if "ip link show dev #{new_resource.device} | grep 'UP'" unless new_resource.force
   end if new_resource.nmstate
 end
@@ -238,10 +238,10 @@ action :disable do
       vlan_id: nmstate_vlan_id,
       vlan: new_resource.vlan
     )
-    notifies :run, "execute[nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml]", :immediately
+    notifies :run, "execute[#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml]", :immediately
   end if new_resource.nmstate
 
-  execute "nmstatectl apply -q /etc/nmstate/#{new_resource.device}.yml" do
+  execute "#{nmstatectl_cmd} /etc/nmstate/#{new_resource.device}.yml" do
     only_if "ip link show dev #{new_resource.device} | grep 'UP'" unless new_resource.force
   end if new_resource.nmstate
 end
