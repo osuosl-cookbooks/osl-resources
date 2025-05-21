@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.6.0 (2025-05-21)
+------------------
+- Create osl_anubis resource
+
 2.5.2 (2025-02-14)
 ------------------
 - Use correct flags on AlmaLinux 8 for nmstate
