@@ -105,6 +105,25 @@ module OSLResources
         local
       end
 
+      # Renders the complete site block(s) from a content hash.
+      #
+      # @param content_hash [Hash] The main hash defining site(s).
+      #   Example:
+      #   {
+      #     "example.com, www.example.com": { ... directives ... },
+      #     "another.example.net": { ... directives ... }
+      #   }
+      # @return [String] The complete Caddyfile content for the site(s).
+      def render_caddy_site_from_hash(content_hash)
+        output = []
+        content_hash.each do |site_address_block, directives|
+          output << "#{site_address_block} {"
+          output << render_caddy_directives(directives, 1) # Start directives at indent level 1
+          output << '}'
+        end
+        output.join("\n")
+      end
+
       private
 
       # Get latest version of hugo from Github
@@ -273,6 +292,61 @@ module OSLResources
           %uaquot
           %other
         )
+      end
+
+      # Renders a hash of Caddy directives into Caddyfile string format.
+      #
+      # @param directives [Hash] The hash of directives.
+      #   Example:
+      #   {
+      #     "root" => "* /srv/www/example",
+      #     "file_server" => true,
+      #     "log" => {
+      #       "output" => "file /var/log/caddy/example.com.access.log",
+      #       "format" => "json"
+      #     },
+      #     "custom_block" => ["header X-My-Header MyValue"]
+      #   }
+      # @param indent_level [Integer] The current indentation level.
+      # @return [String] The formatted Caddyfile directives.
+      def render_caddy_directives(directives_hash, indent_level = 0)
+        output = []
+        indent = '  ' * indent_level # Two spaces per indent level
+
+        directives_hash.each do |key, value|
+          directive_name = key.to_s # Ensure directive name is a string
+
+          case value
+          when Hash # It's a block
+            output << "#{indent}#{directive_name} {"
+            output << render_caddy_directives(value, indent_level + 1) # Recurse
+            output << "#{indent}}"
+          when Array # Assumed to be an array of arguments or raw lines
+            # If the key suggests it's a container for raw lines (e.g., 'raw_lines') then each element of the array is
+            # a full line.  Otherwise, each element is an argument to the directive_name.  This heuristic might need
+            # refinement based on your specific hash conventions.
+            if %w(raw_lines).include?(directive_name.downcase)
+              value.each { |line| output << "#{indent}#{line}" }
+            else
+              # If it's a simple array of arguments for a single directive.  Caddyfile syntax for multiple arguments
+              # is usually space-separated on one line.  If the array represents multiple separate invocations of the
+              # same directive, this logic would need to change. For now, assume space-separated args.
+              # Example: "header" => ["X-Header Value", "Cache-Control none"] -> header X-Header Value \n header
+              # Cache-Control none
+              # Or "directive" => ["arg1", "arg2"] -> directive arg1 arg2
+              # Let's assume if value is an array, each element is a *separate* invocation or a full line for that
+              # directive
+              value.each do |line_or_arg|
+                output << "#{indent}#{directive_name} #{line_or_arg}"
+              end
+            end
+          when true, false, nil # Directive without arguments
+            output << "#{indent}#{directive_name}"
+          else # String, Numeric, or other simple value
+            output << "#{indent}#{directive_name} #{value}"
+          end
+        end
+        output.join("\n")
       end
 
       def array_to_string(val)
