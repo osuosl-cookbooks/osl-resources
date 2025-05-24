@@ -38,6 +38,12 @@ suites:
   - name: osl_awstats_site
     run_list:
       - recipe[osl-resources-test::osl_awstats_site]
+  - name: osl_caddy
+    run_list:
+      - recipe[osl-resources-test::osl_caddy]
+    excludes:
+      - debian-12
+      - ubuntu-24.04
   - name: osl_conntrackd
     run_list:
       - recipe[osl-resources-test::osl_conntrackd]
