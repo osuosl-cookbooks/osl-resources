@@ -1,6 +1,21 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
 
+ALMA_9 = {
+  platform: 'almalinux',
+  version: '9',
+}.freeze
+
+ALMA_8 = {
+  platform: 'almalinux',
+  version: '8',
+}.freeze
+
+ALL_PLATFORMS = [
+  ALMA_9,
+  ALMA_8,
+].freeze
+
 shared_context 'sysctl_stubs' do
   before do
     allow_any_instance_of(Chef::Resource).to receive(:shell_out).and_call_original
