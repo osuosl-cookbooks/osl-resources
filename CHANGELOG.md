@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.7.0 (2025-05-27)
+------------------
+- Create osl_caddy to manage Caddy server and sites
+
 2.6.0 (2025-05-21)
 ------------------
 - Create osl_anubis resource
