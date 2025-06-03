@@ -19,7 +19,7 @@ describe 'osl_pagefind' do
     it { is_expected.to install_package 'tar' }
     it do
       is_expected.to install_ark('pagefind').with(
-        url: 'https://github.com/CloudCannon/pagefind/releases/download/v1.1.1/pagefind-v1.1.1-x86_64-unknown-linux-musl.tar.gz',
+        url: 'https://github.com/Pagefind/pagefind/releases/download/v1.1.1/pagefind-v1.1.1-x86_64-unknown-linux-musl.tar.gz',
         prefix_root: '/opt',
         prefix_home: '/opt',
         has_binaries: %w(pagefind),
