@@ -127,15 +127,17 @@ module OSLResources
       private
 
       # Get latest version of hugo from Github
-      def osl_github_latest_version(repo, version)
+      def osl_github_latest_version(repo, version, key = 'name')
         releases = []
         uri = URI("https://api.github.com/repos/#{repo}/releases")
         response = JSON.parse(Net::HTTP.get(uri))
         response.each do |rel|
           # Match version given
-          if rel['name'].match?(/^v#{version}/)
+          if rel[key].match?(/^v#{version}/)
             # Remove leading 'v' from name
-            releases << rel['name'][1..-1]
+            releases << rel[key][1..-1]
+          elsif rel[key].match?(/^#{version}/)
+            releases << rel[key]
           end
         end
         # First one should be latest
