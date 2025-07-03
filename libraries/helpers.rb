@@ -124,9 +124,7 @@ module OSLResources
         output.join("\n")
       end
 
-      private
-
-      # Get latest version of hugo from Github
+      # Get latest version of repo release from Github
       def osl_github_latest_version(repo, version, key = 'name')
         releases = []
         uri = URI("https://api.github.com/repos/#{repo}/releases")
@@ -143,6 +141,8 @@ module OSLResources
         # First one should be latest
         releases[0]
       end
+
+      private
 
       def ifconfig_type
         case new_resource.type
