@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.7.3 (2025-07-03)
+------------------
+- Move osl_github_latest_version helper method as public method
+
 2.7.2 (2025-06-06)
 ------------------
 - Fix osl_github_latest_version for tags that don't start with 'v'
