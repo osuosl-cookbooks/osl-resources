@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.7.4 (2025-07-11)
+------------------
+- osl_anubis: Fix idempotency issues with /run/anubis
+
 2.7.3 (2025-07-03)
 ------------------
 - Move osl_github_latest_version helper method as public method
