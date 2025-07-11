@@ -12,7 +12,7 @@ describe 'osl_anubis' do
 
     it { is_expected.to include_recipe 'yum-osuosl' }
     it { is_expected.to install_package 'anubis' }
-    it { is_expected.to create_directory('/run/anubis').with(mode: '0777') }
+    it { is_expected.to create_directory '/run/anubis' }
 
     it do
       is_expected.to create_template('/etc/anubis/default.env').with(

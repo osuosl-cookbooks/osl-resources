@@ -21,9 +21,7 @@ action :create do
 
   package 'anubis'
 
-  directory '/run/anubis' do
-    mode '0777'
-  end
+  directory '/run/anubis'
 
   template "/etc/anubis/#{new_resource.name}.env" do
     cookbook 'osl-resources'

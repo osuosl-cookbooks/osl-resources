@@ -4,7 +4,9 @@ control 'osl_anubis' do
   end
 
   describe directory '/run/anubis' do
-    its('mode') { should cmp '0777' }
+    its('mode') { should cmp '0755' }
+    its('owner') { should cmp 'anubis' }
+    its('group') { should cmp 'anubis' }
   end
 
   describe file '/etc/anubis/default.env' do
