@@ -1,6 +1,11 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
 
+ALMA_10 = {
+  platform: 'almalinux',
+  version: '10',
+}.freeze
+
 ALMA_9 = {
   platform: 'almalinux',
   version: '9',
