@@ -1,5 +1,3 @@
-os_rel = os.release.to_i
-
 control 'osl_dnsdist' do
   describe package 'dnsdist' do
     it { should be_installed }
@@ -106,23 +104,13 @@ control 'osl_dnsdist' do
 
   describe command "dnsdist -c -C /etc/dnsdist/dnsdist-auth.conf -e 'showServers()'" do
     its('exit_status') { should eq 0 }
-    if os_rel >= 9
-      its('stdout') { should match /^0\s+140.211.166.140:53\s+up.*auth/ }
-      its('stdout') { should match /^1\s+140.211.166.141:53\s+up.*auth/ }
-    else
-      its('stdout') { should match /^0\s+140.211.166.140:53\s+140.211.166.140:53/ }
-      its('stdout') { should match /^1\s+140.211.166.141:53\s+140.211.166.141:53/ }
-    end
+    its('stdout') { should match /^0\s+140.211.166.140:53\s+up.*auth/ }
+    its('stdout') { should match /^1\s+140.211.166.141:53\s+up.*auth/ }
   end
 
   describe command "dnsdist -c -C /etc/dnsdist/dnsdist-caching.conf -e 'showServers()'" do
     its('exit_status') { should eq 0 }
-    if os_rel >= 9
-      its('stdout') { should match /^0\s+140.211.166.130:53\s+up.*caching/ }
-      its('stdout') { should match /^1\s+140.211.166.131:53\s+up.*caching/ }
-    else
-      its('stdout') { should match /^0\s+140.211.166.130:53\s+140.211.166.130:53/ }
-      its('stdout') { should match /^1\s+140.211.166.131:53\s+140.211.166.131:53/ }
-    end
+    its('stdout') { should match /^0\s+140.211.166.130:53\s+up.*caching/ }
+    its('stdout') { should match /^1\s+140.211.166.131:53\s+up.*caching/ }
   end
 end
