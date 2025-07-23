@@ -6,7 +6,7 @@ issues_url       'https://github.com/osuosl-cookbooks/osl-resources/issues'
 license          'Apache-2.0'
 chef_version     '>= 16.0'
 description      'Holds base resources for the OSUOSL'
-version          '2.7.4'
+version          '2.7.5'
 
 depends          'ark'
 depends          'line'
