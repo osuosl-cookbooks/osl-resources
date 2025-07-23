@@ -14,13 +14,12 @@ newServer({<%= options %>})
 <% end -%>
 setServerPolicy(<%= @server_policy %>)
 <% if @webserver_password -%>
-<% if node['platform_version'].to_i >= 9 -%>
 webserver('<%= @webserver_address %>')
-setWebserverConfig({statsRequireAuthentication=false, acl='<%= @webserver_acl%>', password='<%= @webserver_password %>'})
-<% else -%>
-webserver('<%= @webserver_address %>', '<%= @webserver_password %>')
-setWebserverConfig({statsRequireAuthentication=false, acl='<%= @webserver_acl %>'})
-<% end -%>
+setWebserverConfig({
+  password = '<%= @webserver_password %>',
+  acl = '<%= @webserver_acl %>',
+  statsRequireAuthentication = false
+})
 <% end -%>
 <% if @console_key -%>
 controlSocket('<%= @console_address %>')

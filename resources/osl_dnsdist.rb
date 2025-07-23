@@ -14,7 +14,7 @@ property :listen_addresses, Array, default: %w(127.0.0.1 ::1)
 property :netmask_groups, Hash
 property :server_policy, String, default: 'firstAvailable'
 property :servers, Hash, required: true
-property :version, String, default: '1.7'
+property :version, String, default: '2.0'
 property :webserver_acl, Array, default: %w(127.0.0.1 ::1)
 property :webserver_address, String, default: '127.0.0.1:8083'
 property :webserver_password, String, sensitive: true
@@ -65,6 +65,39 @@ action :create do
     group 'dnsdist'
     mode '0700'
     notifies :restart, "service[#{dnsdist_service}]"
+  end
+
+  # TODO: https://github.com/PowerDNS/pdns/issues/15895
+  # This is a temporary workaround due to an upstream issue with the shipped file
+  filter_lines '/usr/lib/systemd/system/dnsdist@.service' do
+    filters(
+      [
+        {
+          replace: [
+            %r{^ExecStartPre=/usr/bin/dnsdist --check-config$},
+            'ExecStartPre=/usr/bin/dnsdist --config /etc/dnsdist/dnsdist-%i.conf --check-config',
+          ],
+        },
+        {
+          replace: [
+            %r{^ExecStart=/usr/bin/dnsdist --supervised --disable-syslog$},
+            'ExecStart=/usr/bin/dnsdist --config /etc/dnsdist/dnsdist-%i.conf --supervised --disable-syslog',
+          ],
+        },
+        {
+          replace: [
+            /^SyslogIdentifier=dnsdist$/,
+            'SyslogIdentifier=dnsdist-%i',
+          ],
+        },
+      ]
+    )
+    sensitive false
+    notifies :run, 'execute[systemctl daemon-reload]', :immediately
+  end
+
+  execute 'systemctl daemon-reload' do
+    action :nothing
   end
 
   service dnsdist_service do
