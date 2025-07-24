@@ -5,7 +5,7 @@ unified_mode true
 default_action :add
 
 property :key_name, String, name_property: true
-property :content, String, required: [:add]
+property :content, String, required: [:add], sensitive: true
 property :user, String, required: true
 property :group, String, default: lazy { user }
 property :dir_path, String, default: lazy { "/home/#{user}/.ssh" }
