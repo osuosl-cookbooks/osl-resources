@@ -15,9 +15,9 @@ property :pid_file_path, String, default: '/var/run/mongodb/mongod.pid'
 
 action :install do
   yum_repository 'mongodb-org' do
-    baseurl "https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/#{new_resource.version}/$basearch/"
+    baseurl mongodb_baseurl
     repo_gpgcheck true
-    gpgkey "https://www.mongodb.org/static/pgp/server-#{new_resource.version}.asc"
+    gpgkey "https://pgp.mongodb.com/server-#{new_resource.version}.asc"
   end
 
   package 'mongodb-org'

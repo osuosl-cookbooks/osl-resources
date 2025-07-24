@@ -17,6 +17,7 @@ ALMA_8 = {
 }.freeze
 
 ALL_PLATFORMS = [
+  ALMA_10,
   ALMA_9,
   ALMA_8,
 ].freeze
