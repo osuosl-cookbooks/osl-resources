@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.7.6 (2025-07-24)
+------------------
+- Mark content property as sensitive
+
 2.7.5 (2025-07-23)
 ------------------
 - Update to using dnsdist-2.0
