@@ -1,4 +1,4 @@
-osl_mongodb '6.0' do
+osl_mongodb '8.0' do
   data_dir '/var/lib/mongo2'
   log_dest 'syslog'
   port 27019

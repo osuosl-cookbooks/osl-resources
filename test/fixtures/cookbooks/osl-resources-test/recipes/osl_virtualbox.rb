@@ -11,4 +11,4 @@ if debian?
   reboot 'upgrade kernel'
 end
 
-osl_virtualbox '7.0'
+osl_virtualbox '7.1'

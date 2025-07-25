@@ -10,8 +10,6 @@ processManagement:
   timeZoneInfo: /usr/share/zoneinfo
 storage:
   dbPath: <%= @data_dir %>
-  journal:
-    enabled: true
 systemLog:
   destination: <%= @log_dest %>
   logAppend: true<% if @log_dest == 'file' -%>

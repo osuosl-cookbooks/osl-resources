@@ -6,16 +6,16 @@ describe 'osl_mongodb' do
   step_into :osl_mongodb
 
   recipe do
-    osl_mongodb '6.0'
+    osl_mongodb '8.0'
   end
 
   it do
-    is_expected.to create_yum_repository('mongodb-org-6.0')
+    is_expected.to create_yum_repository('mongodb-org-8.0')
       .with(
-        baseurl: 'https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/6.0/$basearch/',
+        baseurl: 'https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/8.0/$basearch/',
         repo_gpgcheck: true,
         gpgcheck: true,
-        gpgkey: 'https://www.mongodb.org/static/pgp/server-6.0.asc'
+        gpgkey: 'https://www.mongodb.org/static/pgp/server-8.0.asc'
       )
   end
 
@@ -93,7 +93,7 @@ describe 'osl_mongodb' do
 
   context 'data_dir /var/lib/mongo2' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         data_dir '/var/lib/mongo2'
       end
     end
@@ -129,7 +129,7 @@ describe 'osl_mongodb' do
 
   context 'log_dest syslog' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         log_dest 'syslog'
       end
     end
@@ -157,7 +157,7 @@ describe 'osl_mongodb' do
 
   context 'log_path /var/log/mongodb/mongod2.log' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         log_path '/var/log/mongodb/mongod2.log'
       end
     end
@@ -193,7 +193,7 @@ describe 'osl_mongodb' do
 
   context 'port 27019' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         port 27019
       end
     end
@@ -220,7 +220,7 @@ describe 'osl_mongodb' do
 
   context 'bind_ip 0.0.0.0' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         bind_ip '0.0.0.0'
       end
     end
@@ -247,7 +247,7 @@ describe 'osl_mongodb' do
 
   context 'max_connections 5120' do
     recipe do
-      osl_mongodb '6.0' do
+      osl_mongodb '8.0' do
         max_connections 5120
       end
     end
