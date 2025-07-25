@@ -12,10 +12,7 @@ action :install do
     baseurl 'http://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch'
     gpgcheck true
     repo_gpgcheck true
-    gpgkey %w(
-      https://www.virtualbox.org/download/oracle_vbox_2016.asc
-      https://www.virtualbox.org/download/oracle_vbox.asc
-    )
+    gpgkey virtualbox_gpg
   end if platform_family?('rhel')
 
   apt_repository 'virtualbox' do
@@ -25,7 +22,6 @@ action :install do
     ignore_failure true
     key %w(
       https://www.virtualbox.org/download/oracle_vbox_2016.asc
-      https://www.virtualbox.org/download/oracle_vbox.asc
     )
   end if platform_family?('debian')
 

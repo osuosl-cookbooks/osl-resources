@@ -56,6 +56,20 @@ module OSLResources
         end
       end
 
+      def virtualbox_gpg
+        case node['platform_version'].to_i
+        when 10
+          %w(
+            https://www.virtualbox.org/download/oracle_vbox_2016.asc
+          )
+        else
+          %w(
+            https://www.virtualbox.org/download/oracle_vbox_2016.asc
+            https://www.virtualbox.org/download/oracle_vbox.asc
+          )
+        end
+      end
+
       def mongodb_baseurl
         case node['platform_version'].to_i
         when 10
