@@ -56,6 +56,35 @@ module OSLResources
         end
       end
 
+      def virtualbox_gpg
+        if platform_family?('rhel')
+          if node['platform_version'].to_i >= 10
+            %w(https://www.virtualbox.org/download/oracle_vbox_2016.asc)
+          else
+            %w(
+              https://www.virtualbox.org/download/oracle_vbox_2016.asc
+              https://www.virtualbox.org/download/oracle_vbox.asc
+            )
+          end
+        elsif platform?('debian')
+          %w(https://www.virtualbox.org/download/oracle_vbox_2016.asc)
+        else
+          %w(
+            https://www.virtualbox.org/download/oracle_vbox_2016.asc
+            https://www.virtualbox.org/download/oracle_vbox.asc
+          )
+        end
+      end
+
+      def mongodb_baseurl
+        case node['platform_version'].to_i
+        when 10
+          "https://repo.mongodb.org/yum/redhat/9/mongodb-org/#{new_resource.version}/$basearch/"
+        else
+          "https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/#{new_resource.version}/$basearch/"
+        end
+      end
+
       def virtualbox_package_name
         case node['platform_family']
         when 'rhel'

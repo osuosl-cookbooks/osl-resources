@@ -1,1 +1,1 @@
-osl_mongodb '6.0'
+osl_mongodb '8.0'

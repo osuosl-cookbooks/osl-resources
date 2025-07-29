@@ -1,7 +1,7 @@
 control 'osl_mongodb' do
   describe yum.repo('mongodb-org') do
     it { should exist }
-    its('baseurl') { should cmp %r{https\:\/\/repo\.mongodb\.org\/yum\/redhat\/[0-9]+\/mongodb-org\/6.0\/.+} }
+    its('baseurl') { should cmp %r{https\:\/\/repo\.mongodb\.org\/yum\/redhat\/[0-9]+\/mongodb-org\/8.0\/.+} }
     it { should be_enabled }
   end
 
@@ -42,8 +42,6 @@ control 'osl_mongodb' do
           timeZoneInfo: /usr/share/zoneinfo
         storage:
           dbPath: /var/lib/mongo
-          journal:
-            enabled: true
         systemLog:
           destination: file
           logAppend: true
