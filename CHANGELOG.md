@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.8.0 (2025-07-29)
+------------------
+- AlmaLinux 10 support
+
 2.7.6 (2025-07-24)
 ------------------
 - Mark content property as sensitive
