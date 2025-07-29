@@ -57,11 +57,17 @@ module OSLResources
       end
 
       def virtualbox_gpg
-        case node['platform_version'].to_i
-        when 10
-          %w(
-            https://www.virtualbox.org/download/oracle_vbox_2016.asc
-          )
+        if platform_family?('rhel')
+          if node['platform_version'].to_i >= 10
+            %w(https://www.virtualbox.org/download/oracle_vbox_2016.asc)
+          else
+            %w(
+              https://www.virtualbox.org/download/oracle_vbox_2016.asc
+              https://www.virtualbox.org/download/oracle_vbox.asc
+            )
+          end
+        elsif platform?('debian')
+          %w(https://www.virtualbox.org/download/oracle_vbox_2016.asc)
         else
           %w(
             https://www.virtualbox.org/download/oracle_vbox_2016.asc
