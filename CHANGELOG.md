@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.9.0 (2025-09-16)
+------------------
+- Make osl_anubis more configurable
+
 2.8.0 (2025-07-29)
 ------------------
 - AlmaLinux 10 support
