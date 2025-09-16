@@ -171,6 +171,17 @@ module OSLResources
         releases[0]
       end
 
+      def osl_anubis_default_bots
+        %w(
+          (data)/bots/_deny-pathological.yaml
+          (data)/bots/aggressive-brazilian-scrapers.yaml
+          (data)/meta/ai-block-aggressive.yaml
+          (data)/crawlers/_allow-good.yaml
+          (data)/clients/x-firefox-ai.yaml
+          (data)/common/keep-internet-working.yaml
+        )
+      end
+
       private
 
       def ifconfig_type

@@ -3,14 +3,17 @@ provides :osl_anubis
 default_action :create
 unified_mode true
 
-property :bind_network, String, default: 'unix'
-property :bind, String, default: lazy { "/run/anubis/#{name}.sock" }
+property :import_bots, Array, default: lazy { osl_anubis_default_bots }
+property :custom_bots, Array
+property :extra_config, Hash
+property :bind_network, String, default: 'tcp'
+property :bind, String, default: '127.0.0.1:8932'
 property :cookie_domain, String
 property :cookie_expiration_time, String, default: '168h'
 property :cookie_partitioned, [true, false], default: false
 property :difficulty, Integer, default: 4
 property :metrics_bind, String, default: ':9090'
-property :policy_fname, String
+property :policy_fname, String, default: lazy { "/etc/anubis/botPolicies-#{name}.yaml" }
 property :redirect_domains, String
 property :serve_robots_txt, [true, false], default: false
 property :target, String
@@ -39,6 +42,17 @@ action :create do
       serve_robots_txt: new_resource.serve_robots_txt.to_s,
       target: new_resource.target,
       webmaster_email: new_resource.webmaster_email
+    )
+    notifies :restart, "service[anubis@#{new_resource.name}.service]"
+  end
+
+  template "/etc/anubis/botPolicies-#{new_resource.name}.yaml" do
+    cookbook 'osl-resources'
+    source 'anubis-botPolicies.yaml.erb'
+    variables(
+      import_bots: new_resource.import_bots,
+      custom_bots: new_resource.custom_bots,
+      extra_config: new_resource.extra_config
     )
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
