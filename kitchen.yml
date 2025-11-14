@@ -18,6 +18,7 @@ platforms:
   - name: almalinux-9
   - name: almalinux-10
   - name: debian-12
+  - name: debian-13
   - name: ubuntu-22.04
 
 suites:
@@ -26,6 +27,7 @@ suites:
       - recipe[osl-resources-test::osl_anubis]
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
   - name: osl_authorized_keys
     run_list:
@@ -44,18 +46,21 @@ suites:
       - recipe[osl-resources-test::osl_caddy]
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
   - name: osl_conntrackd
     run_list:
       - recipe[osl-resources-test::osl_conntrackd]
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
   - name: osl_dnsdist
     run_list:
       - recipe[osl-resources-test::osl_dnsdist]
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
   - name: osl_fakenic
     run_list:
@@ -75,12 +80,14 @@ suites:
   - name: osl_ifconfig
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_ifconfig]
   - name: osl_ifconfig_non_idempotent
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_ifconfig_non_idempotent]
@@ -90,24 +97,28 @@ suites:
   - name: osl_mongodb
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_mongodb]
   - name: osl_mongodb_parameters
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_mongodb_parameters]
   - name: osl_nfdump
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_nfdump]
   - name: osl_nfdump_sflow
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_nfdump_sflow]
@@ -117,12 +128,14 @@ suites:
   - name: osl_route
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_route]
   - name: osl_route_remove
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
     run_list:
       - recipe[osl-resources-test::osl_route_remove]
@@ -176,6 +189,7 @@ suites:
       - recipe[osl-resources-test::osl_udev_rules]
     excludes:
       - debian-12
+      - debian-13
       - ubuntu-24.04
   - name: osl_virtualbox
     # TODO(ramereth): This isn't actually working with openstack but it's a

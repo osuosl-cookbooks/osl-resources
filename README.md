@@ -7,7 +7,11 @@ This is the osl-resources cookbook for the OSL unmanaged and managed hosts.
 The following platforms and versions are tested and supported using [test-kitchen](http://kitchen.ci/)
 
 - AlmaLinux 8
+- AlmaLinux 9
+- AlmaLinux 10
+- Ubuntu 24.04
 - Debian 12
+- Debian 13
 
 ## Resources
 
