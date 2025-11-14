@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.9.1 (2025-11-14)
+------------------
+- Debian 13 support
+
 2.9.0 (2025-09-16)
 ------------------
 - Make osl_anubis more configurable
