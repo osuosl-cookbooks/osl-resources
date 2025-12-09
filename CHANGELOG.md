@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.10.0 (2025-12-09)
+-------------------
+- Add osl_shell_function resource
+
 2.9.1 (2025-11-14)
 ------------------
 - Debian 13 support
