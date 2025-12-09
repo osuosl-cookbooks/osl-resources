@@ -22,6 +22,7 @@ The following platforms and versions are tested and supported using [test-kitche
 - [osl_route](documentation/osl_route.md)
 - [osl_shell_alias](documentation/osl_shell_alias.md)
 - [osl_shell_environment](documentation/osl_shell_environment.md)
+- [osl_shell_function](documentation/osl_shell_function.md)
 - [osl_ssh_key](documentation/osl_ssh_key.md)
 - [osl_systemd_unit_drop_in](documentation/osl_systemd_unit_drop_in.md)
 

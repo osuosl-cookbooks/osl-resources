@@ -160,6 +160,15 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_shell_function
+    run_list:
+      - recipe[osl-resources-test::osl_shell_function]
+  - name: osl_shell_function_remove
+    run_list:
+      - recipe[osl-resources-test::osl_shell_function_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_ssh_key
     run_list:
       - recipe[osl-resources-test::osl_ssh_key]
