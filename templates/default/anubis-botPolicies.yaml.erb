@@ -19,6 +19,9 @@ bots:
     weight:
       adjust: 10
 
+default_challenge:
+<%= YAML.dump(@default_challenge).sub(/\A---\s*\n/, '').rstrip.gsub(/^/, '  ') %>
+
 dnsbl: false
 <% if @extra_config -%>
 

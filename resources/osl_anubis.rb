@@ -11,7 +11,7 @@ property :bind, String, default: '127.0.0.1:8932'
 property :cookie_domain, String
 property :cookie_expiration_time, String, default: '168h'
 property :cookie_partitioned, [true, false], default: false
-property :difficulty, Integer, default: 4
+property :default_challenge, Hash, default: { 'algorithm' => 'fast', 'difficulty' => 4 }
 property :metrics_bind, String, default: ':9090'
 property :policy_fname, String, default: lazy { "/etc/anubis/botPolicies-#{name}.yaml" }
 property :redirect_domains, String
@@ -35,7 +35,6 @@ action :create do
       cookie_domain: new_resource.cookie_domain,
       cookie_expiration_time: new_resource.cookie_expiration_time,
       cookie_partitioned: new_resource.cookie_partitioned.to_s,
-      difficulty: new_resource.difficulty,
       metrics_bind: new_resource.metrics_bind,
       policy_fname: new_resource.policy_fname,
       redirect_domains: new_resource.redirect_domains,
@@ -52,6 +51,7 @@ action :create do
     variables(
       import_bots: new_resource.import_bots,
       custom_bots: new_resource.custom_bots,
+      default_challenge: new_resource.default_challenge,
       extra_config: new_resource.extra_config
     )
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
