@@ -24,7 +24,6 @@ describe 'osl_anubis' do
           cookie_domain: nil,
           cookie_expiration_time: '168h',
           cookie_partitioned: 'false',
-          difficulty: 4,
           metrics_bind: ':9090',
           policy_fname: '/etc/anubis/botPolicies-default.yaml',
           redirect_domains: nil,
@@ -53,6 +52,7 @@ describe 'osl_anubis' do
             (data)/common/keep-internet-working.yaml
           ),
           custom_bots: nil,
+          default_challenge: { 'algorithm' => 'fast', 'difficulty' => 4 },
           extra_config: nil,
         }
       )
