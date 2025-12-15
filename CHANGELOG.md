@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.11.1 (2025-12-15)
+-------------------
+- Use valid thresholds config instead of invalid default_challenge key
+
 2.11.0 (2025-12-15)
 -------------------
 - Replace deprecated DIFFICULTY env var with default_challenge in policy file
