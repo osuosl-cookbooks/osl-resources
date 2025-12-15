@@ -15,6 +15,7 @@ control 'osl_anubis' do
         COOKIE_EXPIRATION_TIME=168h
         COOKIE_PARTITIONED=false
         POLICY_FNAME=/etc/anubis/botPolicies-default.yaml
+        TARGET=http://127.0.0.1:8080
       EOF
     end
   end
@@ -46,9 +47,13 @@ control 'osl_anubis' do
             weight:
               adjust: 10
 
-        default_challenge:
-          algorithm: fast
-          difficulty: 4
+        thresholds:
+          - name: default-challenge
+            expression: weight > 0
+            action: CHALLENGE
+            challenge:
+              algorithm: fast
+              difficulty: 3
 
         dnsbl: false
 
@@ -69,5 +74,16 @@ control 'osl_anubis' do
     it { should be_listening }
     its('processes') { should cmp 'anubis' }
     its('addresses') { should cmp '127.0.0.1' }
+  end
+
+  # nginx reverse proxy in front of Anubis
+  describe port 80 do
+    it { should be_listening }
+    its('processes') { should cmp 'nginx' }
+  end
+
+  # Test that the challenge page includes the correct difficulty via nginx proxy
+  describe json(content: http('http://127.0.0.1/', headers: { 'User-Agent' => 'Mozilla/5.0', 'Host' => 'anubis-test' }).body.match(/id="anubis_challenge"[^>]*>([^<]+)</)[1]) do
+    its(%w(rules difficulty)) { should eq 3 }
   end
 end

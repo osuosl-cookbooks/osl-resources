@@ -19,8 +19,13 @@ bots:
     weight:
       adjust: 10
 
-default_challenge:
-<%= YAML.dump(@default_challenge).sub(/\A---\s*\n/, '').rstrip.gsub(/^/, '  ') %>
+thresholds:
+  - name: default-challenge
+    expression: weight > 0
+    action: CHALLENGE
+    challenge:
+      algorithm: <%= @default_challenge['algorithm'] %>
+      difficulty: <%= @default_challenge['difficulty'] %>
 
 dnsbl: false
 <% if @extra_config -%>

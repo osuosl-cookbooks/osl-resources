@@ -29,6 +29,8 @@ suites:
       - debian-12
       - debian-13
       - ubuntu-24.04
+    provisioner:
+      data_bags_path: test/integration/data_bags
   - name: osl_authorized_keys
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys]
