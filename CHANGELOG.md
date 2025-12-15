@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.11.0 (2025-12-15)
+-------------------
+- Replace deprecated DIFFICULTY env var with default_challenge in policy file
+
 2.10.0 (2025-12-09)
 -------------------
 - Add osl_shell_function resource
