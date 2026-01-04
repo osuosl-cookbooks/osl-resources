@@ -18,6 +18,7 @@ The following platforms and versions are tested and supported using [test-kitche
 - [osl_authorized_keys](documentation/osl_authorized_keys.md)
 - [osl_fakenic](documentation/osl_fakenic.md)
 - [osl_ifconfig](documentation/osl_ifconfig.md)
+- [osl_ipmi_user](documentation/osl_ipmi_user.md)
 - [osl_packagecloud_repo](documentation/osl_packagecloud_repo.md)
 - [osl_route](documentation/osl_route.md)
 - [osl_shell_alias](documentation/osl_shell_alias.md)
@@ -28,7 +29,7 @@ The following platforms and versions are tested and supported using [test-kitche
 
 ## Kitchen Dokken
 
-This cookbook supports dokken testing. Dokken tests fail where they need to create network intefaces. The following
+This cookbook supports dokken testing. Dokken tests fail where they need to create network interfaces. The following
 suites are *expected* to fail when using dokken.
 
 - osl-fakenic
@@ -37,6 +38,19 @@ suites are *expected* to fail when using dokken.
 - osl-ifconfig-non-idempotent
 - osl-route
 - osl-route-remove
+
+## Kitchen Libvirt (IPMI Testing)
+
+IPMI user management tests require hardware emulation using QEMU/KVM VMs with
+OpenIPMI's `ipmi_sim` BMC simulation. These suites are only available in
+`kitchen.libvirt.yml`:
+
+- osl-ipmi-user
+- osl-ipmi-user-delete
+- osl-ipmi-user-modify
+
+See [osl_ipmi_user documentation](documentation/osl_ipmi_user.md) for setup
+prerequisites and detailed testing instructions.
 
 ## Contributing
 

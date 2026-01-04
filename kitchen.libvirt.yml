@@ -1,0 +1,85 @@
+---
+# Kitchen configuration for testing with QEMU/KVM IPMI emulation
+# This uses the vagrant-libvirt driver to spin up VMs with emulated IPMI hardware
+#
+# Prerequisites:
+#   - Linux host with KVM/QEMU and libvirt installed
+#   - vagrant-libvirt plugin: vagrant plugin install vagrant-libvirt
+#   - OpenIPMI ipmi_sim installed (provides the IPMI BMC simulator)
+#   - Appropriate vagrant box for libvirt provider
+#
+# Usage: KITCHEN_YAML=kitchen.libvirt.yml kitchen <command>
+#
+# Multiple VMs can run in parallel - each suite has its own ipmi_sim instance
+# with unique ports (osl-ipmi-user: 9111, osl-ipmi-user-delete: 9121)
+#
+# Before testing: test/fixtures/ipmi_sim/ipmi_sim_control.sh start-all
+# After testing:  test/fixtures/ipmi_sim/ipmi_sim_control.sh stop-all
+
+driver:
+  name: vagrant
+  provider: libvirt
+  vagrantfiles:
+    - Vagrantfile.ipmi.rb
+  customize:
+    memory: 3072
+
+verifier:
+  name: inspec
+
+provisioner:
+  name: chef_infra
+  product_name: cinc
+  product_version: '18'
+  enforce_idempotency: true
+  multiple_converge: 2
+  deprecations_as_errors: true
+
+platforms:
+  - name: almalinux-10
+    driver:
+      box: almalinux/10
+  - name: almalinux-9
+    driver:
+      box: almalinux/9
+  - name: almalinux-8
+    driver:
+      box: almalinux/8
+
+suites:
+  - name: osl_ipmi_user
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user]
+    lifecycle:
+      pre_create:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh start osl-ipmi-user
+      pre_converge:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh reset osl-ipmi-user
+      post_destroy:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh stop osl-ipmi-user
+  - name: osl_ipmi_user_delete
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+    lifecycle:
+      pre_create:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh start osl-ipmi-user-delete
+      pre_converge:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh reset osl-ipmi-user-delete
+      post_destroy:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh stop osl-ipmi-user-delete
+  - name: osl_ipmi_user_modify
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_modify]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+    lifecycle:
+      pre_create:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh start osl-ipmi-user-modify
+      pre_converge:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh reset osl-ipmi-user-modify
+      post_destroy:
+        - local: test/fixtures/ipmi_sim/ipmi_sim_control.sh stop osl-ipmi-user-modify

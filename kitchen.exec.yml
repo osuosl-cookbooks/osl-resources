@@ -1,0 +1,42 @@
+---
+# Kitchen configuration for testing on physical machines with IPMI hardware
+# Usage: KITCHEN_YAML=kitchen.exec.yml kitchen <command>
+
+driver:
+  name: exec
+
+verifier:
+  name: inspec
+
+provisioner:
+  name: chef_infra
+  product_name: cinc
+  product_version: '18'
+  enforce_idempotency: true
+  multiple_converge: 2
+  deprecations_as_errors: true
+  # Run as root to access IPMI devices
+  sudo: true
+  sudo_command: sudo -E
+
+platforms:
+  - name: local
+    driver:
+      name: exec
+
+suites:
+  - name: osl_ipmi_user
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user]
+  - name: osl_ipmi_user_delete
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_ipmi_user_modify
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_modify]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
