@@ -22,15 +22,16 @@ control 'osl_ipmi_user' do
 
     # Check that testadmin user was created with ADMINISTRATOR privilege
     # ipmitool output format: ID  Name  Callin  Link Auth  IPMI Msg  Channel Priv Limit
+    # link=on is set for enabled users, so Link Auth = true
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testadmin/) }
-      its('stdout') { should match(/testadmin\s+true\s+false\s+true\s+ADMINISTRATOR/) }
+      its('stdout') { should match(/testadmin\s+true\s+true\s+true\s+ADMINISTRATOR/) }
     end
 
     # Check that testoperator user was created with OPERATOR privilege
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testoperator/) }
-      its('stdout') { should match(/testoperator\s+true\s+false\s+true\s+OPERATOR/) }
+      its('stdout') { should match(/testoperator\s+true\s+true\s+true\s+OPERATOR/) }
     end
 
     # Check that testdisabled user was created but is disabled (IPMI Msg = false)

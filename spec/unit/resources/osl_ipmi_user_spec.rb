@@ -978,4 +978,144 @@ describe 'osl_ipmi_user' do
     # Should not update as user already has OEM privilege
     it { is_expected.to create_osl_ipmi_user('oemuser') }
   end
+
+  # Custom channel tests - verify channel is passed to ipmitool commands
+  context 'create action with custom channel - verifies channel usage' do
+    cached(:subject) { chef_run }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with('/dev/ipmi0').and_return(true)
+      allow(File).to receive(:exist?).with('/dev/ipmi/0').and_return(false)
+      allow(File).to receive(:exist?).with('/dev/ipmidev/0').and_return(false)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stdout).and_return(user_list_output)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stderr).and_return('')
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:exitstatus).and_return(0)
+    end
+
+    recipe do
+      osl_ipmi_user 'admin' do
+        password 'testpassword123'
+        privilege :administrator
+        channel 3
+      end
+    end
+
+    it { is_expected.to create_osl_ipmi_user('admin') }
+  end
+
+  context 'delete action with custom channel' do
+    cached(:subject) { chef_run }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with('/dev/ipmi0').and_return(true)
+      allow(File).to receive(:exist?).with('/dev/ipmi/0').and_return(false)
+      allow(File).to receive(:exist?).with('/dev/ipmidev/0').and_return(false)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stdout).and_return(user_list_with_admin)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stderr).and_return('')
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:exitstatus).and_return(0)
+    end
+
+    recipe do
+      osl_ipmi_user 'admin' do
+        channel 2
+        action :delete
+      end
+    end
+
+    it { is_expected.to delete_osl_ipmi_user('admin') }
+  end
+
+  context 'modify action with custom channel' do
+    cached(:subject) { chef_run }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with('/dev/ipmi0').and_return(true)
+      allow(File).to receive(:exist?).with('/dev/ipmi/0').and_return(false)
+      allow(File).to receive(:exist?).with('/dev/ipmidev/0').and_return(false)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stdout).and_return(user_list_with_admin)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stderr).and_return('')
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:exitstatus).and_return(0)
+    end
+
+    recipe do
+      osl_ipmi_user 'admin' do
+        privilege :operator
+        channel 2
+        action :modify
+      end
+    end
+
+    it { is_expected.to modify_osl_ipmi_user('admin') }
+  end
+
+  context 'create action - enabled false with custom channel' do
+    cached(:subject) { chef_run }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with('/dev/ipmi0').and_return(true)
+      allow(File).to receive(:exist?).with('/dev/ipmi/0').and_return(false)
+      allow(File).to receive(:exist?).with('/dev/ipmidev/0').and_return(false)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stdout).and_return(user_list_output)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stderr).and_return('')
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:exitstatus).and_return(0)
+    end
+
+    recipe do
+      osl_ipmi_user 'disabled_admin' do
+        password 'testpassword123'
+        privilege :administrator
+        channel 2
+        enabled false
+      end
+    end
+
+    it { is_expected.to create_osl_ipmi_user('disabled_admin') }
+  end
+
+  context 'modify action - enable user with custom channel' do
+    let(:user_list_with_disabled_ch2) do
+      <<~OUTPUT
+        ID  Name             Callin  Link Auth  IPMI Msg   Channel Priv Limit
+        1                    true    false      true       USER
+        2                    true    false      false      Unknown (0x00)
+        3   admin            true    false      false      ADMINISTRATOR
+      OUTPUT
+    end
+
+    cached(:subject) { chef_run }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with('/dev/ipmi0').and_return(true)
+      allow(File).to receive(:exist?).with('/dev/ipmi/0').and_return(false)
+      allow(File).to receive(:exist?).with('/dev/ipmidev/0').and_return(false)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:run_command).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:error!).and_return(nil)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stdout).and_return(user_list_with_disabled_ch2)
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:stderr).and_return('')
+      allow_any_instance_of(Mixlib::ShellOut).to receive(:exitstatus).and_return(0)
+    end
+
+    recipe do
+      osl_ipmi_user 'admin' do
+        enabled true
+        channel 2
+        action :modify
+      end
+    end
+
+    it { is_expected.to modify_osl_ipmi_user('admin') }
+  end
 end

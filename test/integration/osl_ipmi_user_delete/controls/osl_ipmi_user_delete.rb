@@ -15,15 +15,16 @@ control 'osl_ipmi_user_delete' do
     end
 
     # Check that testadmin user still exists
+    # link=on is set for enabled users, so Link Auth = true
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testadmin/) }
-      its('stdout') { should match(/testadmin\s+true\s+false\s+true\s+ADMINISTRATOR/) }
+      its('stdout') { should match(/testadmin\s+true\s+true\s+true\s+ADMINISTRATOR/) }
     end
 
     # Check that testoperator user was deleted (disabled and/or cleared)
     # After deletion, the user should either not appear or be disabled
     describe command('ipmitool user list 1') do
-      its('stdout') { should_not match(/testoperator\s+true\s+false\s+true/) }
+      its('stdout') { should_not match(/testoperator\s+true\s+true\s+true/) }
     end
 
     # Check that testadmin password hash still exists (user was not deleted)

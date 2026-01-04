@@ -588,22 +588,25 @@ module OSLResources
       end
 
       # Set the privilege level for a slot on a channel
+      # Also enables IPMI messaging and link auth for the channel
       def ipmi_set_privilege(slot, privilege, channel)
-        run_ipmi_command("channel setaccess #{channel} #{slot} privilege=#{privilege}")
+        run_ipmi_command("channel setaccess #{channel} #{slot} privilege=#{privilege} ipmi=on link=on")
       end
 
-      # Enable a user in a slot
-      def ipmi_enable_user(slot, _channel)
+      # Enable a user in a slot (globally and on specific channel)
+      def ipmi_enable_user(slot, channel = 1)
         run_ipmi_command("user enable #{slot}")
+        run_ipmi_command("channel setaccess #{channel} #{slot} ipmi=on link=on")
       end
 
-      # Disable a user in a slot
-      def ipmi_disable_user(slot, _channel)
+      # Disable a user in a slot (globally and on specific channel)
+      def ipmi_disable_user(slot, channel = 1)
+        run_ipmi_command("channel setaccess #{channel} #{slot} ipmi=off link=off")
         run_ipmi_command("user disable #{slot}")
       end
 
       # Set enabled status for a slot
-      def ipmi_set_enabled(slot, enabled, channel)
+      def ipmi_set_enabled(slot, enabled, channel = 1)
         if enabled
           ipmi_enable_user(slot, channel)
         else

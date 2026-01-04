@@ -250,6 +250,121 @@ RSpec.describe OSLResources::Cookbook::Helpers do
     end
   end
 
+  describe '#ipmi_set_privilege' do
+    it 'sets privilege with channel access enabled' do
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 1 3 privilege=4 ipmi=on link=on')
+      simple_subject.send(:ipmi_set_privilege, 3, 4, 1)
+    end
+
+    it 'uses the specified channel' do
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 2 5 privilege=3 ipmi=on link=on')
+      simple_subject.send(:ipmi_set_privilege, 5, 3, 2)
+    end
+  end
+
+  describe '#ipmi_enable_user' do
+    it 'enables user globally and sets channel access' do
+      expect(simple_subject).to receive(:run_ipmi_command).with('user enable 3').ordered
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 1 3 ipmi=on link=on').ordered
+      simple_subject.send(:ipmi_enable_user, 3, 1)
+    end
+
+    it 'uses default channel 1 when not specified' do
+      expect(simple_subject).to receive(:run_ipmi_command).with('user enable 4').ordered
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 1 4 ipmi=on link=on').ordered
+      simple_subject.send(:ipmi_enable_user, 4)
+    end
+
+    it 'uses the specified channel' do
+      expect(simple_subject).to receive(:run_ipmi_command).with('user enable 5').ordered
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 2 5 ipmi=on link=on').ordered
+      simple_subject.send(:ipmi_enable_user, 5, 2)
+    end
+  end
+
+  describe '#ipmi_disable_user' do
+    it 'disables channel access first, then disables user globally' do
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 1 3 ipmi=off link=off').ordered
+      expect(simple_subject).to receive(:run_ipmi_command).with('user disable 3').ordered
+      simple_subject.send(:ipmi_disable_user, 3, 1)
+    end
+
+    it 'uses default channel 1 when not specified' do
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 1 4 ipmi=off link=off').ordered
+      expect(simple_subject).to receive(:run_ipmi_command).with('user disable 4').ordered
+      simple_subject.send(:ipmi_disable_user, 4)
+    end
+
+    it 'uses the specified channel' do
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with('channel setaccess 3 5 ipmi=off link=off').ordered
+      expect(simple_subject).to receive(:run_ipmi_command).with('user disable 5').ordered
+      simple_subject.send(:ipmi_disable_user, 5, 3)
+    end
+  end
+
+  describe '#ipmi_set_enabled' do
+    it 'calls ipmi_enable_user when enabled is true' do
+      expect(simple_subject).to receive(:ipmi_enable_user).with(3, 1)
+      simple_subject.send(:ipmi_set_enabled, 3, true, 1)
+    end
+
+    it 'calls ipmi_disable_user when enabled is false' do
+      expect(simple_subject).to receive(:ipmi_disable_user).with(3, 1)
+      simple_subject.send(:ipmi_set_enabled, 3, false, 1)
+    end
+
+    it 'passes channel to enable_user' do
+      expect(simple_subject).to receive(:ipmi_enable_user).with(5, 2)
+      simple_subject.send(:ipmi_set_enabled, 5, true, 2)
+    end
+
+    it 'passes channel to disable_user' do
+      expect(simple_subject).to receive(:ipmi_disable_user).with(5, 2)
+      simple_subject.send(:ipmi_set_enabled, 5, false, 2)
+    end
+
+    it 'uses default channel 1 when not specified' do
+      expect(simple_subject).to receive(:ipmi_enable_user).with(3, 1)
+      simple_subject.send(:ipmi_set_enabled, 3, true)
+    end
+  end
+
+  describe '#ipmi_set_username' do
+    it 'sets username for slot' do
+      expect(simple_subject).to receive(:run_ipmi_command).with('user set name 3 admin')
+      simple_subject.send(:ipmi_set_username, 3, 'admin')
+    end
+  end
+
+  describe '#ipmi_set_password' do
+    it 'sets password for slot with standard length' do
+      expect(simple_subject).to receive(:run_ipmi_command).with('user set password 3 secret123')
+      simple_subject.send(:ipmi_set_password, 3, 'secret123')
+    end
+
+    it 'sets password with 20-byte mode for passwords over 16 chars' do
+      long_password = '12345678901234567' # 17 chars
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with("user set password 3 #{long_password} 20")
+      simple_subject.send(:ipmi_set_password, 3, long_password)
+    end
+
+    it 'uses standard mode for exactly 16 char password' do
+      password_16 = '1234567890123456' # exactly 16 chars
+      expect(simple_subject).to receive(:run_ipmi_command)
+        .with("user set password 3 #{password_16}")
+      simple_subject.send(:ipmi_set_password, 3, password_16)
+    end
+  end
+
   describe '#ipmi_password_hash' do
     it 'generates a SHA256 hash of username and password' do
       hash = simple_subject.send(:ipmi_password_hash, 'admin', 'secret123')

@@ -14,13 +14,14 @@ control 'osl_ipmi_user_modify' do
     end
 
     # Check testmodify was created then modified to OPERATOR
+    # link=on is set for enabled users, so Link Auth = true
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testmodify/) }
       # After modify, should have OPERATOR privilege
-      its('stdout') { should match(/testmodify\s+true\s+false\s+true\s+OPERATOR/) }
+      its('stdout') { should match(/testmodify\s+true\s+true\s+true\s+OPERATOR/) }
     end
 
-    # Check testdisable was disabled (IPMI Msg = false)
+    # Check testdisable was disabled (IPMI Msg = false, Link Auth = false)
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testdisable/) }
       its('stdout') { should match(/testdisable\s+true\s+false\s+false\s+USER/) }
@@ -29,7 +30,7 @@ control 'osl_ipmi_user_modify' do
     # Check testpassword exists (we can't verify password was changed via ipmitool list)
     describe command('ipmitool user list 1') do
       its('stdout') { should match(/testpassword/) }
-      its('stdout') { should match(/testpassword\s+true\s+false\s+true\s+USER/) }
+      its('stdout') { should match(/testpassword\s+true\s+true\s+true\s+USER/) }
     end
 
     # Check that password hash files were updated after modify
