@@ -1,0 +1,18 @@
+# Minimal emu file for kitchen IPMI testing
+# This file defines the BMC behavior
+
+# The BMC is the MC at address 20
+mc_setbmc 0x20
+
+# Add the BMC with persistence for user data
+mc_add 0x20 0 no-device-sdrs 0x23 9 8 0x9f 0x1291 0xf02 persist_sdr
+sel_enable 0x20 1000 0x0a
+
+# Watchdog sensor (required, must be sensor 0)
+sensor_add 0x20 0 0 35 0x6f event-only
+sensor_set_event_support 0x20 0 0 enable scanning per-state \
+        000000000001111 000000000000000 \
+        000000000001111 000000000000000
+
+# Enable the BMC
+mc_enable 0x20

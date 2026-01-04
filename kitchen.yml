@@ -96,6 +96,33 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_ipmi_user
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user]
+  - name: osl_ipmi_user_delete
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
+  - name: osl_ipmi_user_modify
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
+    run_list:
+      - recipe[osl-resources-test::osl_ipmi_user_modify]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_mongodb
     excludes:
       - debian-12
