@@ -206,6 +206,13 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_hpnssh
+    run_list:
+      - recipe[osl-resources-test::osl_hpnssh]
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
   - name: osl_hugo
     run_list:
       - recipe[osl-resources-test::osl_hugo]

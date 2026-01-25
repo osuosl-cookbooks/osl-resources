@@ -12,6 +12,17 @@ action :enable do
   execute "dnf copr enable #{new_resource.copr}" do
     command "dnf -y copr enable #{new_resource.copr}"
     not_if { copr_enabled?(new_resource.copr) }
+    notifies :run, "execute[dnf makecache #{new_resource.copr}]", :immediately
+    notifies :flush_cache, "package[package-cache-reload-#{new_resource.copr}]", :immediately
+  end
+
+  execute "dnf makecache #{new_resource.copr}" do
+    command 'dnf makecache'
+    action :nothing
+  end
+
+  package "package-cache-reload-#{new_resource.copr}" do
+    action :nothing
   end
 end
 
