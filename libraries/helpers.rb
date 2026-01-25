@@ -394,6 +394,11 @@ module OSLResources
       def array_to_string(val)
         val.is_a?(Array) ? val.join(' ') : val
       end
+
+      def copr_enabled?(copr)
+        repo_file = "/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:#{copr.tr('/', ':')}.repo"
+        ::File.exist?(repo_file)
+      end
     end
   end
 end

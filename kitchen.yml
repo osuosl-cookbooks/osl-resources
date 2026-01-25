@@ -57,6 +57,23 @@ suites:
       - debian-12
       - debian-13
       - ubuntu-24.04
+  - name: osl_dnf_copr
+    run_list:
+      - recipe[osl-resources-test::osl_dnf_copr]
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
+  - name: osl_dnf_copr_disable
+    run_list:
+      - recipe[osl-resources-test::osl_dnf_copr_disable]
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_dnsdist
     run_list:
       - recipe[osl-resources-test::osl_dnsdist]
