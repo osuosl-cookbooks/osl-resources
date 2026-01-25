@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.12.0 (2026-01-25)
+-------------------
+- Add osl_dnf_copr resource for managing COPR repositories
+
 2.11.1 (2025-12-15)
 -------------------
 - Use valid thresholds config instead of invalid default_challenge key
