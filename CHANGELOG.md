@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.13.0 (2026-01-25)
+-------------------
+- Add osl_hpnssh resource
+
 2.12.0 (2026-01-25)
 -------------------
 - Add osl_dnf_copr resource for managing COPR repositories
