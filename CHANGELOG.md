@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.14.1 (2026-02-06)
+-------------------
+- Fix bridge_options template to handle both symbol and string keys
+
 2.14.0 (2026-02-06)
 -------------------
 - Add bridge_options support for nmstate linux-bridge interfaces
