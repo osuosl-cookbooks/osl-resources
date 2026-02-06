@@ -13,6 +13,7 @@ property :bond_ports,
   default: []
 property :bootproto, String
 property :bridge, String
+property :bridge_options, Hash
 property :bridge_ports,
   [String, Array],
   coerce: proc { |v| v.nil? ? nil : Array(v) },
@@ -74,6 +75,7 @@ action :add do
       bonding_opts: nmstate_bonding_opts,
       bond_ports: new_resource.bond_ports,
       bridge: new_resource.bridge,
+      bridge_options: new_resource.bridge_options,
       bridge_ports: new_resource.bridge_ports,
       device: new_resource.device,
       enabled: true,
@@ -153,6 +155,7 @@ action :delete do
     variables(
       bonding_opts: nmstate_bonding_opts,
       bridge: new_resource.bridge,
+      bridge_options: new_resource.bridge_options,
       bridge_ports: new_resource.bridge_ports,
       device: new_resource.device,
       enabled: false,
@@ -218,6 +221,7 @@ action :disable do
     variables(
       bonding_opts: nmstate_bonding_opts,
       bridge: new_resource.bridge,
+      bridge_options: new_resource.bridge_options,
       bridge_ports: new_resource.bridge_ports,
       device: new_resource.device,
       enabled: false,
