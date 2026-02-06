@@ -55,6 +55,18 @@ interfaces:
 <% end -%>
 <% if @type == 'linux-bridge' -%>
     bridge:
+<% if @bridge_options -%>
+      options:
+<% if @bridge_options[:stp] -%>
+        stp:
+<% @bridge_options[:stp].each do |opt, value| -%>
+          <%= opt %>: <%= value %>
+<% end -%>
+<% end -%>
+<% @bridge_options.reject { |k, _| k == :stp }.each do |opt, value| -%>
+        <%= opt %>: <%= value %>
+<% end -%>
+<% end -%>
       port:
 <% @bridge_ports.each do |port| -%>
         - name: <%= port %>

@@ -19,6 +19,8 @@ end
 
 osl_fakenic 'eth9'
 
+osl_fakenic 'eth10'
+
 osl_ifconfig 'eth1' do
   bootproto 'none'
   nm_controlled 'no'
@@ -64,13 +66,27 @@ osl_ifconfig 'br10' do
   delay '0'
 end
 
+osl_ifconfig 'br42' do
+  type 'linux-bridge'
+  bridge_ports %w(eth10)
+  bridge_options(
+    stp: { enabled: false, 'forward-delay': 2 }
+  )
+  ipv4addr '192.168.42.1'
+  mask '255.255.255.0'
+  onboot 'yes'
+  bootproto 'static'
+  nm_controlled 'no'
+  delay '0'
+end
+
 # bonding interfaces
 osl_ifconfig 'bond0' do
   ipv4addr '172.16.20.10'
   mask '255.255.255.0'
   network '172.16.20.0'
   bootproto 'static'
-  bonding_opts 'mode=0 miimon=100 lacp_rate=0'
+  bonding_opts 'mode=0 miimon=100'
   bond_ports %w(eth2 eth3)
   onboot 'yes'
 end

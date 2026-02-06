@@ -56,6 +56,30 @@ control 'osl_ifconfig' do
     its('stdout') { should match %r{inet 172.16.18.1/24} }
   end
 
+  # br42 bridge options tests (nmstate only, AL9+)
+  if os.release.to_i >= 9
+    describe command('ip -0 -o addr show dev br42') do
+      its('stdout') { should match /BROADCAST,MULTICAST,UP,LOWER_UP/ }
+    end
+
+    describe command('ip -4 -o addr show dev br42') do
+      its('stdout') { should match %r{inet 192.168.42.1/24} }
+    end
+
+    # Check to make sure the bridge port is attached correctly
+    describe command('bridge link show dev eth10') do
+      its('stdout') { should match /master br42/ }
+    end
+
+    describe file('/sys/class/net/br42/bridge/stp_state') do
+      its('content') { should match /^0$/ }
+    end
+
+    describe file('/sys/class/net/br42/bridge/forward_delay') do
+      its('content') { should match /^200$/ }
+    end
+  end
+
   # bonding tests
   %w(eth2 eth3).each do |i|
     describe command("ip -d -o link show dev #{i}") do
