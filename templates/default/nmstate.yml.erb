@@ -57,13 +57,14 @@ interfaces:
     bridge:
 <% if @bridge_options -%>
       options:
-<% if @bridge_options[:stp] -%>
+<% if @bridge_options['stp'] || @bridge_options[:stp] -%>
+<%   stp_opts = @bridge_options['stp'] || @bridge_options[:stp] -%>
         stp:
-<% @bridge_options[:stp].each do |opt, value| -%>
+<% stp_opts.each do |opt, value| -%>
           <%= opt %>: <%= value %>
 <% end -%>
 <% end -%>
-<% @bridge_options.reject { |k, _| k == :stp }.each do |opt, value| -%>
+<% @bridge_options.reject { |k, _| k.to_s == 'stp' }.each do |opt, value| -%>
         <%= opt %>: <%= value %>
 <% end -%>
 <% end -%>
