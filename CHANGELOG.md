@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.14.0 (2026-02-06)
+-------------------
+- Add bridge_options support for nmstate linux-bridge interfaces
+
 2.13.0 (2026-01-25)
 -------------------
 - Add osl_hpnssh resource
