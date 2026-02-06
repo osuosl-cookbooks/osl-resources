@@ -107,6 +107,18 @@ describe 'osl_ifconfig' do
       ipv4addr '192.168.42.1'
       mask '255.255.255.0'
     end
+
+    osl_ifconfig 'br43' do
+      type 'linux-bridge'
+      bridge_ports %w(eno1.43)
+      bridge_options(
+        'stp' => { 'enabled' => false, 'forward-delay' => 2 }
+      )
+      onboot 'yes'
+      bootproto 'static'
+      ipv4addr '192.168.43.1'
+      mask '255.255.255.0'
+    end
   end
 
   context 'almalinux 8' do
@@ -489,6 +501,53 @@ describe 'osl_ifconfig' do
     it do
       expect(chef_run).to nothing_execute('ifup br42')
     end
+
+    it do
+      is_expected.to create_template('/etc/sysconfig/network-scripts/ifcfg-br43')
+        .with(
+          source: 'ifcfg.conf.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bcast: nil,
+            bonding_opts: nil,
+            bootproto: 'static',
+            bridge: nil,
+            defroute: nil,
+            delay: nil,
+            device: 'br43',
+            ethtool_opts: nil,
+            gateway: nil,
+            hwaddr: nil,
+            ipv4addr: %w(192.168.43.1),
+            ipv6addr: [],
+            ipv6addrsec: nil,
+            ipv6_autoconf: nil,
+            ipv6_defaultgw: nil,
+            ipv6init: nil,
+            mask: %w(255.255.255.0),
+            master: nil,
+            metric: nil,
+            mtu: nil,
+            network: nil,
+            nm_controlled: 'yes',
+            onboot: 'yes',
+            onparent: nil,
+            peerdns: 'no',
+            slave: nil,
+            type: 'Bridge',
+            userctl: nil,
+            vlan: nil,
+          }
+        )
+    end
+    it do
+      expect(chef_run.template('/etc/sysconfig/network-scripts/ifcfg-br43')).to \
+        notify('execute[ifup br43]').immediately
+    end
+    it do
+      expect(chef_run).to nothing_execute('ifup br43')
+    end
   end
 
   context 'almalinux 9' do
@@ -855,6 +914,41 @@ describe 'osl_ifconfig' do
     end
 
     it do
+      is_expected.to create_template('/etc/nmstate/br43.yml')
+        .with(
+          source: 'nmstate.yml.erb',
+          cookbook: 'osl-resources',
+          mode: '0640',
+          variables: {
+            bonding_opts: nil,
+            bond_ports: [],
+            bridge: nil,
+            bridge_options: { 'stp' => { 'enabled' => false, 'forward-delay' => 2 } },
+            bridge_ports: %w(eno1.43),
+            device: 'br43',
+            enabled: true,
+            ethtool_opts: nil,
+            gateway: nil,
+            interface: 'br43',
+            ipv4addresses: [{ ipaddress: '192.168.43.1', prefix: 24 }],
+            ipv6addrsec: nil,
+            ipv6addr: [],
+            ipv6init: nil,
+            ipv6_autoconf: false,
+            ipv6_defaultgw: nil,
+            mac_address: nil,
+            mask: %w(255.255.255.0),
+            mtu: nil,
+            state: 'up',
+            type: 'linux-bridge',
+            vlan: nil,
+            vlan_device: 'br43',
+            vlan_id: nil,
+          }
+        )
+    end
+
+    it do
       is_expected.to render_file('/etc/nmstate/eth1.yml').with_content(
         <<~EOF
             # nmstate config file written by Chef
@@ -1092,6 +1186,36 @@ describe 'osl_ifconfig' do
     end
 
     it do
+      is_expected.to render_file('/etc/nmstate/br43.yml').with_content(
+        <<~EOF
+          # nmstate config file written by Chef
+          interfaces:
+            - name: br43
+              type: linux-bridge
+              state: up
+              ipv4:
+                dhcp: false
+                enabled: true
+                address:
+                  - ip: 192.168.43.1
+                    prefix-length: 24
+              ipv6:
+                dhcp: false
+                autoconf: false
+                enabled: false
+                address: []
+              bridge:
+                options:
+                  stp:
+                    enabled: false
+                    forward-delay: 2
+                port:
+                  - name: eno1.43
+        EOF
+      )
+    end
+
+    it do
       is_expected.to render_file('/etc/nmstate/eth1.172.yml').with_content(
         <<~EOF
           # nmstate config file written by Chef
@@ -1126,6 +1250,7 @@ describe 'osl_ifconfig' do
       eth1.172
       br172
       br42
+      br43
     ).each do |i|
       it do
         expect(chef_run.template("/etc/nmstate/#{i}.yml")).to \
