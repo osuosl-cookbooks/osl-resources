@@ -5,7 +5,7 @@ unified_mode true
 default_action :add
 
 property :body, String, required: [:add],
-  description: 'The body of the shell function. Use "$@" to pass through all arguments.'
+                        description: 'The body of the shell function. Use "$@" to pass through all arguments.'
 property :function_name, String, name_property: true
 
 action :add do

@@ -12,20 +12,20 @@ end
 
 systemd_unit 'simple-http.service' do
   content({
-    Unit: {
-      Description: 'Simple HTTP Server for testing',
-      After: 'network.target',
-    },
-    Service: {
-      Type: 'simple',
-      WorkingDirectory: '/var/www/html',
-      ExecStart: '/usr/bin/python3 -m http.server 8080',
-      Restart: 'always',
-    },
-    Install: {
-      WantedBy: 'multi-user.target',
-    },
-  })
+            Unit: {
+              Description: 'Simple HTTP Server for testing',
+              After: 'network.target',
+            },
+            Service: {
+              Type: 'simple',
+              WorkingDirectory: '/var/www/html',
+              ExecStart: '/usr/bin/python3 -m http.server 8080',
+              Restart: 'always',
+            },
+            Install: {
+              WantedBy: 'multi-user.target',
+            },
+          })
   action [:create, :enable, :start]
 end
 

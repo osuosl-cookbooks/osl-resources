@@ -41,6 +41,6 @@ end
 
 action_class do
   def repo_name
-    new_resource.repository.gsub(/[^0-9A-z.\-]/, '_')
+    new_resource.repository.gsub(/[^0-9A-Za-z.\-]/, '_')
   end
 end
