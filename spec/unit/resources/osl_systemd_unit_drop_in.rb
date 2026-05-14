@@ -11,14 +11,14 @@ describe 'osl_systemd_unit_drop_in' do
       osl_systemd_unit_drop_in 'default' do
         unit_name 'testing'
         content({
-          'Unit' => {
-            'Key1' => 'Val1',
-            'Key2' => 'Val2',
-          },
-          'Service' => {
-            'Key3' => 'Val3',
-          },
-        })
+                  'Unit' => {
+                    'Key1' => 'Val1',
+                    'Key2' => 'Val2',
+                  },
+                  'Service' => {
+                    'Key3' => 'Val3',
+                  },
+                })
         action [:create, :delete]
       end
     end
@@ -82,14 +82,14 @@ describe 'osl_systemd_unit_drop_in' do
       osl_systemd_unit_drop_in 'default' do
         unit_name 'testing'
         content({
-          'Unit' => {
-            'Key1' => 'Val1',
-            'Key2' => 'Val2',
-          },
-          'Service' => {
-            'Key3' => 'Val3',
-          },
-        })
+                  'Unit' => {
+                    'Key1' => 'Val1',
+                    'Key2' => 'Val2',
+                  },
+                  'Service' => {
+                    'Key3' => 'Val3',
+                  },
+                })
         triggers_reload false
       end
     end

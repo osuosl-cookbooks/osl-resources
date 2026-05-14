@@ -50,7 +50,6 @@ control 'osl_caddy' do
           header +X-Content-Type-Options nosniff
           header -Server
           header X-Frame-Options SAMEORIGIN
-          header {"Strict-Transport-Security"=>"max-age=31536000; includeSubDomains; preload"}
           header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
           tls {
             protocols tls1.2 tls1.3

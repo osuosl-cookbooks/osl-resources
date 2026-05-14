@@ -168,7 +168,7 @@ module OSLResources
           end
         end
         # First one should be latest
-        releases[0]
+        releases.first
       end
 
       def osl_anubis_default_bots
@@ -221,7 +221,7 @@ module OSLResources
       end
 
       def nmstate_vlan_device
-        new_resource.device.split('.')[0]
+        new_resource.device.split('.').first
       end
 
       def nmstate_vlan_id
@@ -238,16 +238,14 @@ module OSLResources
       end
 
       def nmstate_routes
-        routes = []
-        new_resource.routes.each do |route|
+        new_resource.routes.map do |route|
           # Translate netmask to CIDR
-          routes << {
+          {
             destination: "#{route[:address]}/#{netmask_to_cidr(route[:netmask])}",
             next_hop_interface: new_resource.device,
             next_hop_address: route[:gateway],
           }
         end
-        routes
       end
 
       def netmask_to_cidr(netmask)
