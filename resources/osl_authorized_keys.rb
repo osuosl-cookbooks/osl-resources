@@ -12,7 +12,7 @@ property :group, String, default: lazy { user }
 property :dir_path, String, default: lazy { "/home/#{user}/.ssh" }
 
 action :add do
-  directory "#{new_resource.dir_path}" do
+  directory new_resource.dir_path.to_s do
     owner new_resource.user
     group new_resource.group
     mode '0700'

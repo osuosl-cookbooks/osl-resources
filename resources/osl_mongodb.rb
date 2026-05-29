@@ -22,14 +22,14 @@ action :install do
 
   package 'mongodb-org'
 
-  directory "#{new_resource.data_dir}" do
+  directory new_resource.data_dir.to_s do
     owner 'mongod'
     group 'mongod'
     mode '0770'
     recursive true
   end
 
-  file "#{new_resource.log_path}" do
+  file new_resource.log_path.to_s do
     owner 'mongod'
     group 'mongod'
     mode '0600'
