@@ -90,6 +90,15 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_test_netns
+    run_list:
+      - recipe[osl-resources-test::osl_test_netns]
+  - name: osl_test_netns_delete
+    run_list:
+      - recipe[osl-resources-test::osl_test_netns_delete]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_geoip
     run_list:
       - recipe[osl-resources-test::osl_geoip]

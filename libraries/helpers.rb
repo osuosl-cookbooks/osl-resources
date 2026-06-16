@@ -168,7 +168,7 @@ module OSLResources
           end
         end
         # First one should be latest
-        releases[0]
+        releases.first
       end
 
       def osl_anubis_default_bots
@@ -221,7 +221,7 @@ module OSLResources
       end
 
       def nmstate_vlan_device
-        new_resource.device.split('.')[0]
+        new_resource.device.split('.').first
       end
 
       def nmstate_vlan_id
@@ -238,16 +238,14 @@ module OSLResources
       end
 
       def nmstate_routes
-        routes = []
-        new_resource.routes.each do |route|
+        new_resource.routes.map do |route|
           # Translate netmask to CIDR
-          routes << {
+          {
             destination: "#{route[:address]}/#{netmask_to_cidr(route[:netmask])}",
             next_hop_interface: new_resource.device,
             next_hop_address: route[:gateway],
           }
         end
-        routes
       end
 
       def netmask_to_cidr(netmask)
@@ -398,6 +396,68 @@ module OSLResources
       def copr_enabled?(copr)
         repo_file = "/etc/yum.repos.d/_copr:copr.fedorainfracloud.org:#{copr.tr('/', ':')}.repo"
         ::File.exist?(repo_file)
+      end
+
+      # osl_test_netns helpers — wrap `ip` lookups so the resource can use
+      # Ruby `not_if`/`only_if` blocks instead of shelling out from a string.
+
+      def osl_netns_exists?(name)
+        require 'mixlib/shellout'
+        cmd = Mixlib::ShellOut.new('ip', 'netns', 'list')
+        cmd.run_command
+        return false unless cmd.exitstatus.zero?
+        cmd.stdout.each_line.any? { |line| line.split(/\s+/).first == name }
+      end
+
+      def osl_netns_link_exists?(iface, netns: nil)
+        !osl_netns_link_show(iface, netns: netns).nil?
+      end
+
+      # True when the interface's admin flag is UP (operational state may
+      # still be LOWERLAYERDOWN if the peer isn't up yet — that's fine for
+      # idempotency, since `ip link set X up` is a no-op when already admin-up).
+      def osl_netns_link_admin_up?(iface, netns: nil)
+        out = osl_netns_link_show(iface, netns: netns)
+        return false if out.nil?
+        out.match?(/<[^>]*\bUP\b[^>]*>/)
+      end
+
+      def osl_netns_link_has_addr?(iface, addr, netns: nil)
+        require 'mixlib/shellout'
+        args = ['ip']
+        args += ['-n', netns] if netns
+        args += ['-o', 'addr', 'show', 'dev', iface]
+        cmd = Mixlib::ShellOut.new(*args)
+        cmd.run_command
+        return false unless cmd.exitstatus.zero?
+        cmd.stdout.include?(addr)
+      end
+
+      def osl_netns_link_has_mac?(iface, mac, netns: nil)
+        out = osl_netns_link_show(iface, netns: netns)
+        return false if out.nil?
+        out.downcase.include?(mac.downcase)
+      end
+
+      def osl_netns_link_is_type?(iface, type)
+        require 'mixlib/shellout'
+        cmd = Mixlib::ShellOut.new('ip', '-details', 'link', 'show', 'dev', iface)
+        cmd.run_command
+        return false unless cmd.exitstatus.zero?
+        cmd.stdout.match?(/^\s+#{Regexp.escape(type)}\s/)
+      end
+
+      # Returns the `ip -o link show dev <iface>` output (the "-o" form
+      # collapses each interface to one line, including the link/ether
+      # detail). Returns nil when the interface or netns doesn't exist.
+      def osl_netns_link_show(iface, netns: nil)
+        require 'mixlib/shellout'
+        args = ['ip']
+        args += ['-n', netns] if netns
+        args += ['-o', 'link', 'show', 'dev', iface]
+        cmd = Mixlib::ShellOut.new(*args)
+        cmd.run_command
+        cmd.exitstatus.zero? ? cmd.stdout : nil
       end
     end
   end
