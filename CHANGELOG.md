@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.15.0 (2026-06-16)
+-------------------
+- Add osl_test_netns resource
+
 2.14.1 (2026-02-06)
 -------------------
 - Fix bridge_options template to handle both symbol and string keys
