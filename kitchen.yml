@@ -49,6 +49,16 @@ suites:
       - debian-12
       - debian-13
       - ubuntu-24.04
+  - name: osl_chrony
+    run_list:
+      - recipe[osl-resources-test::osl_chrony]
+  - name: osl_chrony_server
+    run_list:
+      - recipe[osl-resources-test::osl_chrony_server]
+    excludes:
+      - debian-12
+      - debian-13
+      - ubuntu-24.04
   - name: osl_conntrackd
     run_list:
       - recipe[osl-resources-test::osl_conntrackd]
