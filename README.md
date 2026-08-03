@@ -16,6 +16,8 @@ The following platforms and versions are tested and supported using [test-kitche
 ## Resources
 
 - [osl_authorized_keys](documentation/osl_authorized_keys.md)
+- [osl_chrony](documentation/osl_chrony.md)
+- [osl_chrony_server](documentation/osl_chrony_server.md)
 - [osl_dnf_copr](documentation/osl_dnf_copr.md)
 - [osl_fakenic](documentation/osl_fakenic.md)
 - [osl_ifconfig](documentation/osl_ifconfig.md)

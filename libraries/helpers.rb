@@ -252,6 +252,61 @@ module OSLResources
         IPAddr.new(netmask, Socket::AF_INET).to_i.to_s(2).count('1')
       end
 
+      def chrony_service
+        platform_family?('rhel') ? 'chronyd' : 'chrony'
+      end
+
+      def chrony_conf_path
+        platform_family?('rhel') ? '/etc/chrony.conf' : '/etc/chrony/chrony.conf'
+      end
+
+      # Key-based (server) setups are RHEL-only
+      def chrony_keyfile
+        '/etc/chrony.keys'
+      end
+
+      def chrony_group
+        'chrony'
+      end
+
+      # time.osuosl.org is a DNS round-robin over the internal NTP servers;
+      # the pool directive makes chrony use all of its addresses and replace
+      # any that become unreachable. 2.pool.ntp.org (the subdomain with AAAA
+      # records) is the external fallback.
+      def chrony_default_pools
+        {
+          'time.osuosl.org' => 'iburst maxsources 3',
+          '2.pool.ntp.org' => 'iburst maxsources 2',
+        }
+      end
+
+      def chrony_default_conf
+        {
+          'driftfile' => platform_family?('rhel') ? '/var/lib/chrony/drift' : '/var/lib/chrony/chrony.drift',
+          'makestep' => '1.0 3',
+          'rtcsync' => nil,
+          'logdir' => '/var/log/chrony',
+          'port' => 0,
+          'cmdport' => 0,
+        }
+      end
+
+      # The client conf without the serving disabled, plus the NTP server
+      # directives.
+      def chrony_server_default_conf
+        chrony_default_conf.reject { |k, _| %w(port cmdport).include?(k) }.merge(
+          'local' => 'stratum 10 orphan',
+          'leapsectz' => 'right/UTC',
+          'ntsdumpdir' => '/var/lib/chrony',
+          'ratelimit' => 'interval 1 burst 16'
+        )
+      end
+
+      # Every address in the ntp_servers map except this node's own entry.
+      def chrony_peers(ntp_servers)
+        ntp_servers.reject { |host, _| host == node['hostname'] }.values.flatten
+      end
+
       def dnsdist_servers(servers)
         s = {}
         servers.each do |server, option|
