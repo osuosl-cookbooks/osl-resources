@@ -453,7 +453,7 @@ module OSLResources
         ::File.exist?(repo_file)
       end
 
-      # osl_test_netns helpers — wrap `ip` lookups so the resource can use
+      # osl_test_netns helpers. Wrap `ip` lookups so the resource can use
       # Ruby `not_if`/`only_if` blocks instead of shelling out from a string.
 
       def osl_netns_exists?(name)
@@ -469,7 +469,7 @@ module OSLResources
       end
 
       # True when the interface's admin flag is UP (operational state may
-      # still be LOWERLAYERDOWN if the peer isn't up yet — that's fine for
+      # still be LOWERLAYERDOWN if the peer isn't up yet, which is fine for
       # idempotency, since `ip link set X up` is a no-op when already admin-up).
       def osl_netns_link_admin_up?(iface, netns: nil)
         out = osl_netns_link_show(iface, netns: netns)
@@ -513,6 +513,41 @@ module OSLResources
         cmd = Mixlib::ShellOut.new(*args)
         cmd.run_command
         cmd.exitstatus.zero? ? cmd.stdout : nil
+      end
+
+      # osl_sysfs_param helpers. sysfs entries are not regular files, so the
+      # file resource's content staging, backup and atomic rename machinery
+      # does not work against them. Read and write them with native Ruby file
+      # methods instead.
+
+      def osl_sysfs_param_read(path)
+        ::File.read(path).strip
+      end
+
+      # Compares stripped values so a parameter that reads back without a
+      # trailing newline still converges exactly once.
+      def osl_sysfs_param_has_value?(path, value)
+        osl_sysfs_param_read(path) == value.to_s.strip
+      end
+
+      # A trailing newline matches what writing the parameter with echo would
+      # produce, which is what the kernel's parameter parsers expect.
+      def osl_sysfs_param_write(path, value)
+        ::File.write(path, "#{value}\n")
+      end
+
+      # Deterministic per-parameter fragment path, so `persist false` can
+      # clean up the same file `persist true` created.
+      def osl_sysfs_param_tmpfiles_path(path)
+        "/etc/tmpfiles.d/chef-#{path.delete_prefix('/').tr('/', '-')}.conf"
+      end
+
+      # A tmpfiles.d `w` line: write the argument to the path at boot, if the
+      # path exists then. The argument field is subject to %-specifier
+      # expansion and C-style backslash escapes, so escape both.
+      def osl_sysfs_param_tmpfiles_line(path, value)
+        escaped = value.to_s.gsub('\\') { '\\\\' }.gsub('%', '%%')
+        "w #{path} - - - - #{escaped}\n"
       end
     end
   end

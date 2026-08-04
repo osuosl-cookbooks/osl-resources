@@ -215,6 +215,15 @@ suites:
     provisioner:
       enforce_idempotency: false
       multiple_converge: 1
+  - name: osl_sysfs_param
+    run_list:
+      - recipe[osl-resources-test::osl_sysfs_param]
+  - name: osl_sysfs_param_remove
+    run_list:
+      - recipe[osl-resources-test::osl_sysfs_param_remove]
+    provisioner:
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_systemd_unit_drop_in
     run_list:
       - recipe[osl-resources-test::osl_systemd_unit_drop_in]

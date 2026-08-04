@@ -27,12 +27,14 @@ The following platforms and versions are tested and supported using [test-kitche
 - [osl_shell_environment](documentation/osl_shell_environment.md)
 - [osl_shell_function](documentation/osl_shell_function.md)
 - [osl_ssh_key](documentation/osl_ssh_key.md)
+- [osl_sysfs_param](documentation/osl_sysfs_param.md)
 - [osl_systemd_unit_drop_in](documentation/osl_systemd_unit_drop_in.md)
+- [osl_test_netns](documentation/osl_test_netns.md)
 
 ## Kitchen Dokken
 
-This cookbook supports dokken testing. Dokken tests fail where they need to create network intefaces. The following
-suites are *expected* to fail when using dokken.
+This cookbook supports dokken testing. Dokken tests fail where they need to create network intefaces or otherwise
+change kernel state that a container does not own. The following suites are *expected* to fail when using dokken.
 
 - osl-fakenic
 - osl-fakenic-delete
@@ -40,6 +42,8 @@ suites are *expected* to fail when using dokken.
 - osl-ifconfig-non-idempotent
 - osl-route
 - osl-route-remove
+- osl-sysfs-param
+- osl-sysfs-param-remove
 
 ## Contributing
 
