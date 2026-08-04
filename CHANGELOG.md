@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.17.0 (2026-08-04)
+-------------------
+- Add osl_sysfs_param resource
+
 2.16.0 (2026-08-03)
 -------------------
 - Add osl_chrony and osl_chrony_server resources
