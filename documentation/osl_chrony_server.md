@@ -22,7 +22,7 @@ encrypted data bag — never an attribute or a committed value.
 | `enable_nts_server` | `true`/`false` | `false`                     | no       | Serve NTS-KE; only ever takes effect on an off-site server        |
 | `key`               | String         |                             | yes      | The shared symmetric key (hex), from an encrypted data bag        |
 | `key_id`            | Integer        | `1`                         | no       | Key number used in the keyfile and peer lines                     |
-| `ntp_servers`       | Hash           |                             | yes      | Every address of every server, keyed by hostname; a node peers with every address except its own entry |
+| `ntp_servers`       | Hash           |                             | yes      | One address per server, keyed by hostname; a node peers with every address except its own entry. Use a single address family — see below |
 | `nts_server_cert`   | String         |                             | no       | `ntsservercert` path, rendered only when NTS is active            |
 | `nts_server_key`    | String         |                             | no       | `ntsserverkey` path, rendered only when NTS is active             |
 | `pools`             | Hash           | `2.pool.ntp.org`            | no       | `pool` directives (`name => options`)                             |
@@ -37,14 +37,28 @@ node stays inert (no NTS directives). Open the firewall separately with
 ```ruby
 osl_chrony_server 'default' do
   ntp_servers(
-    'ns1' => %w(140.211.166.140 2605:bc80:3010::140),
-    'ns2' => %w(140.211.166.141 2605:bc80:3010::141),
-    'ns3' => %w(216.165.191.54 2600:3402:600:24::154)
+    'ns1' => %w(140.211.166.140),
+    'ns2' => %w(140.211.166.141),
+    'ns3' => %w(216.165.191.54)
   )
   allowed_networks osl_managed_ipv4 + osl_managed_ipv6
   key data_bag_item('chrony', 'keys')['key']
 end
 ```
+
+## Peer over one address family only
+
+List a single address per server in `ntp_servers`. Giving a server two
+addresses opens two peer associations between each pair, which defeats NTP's
+loop detection: a server normally refuses a source whose reference ID points
+back at itself, but an IPv6 source's reference ID is a hash rather than an
+address, so it never matches that peer's own IPv4 address. Two servers can
+then select each other as their clock source and ratchet their stratum upward
+until they hit 16 and go unsynchronised.
+
+Every address of a server still answers clients, because chronyd binds to all
+of them — this constraint is only about which addresses appear in `peer`
+lines.
 
 ## Verification
 
