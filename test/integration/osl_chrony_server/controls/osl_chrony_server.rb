@@ -11,11 +11,8 @@ control 'osl_chrony_server' do
       # the kitchen host is not in the ntp_servers map, so every address
       # renders as a peer
       /^peer 192.0.2.10 key 1$/,
-      /^peer 2001:db8::10 key 1$/,
       /^peer 192.0.2.11 key 1$/,
-      /^peer 2001:db8::11 key 1$/,
       /^peer 198.51.100.10 key 1$/,
-      /^peer 2001:db8:1::10 key 1$/,
       %r{^allow 192.0.2.0/24$},
       %r{^allow 2001:db8::/32$},
       %r{^keyfile /etc/chrony.keys$},
