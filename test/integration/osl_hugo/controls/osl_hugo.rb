@@ -10,6 +10,6 @@ control 'osl_hugo' do
   end
   describe command '/usr/local/bin/hugo version' do
     its('exit_status') { should eq 0 }
-    its('stdout') { should match /^hugo v0.+/ }
+    its('stdout') { should match /^hugo v0.+\+extended/ }
   end
 end

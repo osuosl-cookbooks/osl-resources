@@ -7,13 +7,13 @@ default_action :install
 property :version, String, default: '0'
 
 action :install do
-  package 'tar'
+  package hugo_packages
 
   hugo_version = osl_github_latest_version('gohugoio/hugo', new_resource.version)
 
   begin
     ark 'hugo' do
-      url "https://github.com/gohugoio/hugo/releases/download/v#{hugo_version}/hugo_#{hugo_version}_Linux-64bit.tar.gz"
+      url "https://github.com/gohugoio/hugo/releases/download/v#{hugo_version}/hugo_extended_#{hugo_version}_Linux-64bit.tar.gz"
       prefix_root '/opt'
       prefix_home '/opt'
       has_binaries %w(hugo)
