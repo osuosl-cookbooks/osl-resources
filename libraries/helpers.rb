@@ -109,6 +109,17 @@ module OSLResources
         end
       end
 
+      # The extended Hugo build is cgo-linked, so unlike the standard build it
+      # needs libstdc++ (and libgcc, which libstdc++ pulls in) at runtime.
+      def hugo_packages
+        case node['platform_family']
+        when 'rhel'
+          %w(tar libstdc++)
+        when 'debian'
+          %w(tar libstdc++6)
+        end
+      end
+
       def osl_local_ipv4?
         local = false
         ip = IPAddr.new(node['ipaddress'])
