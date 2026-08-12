@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.17.1 (2026-08-12)
+-------------------
+- Install the extended edition of Hugo
+
 2.17.0 (2026-08-04)
 -------------------
 - Add osl_sysfs_param resource
