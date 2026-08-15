@@ -1,3 +1,8 @@
+# osl_fakenic persists by default, so the dummies come back after a reboot.
+# Without that a manual reboot leaves this suite with no interfaces at all and
+# verify fails for reasons unrelated to osl_ifconfig. The units recreate only
+# the device -- everything on top comes back from the NetworkManager profiles
+# nmstatectl wrote.
 (1..5).each do |i|
   osl_fakenic "eth#{i}"
 end
@@ -17,11 +22,12 @@ osl_fakenic 'eth8' do
   multicast true
 end
 
-osl_fakenic 'eth9'
-
-osl_fakenic 'eth10'
-
-osl_fakenic 'eth11'
+# eth10 has no osl_ifconfig resource of its own -- it is br42's port, and the
+# fixture's only coverage of an unmanaged bridge port. Its unit is what brings
+# it back; do not "fix" this by adding an osl_ifconfig 'eth10'.
+%w(eth9 eth10 eth11).each do |i|
+  osl_fakenic i
+end
 
 osl_ifconfig 'eth1' do
   bootproto 'none'

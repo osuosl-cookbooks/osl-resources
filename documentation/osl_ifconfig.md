@@ -238,3 +238,49 @@ osl_ifconfig 'br172' do
   bootproto 'none'
 end
 ```
+
+## Persistence across reboots
+
+The kitchen suites verify a freshly-converged machine. To check that the
+configuration also survives a reboot, do it by hand -- there is no automated
+reboot in the suites:
+
+```
+kitchen converge osl-ifconfig-almalinux-9
+kitchen verify   osl-ifconfig-almalinux-9      # baseline, must be green
+kitchen exec     osl-ifconfig-almalinux-9 -c 'sudo systemctl reboot'
+# wait for it to come back, then, with no converge in between:
+kitchen verify   osl-ifconfig-almalinux-9
+```
+
+Do not converge between the reboot and the second verify; a converge would
+re-apply everything and prove nothing. Repeat on `almalinux-10`.
+
+Two mechanisms make this work on AlmaLinux 9 and newer. `nmstatectl apply`
+writes NetworkManager connection profiles with autoconnect enabled, and
+because `dummy` is one of NetworkManager's software device types it recreates
+even the dummy interfaces from those profiles. The test dummies that
+`osl_ifconfig` does not manage come back from the `osl_fakenic ... persist
+true` units. The `/etc/nmstate/*.yml` files are inert once applied and prove
+nothing about boot.
+
+**AlmaLinux 8 is converge-only.** Nothing brings an ifcfg-managed interface
+back at boot: `network.service` ships disabled, `ifup` has no `ifup-dummy` and
+cannot create the device, and NetworkManager's ifcfg reader does not
+understand `TYPE=dummy` (and skips the file entirely when
+`NM_CONTROLLED=no`). A reboot on EL8 leaves the suite's interfaces gone.
+
+## What kitchen does not cover
+
+Deliberate gaps, so they stay distinguishable from accidental ones:
+
+| Case | Why not |
+|---|---|
+| `gateway` installing a live IPv4 default route | A `0.0.0.0/0` via a dummy can outrank the VM's own default route and kill the kitchen SSH transport. Covered at unit level, and through `defroute 'no'` absence assertions. |
+| `bootproto 'dhcp'` | Needs a DHCP server on the segment. |
+| `ipv6_autoconf 'yes'` actually configuring an address | Needs a router-advertisement source. |
+| `ethtool_opts` | ifcfg-only, and dummies support almost no ethtool operations. |
+| `peerdns` | Only observable through DHCP-supplied resolvers. |
+| `userctl`, `onparent`, `network` | ifcfg passthrough with no kernel-observable effect. |
+| 802.3ad bonds, active-backup failover | Needs a switch peer and carrier control; dummies have permanent carrier. |
+| Out-of-band drift on an interface that stays up | The resource converges on file state plus liveness, not running network state. |
