@@ -1,3 +1,6 @@
+# persist defaults to true, so this suite can be verified again after a manual
+# reboot. It is the only fakenic coverage that runs on Debian and Ubuntu as
+# well as AlmaLinux, so it is where the unit gets exercised cross-platform.
 osl_fakenic 'dummy1'
 
 osl_fakenic 'dummy2' do

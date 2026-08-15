@@ -30,6 +30,82 @@ RSpec.describe OSLResources::Cookbook::Helpers do
     end
   end
 
+  # These take primitives rather than reading new_resource.
+  describe 'osl_fakenic helpers' do
+    subject { DummyClass.new }
+
+    describe '#osl_fakenic_unit_name' do
+      it { expect(subject.send(:osl_fakenic_unit_name, 'eth1')).to eq 'osl-fakenic-eth1.service' }
+
+      # A dot is legal in a unit name and must survive, since VLAN-shaped
+      # interface names are passed straight through by several consumers.
+      it { expect(subject.send(:osl_fakenic_unit_name, 'eth1.10')).to eq 'osl-fakenic-eth1.10.service' }
+
+      it 'folds characters systemd will not accept' do
+        expect(subject.send(:osl_fakenic_unit_name, 'br-ex/0')).to eq 'osl-fakenic-br-ex-0.service'
+      end
+    end
+
+    describe '#osl_fakenic_ip_path' do
+      it 'uses the resolved path' do
+        allow(subject).to receive(:which).with('ip').and_return('/usr/bin/ip')
+        expect(subject.send(:osl_fakenic_ip_path)).to eq '/usr/bin/ip'
+      end
+
+      it 'falls back when ip is not on PATH' do
+        allow(subject).to receive(:which).with('ip').and_return(false)
+        expect(subject.send(:osl_fakenic_ip_path)).to eq '/usr/sbin/ip'
+      end
+    end
+
+    describe '#osl_fakenic_unit_path' do
+      it do
+        expect(subject.send(:osl_fakenic_unit_path, 'eth1'))
+          .to eq '/etc/systemd/system/osl-fakenic-eth1.service'
+      end
+    end
+
+    describe '#osl_fakenic_unit_content' do
+      # Ordered before NetworkManager so the device exists before anything
+      # tries to activate a profile against it.
+      it 'orders itself ahead of the network stack' do
+        expect(subject.send(:osl_fakenic_unit_content, interface: 'eth1', ip_path: '/usr/sbin/ip'))
+          .to match(/^Before=network-pre\.target NetworkManager\.service$/)
+      end
+
+      # `-` swallows EEXIST when NetworkManager created the device first.
+      it 'tolerates the device already existing' do
+        expect(subject.send(:osl_fakenic_unit_content, interface: 'eth1', ip_path: '/usr/sbin/ip'))
+          .to match(%r{^ExecStart=-/usr/sbin/ip link add name eth1 type dummy$})
+      end
+
+      it 'stays inactive-safe with no ExecStop' do
+        expect(subject.send(:osl_fakenic_unit_content, interface: 'eth1', ip_path: '/usr/sbin/ip')).to_not match(/ExecStop/)
+      end
+
+      # replace, not add, so a rerun against a configured device is not an error.
+      it 'replaces addresses rather than adding them' do
+        content = subject.send(:osl_fakenic_unit_content, interface: 'eth1', ip_path: '/usr/sbin/ip', ip4: %w(10.0.0.1/24), ip6: %w(fe80::1/64))
+        expect(content).to match(%r{^ExecStart=/usr/sbin/ip addr replace 10\.0\.0\.1/24 dev eth1$})
+        expect(content).to match(%r{^ExecStart=/usr/sbin/ip -6 addr replace fe80::1/64 dev eth1$})
+      end
+
+      # Setting a MAC on a live link is avoided by ordering it before `up`.
+      it 'sets the MAC and multicast before bringing the link up' do
+        content = subject.send(
+          :osl_fakenic_unit_content,
+          interface: 'eth1', ip_path: '/usr/sbin/ip', mac_address: '00:11:22:33:44:55', multicast: true
+        )
+        expect(content.index('address 00:11:22:33:44:55')).to be < content.index('link set dev eth1 up')
+        expect(content.index('multicast on')).to be < content.index('link set dev eth1 up')
+      end
+
+      it 'is parseable as a unit file' do
+        expect { IniParse.parse(subject.send(:osl_fakenic_unit_content, interface: 'eth1', ip_path: '/usr/sbin/ip')) }.to_not raise_error
+      end
+    end
+  end
+
   # These read their inputs off new_resource, so stub it rather than converge.
   describe 'osl_ifconfig helpers' do
     let(:attrs) { {} }

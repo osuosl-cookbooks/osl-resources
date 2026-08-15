@@ -617,6 +617,58 @@ module OSLResources
         escaped = value.to_s.gsub('\\') { '\\\\' }.gsub('%', '%%')
         "w #{path} - - - - #{escaped}\n"
       end
+
+      # osl_fakenic helpers
+
+      # Deterministic per-interface unit name, so `persist false` and :delete
+      # clean up the same unit `persist true` created.
+      def osl_fakenic_unit_name(interface)
+        "osl-fakenic-#{interface.gsub(/[^A-Za-z0-9:_.-]/, '-')}.service"
+      end
+
+      def osl_fakenic_unit_path(interface)
+        "/etc/systemd/system/#{osl_fakenic_unit_name(interface)}"
+      end
+
+      # systemd needs an absolute path, and `ip` is not in the same place
+      # everywhere: /usr/sbin on RHEL, /usr/bin on Debian with only a
+      # compatibility symlink at /usr/sbin. Resolve it rather than guess.
+      def osl_fakenic_ip_path
+        which('ip') || '/usr/sbin/ip'
+      end
+
+      # Recreates the device and nothing else, leaving addressing on top to
+      # whatever manages it. NetworkManager, network.service and
+      # systemd-networkd all order themselves After=network-pre.target, so
+      # running before it is what guarantees the device exists first.
+      #
+      # Every ExecStart is idempotent -- `-` on the add, `addr replace` rather
+      # than `addr add` -- so the unit can also be started by the converge that
+      # writes it. There is deliberately no ExecStop: stopping the unit must
+      # never take an interface down under osl_ifconfig.
+      def osl_fakenic_unit_content(interface:, ip_path:, ip4: nil, ip6: nil, mac_address: nil, multicast: false)
+        cmds = ["-#{ip_path} link add name #{interface} type dummy"]
+        cmds << "#{ip_path} link set dev #{interface} address #{mac_address}" if mac_address
+        cmds << "#{ip_path} link set dev #{interface} multicast on" if multicast
+        cmds << "#{ip_path} link set dev #{interface} up"
+        Array(ip4).each { |ip| cmds << "#{ip_path} addr replace #{ip} dev #{interface}" }
+        Array(ip6).each { |ip| cmds << "#{ip_path} -6 addr replace #{ip} dev #{interface}" }
+
+        <<~EOU
+          [Unit]
+          Description=Fake dummy interface #{interface}
+          Wants=network-pre.target
+          Before=network-pre.target NetworkManager.service
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          #{cmds.map { |c| "ExecStart=#{c}" }.join("\n")}
+
+          [Install]
+          WantedBy=multi-user.target
+        EOU
+      end
     end
   end
 end
