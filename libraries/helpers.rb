@@ -199,24 +199,61 @@ module OSLResources
         case new_resource.type
         when 'linux-bridge'
           'Bridge'
+        when 'bond'
+          'Bond'
+        when nil
+          # nmstate infers the bond type from bonding_opts; ifcfg must be told.
+          new_resource.bonding_opts ? 'Bond' : nil
         else
           new_resource.type
         end
       end
 
+      # Resolve each address to an explicit { ipaddress, prefix } pair. Prefix
+      # comes from a CIDR suffix, else `mask`. IPAddr's default of /32 leaves
+      # the interface up with no on-link subnet route, so it is not used.
       def nmstate_ipaddrs(ips)
         return unless ips
-        ipaddrs = []
-        ips.each_with_index do |i, idx|
-          return nil unless i
-          ip = if !new_resource.mask.empty? && IPAddr.new(i).ipv4?
-                 IPAddr.new("#{i}/#{new_resource.mask[idx]}")
-               else
-                 IPAddr.new(i)
-               end
-          ipaddrs << { ipaddress: IPAddr.new(i.split('/').first).to_s, prefix: ip.prefix }
+        masks = Array(new_resource.mask)
+        Array(ips).each_with_index.map do |addr, idx|
+          return nil unless addr
+          ipaddress, cidr = addr.to_s.split('/')
+          prefix = cidr || nmstate_mask_for(ipaddress, masks, idx)
+          if prefix.nil?
+            # IPv4 has no safe default; IPv6 does, since ifcfg-rh has always
+            # read a bare IPV6ADDR as /64.
+            if IPAddr.new(ipaddress).ipv4?
+              raise "osl_ifconfig[#{new_resource.device}]: no mask or CIDR prefix for #{addr}. " \
+                    'Set the `mask` property or write the address as <address>/<prefix>.'
+            end
+            Chef::Log.warn(
+              "osl_ifconfig[#{new_resource.device}]: no CIDR prefix for #{addr}, assuming /64. " \
+              'Write the address as <address>/<prefix> to be explicit.'
+            )
+            prefix = 64
+          end
+          { ipaddress: IPAddr.new(ipaddress).to_s, prefix: IPAddr.new("#{ipaddress}/#{prefix}").prefix }
         end
-        ipaddrs
+      end
+
+      # `mask` holds IPv4 dotted netmasks, so IPv6 never consults it. A lone
+      # mask covers every address; otherwise they line up positionally.
+      def nmstate_mask_for(ipaddress, masks, idx)
+        return if masks.empty?
+        return unless IPAddr.new(ipaddress).ipv4?
+        masks[idx] || (masks.one? ? masks.first : nil)
+      end
+
+      # A next hop takes no prefix, and ifcfg-rh rejects one outright, but the
+      # documented examples write gateways with one.
+      def nmstate_gateway_addr(gateway)
+        return if gateway.nil?
+        IPAddr.new(gateway.to_s.split('/').first).to_s
+      end
+
+      # Member-side membership: ifcfg BRIDGE=/MASTER=, nmstate `controller:`.
+      def nmstate_controller
+        new_resource.bridge || new_resource.master
       end
 
       def nmstate_state
@@ -231,6 +268,22 @@ module OSLResources
         new_resource.ipv6_autoconf == 'yes'
       end
 
+      # nmstate refuses autoconf without DHCP, so SLAAC needs both.
+      def nmstate_ipv6_dhcp
+        nmstate_ipv6_autoconf
+      end
+
+      # nmstate disables IPv6 unless told otherwise, stripping SLAAC and the
+      # link-local address. Honour what the recipe stated.
+      def nmstate_ipv6_enabled?
+        return true unless Array(new_resource.ipv6addr).empty?
+        return true unless Array(new_resource.ipv6addrsec).empty?
+        return true if new_resource.ipv6init == 'yes'
+        return true if new_resource.ipv6_autoconf == 'yes'
+        return true if new_resource.ipv6_defaultgw
+        false
+      end
+
       def nmstate_vlan_device
         new_resource.device.split('.').first
       end
@@ -243,7 +296,11 @@ module OSLResources
         return unless new_resource.bonding_opts
         opts = {}
         new_resource.bonding_opts.split(' ').each do |opt|
-          opts.merge!(opt.split('=').then { |k, v| { k.to_sym => v.to_i } })
+          k, v = opt.split('=', 2)
+          next if v.nil?
+          # Coercing every value turned mode=active-backup into 0 (balance-rr)
+          # and mode=802.3ad into 802.
+          opts[k.to_sym] = v.match?(/\A-?\d+\z/) ? v.to_i : v
         end
         opts
       end

@@ -1,12 +1,37 @@
 ---
 # nmstate config file written by Chef
+<%
+  ipv6_on = @enabled && @ipv6_enabled
+  ipv4addresses = Array(@ipv4addresses)
+  ipv6addr = Array(@ipv6addr)
+  bond_opts = @bonding_opts.to_h
+  bond_extra = bond_opts.reject { |k, _| k == :mode }
+  bridge_ports = Array(@bridge_ports)
+  bond_ports = Array(@bond_ports)
+  bridge_options = @bridge_options.to_h
+  stp_opts = bridge_options['stp'] || bridge_options[:stp]
+  # `delay` is ifcfg's DELAY=. nmstate validates forward-delay against [2,30]
+  # even with STP off, so DELAY=0 is only expressible as STP disabled.
+  stp = if stp_opts.is_a?(Hash)
+          stp_opts
+        elsif !stp_opts.nil?
+          { enabled: stp_opts }
+        elsif @delay && @delay.to_i.positive?
+          { enabled: true, 'forward-delay': @delay.to_i }
+        elsif @delay
+          { enabled: false }
+        end
+  bridge_extra = bridge_options.reject { |k, _| k.to_s == 'stp' }
+  has_options = !bridge_extra.empty? || stp
+  has_bridge = @type == 'linux-bridge' && (has_options || !bridge_ports.empty?)
+-%>
 interfaces:
   - name: <%= @interface %>
 <% if @type -%>
     type: <%= @type %>
 <% elsif @vlan -%>
     type: vlan
-<% elsif @bonding_opts -%>
+<% elsif !bond_opts.empty? -%>
     type: bond
 <% else -%>
     type: ethernet
@@ -16,61 +41,56 @@ interfaces:
     mtu: <%= @mtu %>
 <% end -%>
 <% if @mac_address -%>
-    mtu: <%= @mac_address %>
+    mac-address: <%= @mac_address %>
+<% end -%>
+<% if @controller -%>
+    controller: <%= @controller %>
 <% end -%>
     ipv4:
       dhcp: false
-<% if @ipv4addresses.empty? -%>
+<% if ipv4addresses.empty? || !@enabled -%>
       enabled: false
       address: []
 <% else -%>
-      enabled: <%= @enabled %>
+      enabled: true
       address:
-<% @ipv4addresses.each do |ip| -%>
+<% ipv4addresses.each do |ip| -%>
         - ip: <%= ip[:ipaddress] %>
           prefix-length: <%= ip[:prefix] %>
 <% end -%>
 <% end -%>
-<% if @ipv6addr || @ipv6init == 'yes' -%>
     ipv6:
-      dhcp: false
-      autoconf: <%= @ipv6_autoconf %>
-<% if @ipv6addr.empty? -%>
-      enabled: false
+      dhcp: <%= ipv6_on && @ipv6_dhcp %>
+      autoconf: <%= ipv6_on && @ipv6_autoconf %>
+      enabled: <%= ipv6_on %>
+<% if ipv6addr.empty? || !ipv6_on -%>
       address: []
 <% else -%>
-      enabled: <%= @enabled %>
       address:
-<% @ipv6addr.each do |ip| -%>
+<% ipv6addr.each do |ip| -%>
         - ip: "<%= ip[:ipaddress] %>"
           prefix-length: <%= ip[:prefix] %>
 <% end -%>
 <% end -%>
-<% if @ipv6addrsec -%>
-<% @ipv6addrsec.each do |ip| -%>
-        - ip: "<%= ip[:ipaddress] %>"
-          prefix-length: <%= ip[:prefix] %>
-<% end -%>
-<% end -%>
-<% end -%>
-<% if @type == 'linux-bridge' -%>
+<% if has_bridge -%>
     bridge:
-<% if @bridge_options -%>
+<% if has_options -%>
       options:
-<% if @bridge_options['stp'] || @bridge_options[:stp] -%>
-<%   stp_opts = @bridge_options['stp'] || @bridge_options[:stp] -%>
+<% if stp -%>
         stp:
-<% stp_opts.each do |opt, value| -%>
+<% stp.each do |opt, value| -%>
           <%= opt %>: <%= value %>
 <% end -%>
 <% end -%>
-<% @bridge_options.reject { |k, _| k.to_s == 'stp' }.each do |opt, value| -%>
+<% bridge_extra.each do |opt, value| -%>
         <%= opt %>: <%= value %>
 <% end -%>
 <% end -%>
+<% unless bridge_ports.empty? -%>
       port:
-<% @bridge_ports.each do |port| -%>
+<% bridge_ports.each do |port| -%>
         - name: <%= port %>
+<% end -%>
 <% end -%>
 <% end -%>
 <% if @type == 'vlan' || @vlan == 'yes' -%>
@@ -78,31 +98,43 @@ interfaces:
       base-iface: <%= @vlan_device %>
       id: <%= @vlan_id %>
 <% end -%>
-<% if @type == 'bond' || !@bonding_opts.nil? -%>
+<% unless bond_opts.empty? -%>
     link-aggregation:
-      mode: <%= @bonding_opts[:mode] %>
+      mode: <%= bond_opts[:mode] %>
+<% unless bond_extra.empty? -%>
       options:
-<% @bonding_opts.reject { |k, _| k == :mode }.each do |opt, value| %>
+<% bond_extra.each do |opt, value| -%>
         <%= opt %>: <%= value %>
 <% end -%>
+<% end -%>
+<% unless bond_ports.empty? -%>
       port:
-<% @bond_ports.each do |port| -%>
+<% bond_ports.each do |port| -%>
         - <%= port %>
 <% end -%>
 <% end -%>
-<% if @gateway || @ipv6_defaultgw -%>
+<% end -%>
+<%# ifup auto-created a bridge named by BRIDGE=, so recipes may declare the
+    port first; nmstate rejects a controller that does not exist yet. The
+    bridge's own file wins once it applies. -%>
+<% if @controller_bridge && @state == 'up' -%>
+  - name: <%= @controller_bridge %>
+    type: linux-bridge
+    state: up
+<% end -%>
+<% if @routes && (@gateway || (@ipv6_defaultgw && ipv6_on)) -%>
 routes:
   config:
 <% if @gateway -%>
     - destination: 0.0.0.0/0
-      metric: 100
+      metric: <%= @metric || 100 %>
       next-hop-address: <%= @gateway %>
       next-hop-interface: <%= @device %>
 <% end -%>
-<% if @ipv6_defaultgw -%>
-    - destination: ::/0
-      metric: 100
-      next-hop-address: "<%= @ipv6_defaultgw[0][:ipaddress] %>"
+<% if @ipv6_defaultgw && ipv6_on -%>
+    - destination: "::/0"
+      metric: <%= @metric || 100 %>
+      next-hop-address: "<%= @ipv6_defaultgw %>"
       next-hop-interface: <%= @device %>
 <% end -%>
 <% end -%>
