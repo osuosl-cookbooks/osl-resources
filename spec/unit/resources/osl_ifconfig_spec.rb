@@ -150,10 +150,35 @@ describe 'osl_ifconfig' do
       bootproto 'none'
       delay '4'
     end
+
+    # The ifcfg-only keys, plus defroute 'no' suppressing the nmstate routes.
+    osl_ifconfig 'eth9' do
+      device 'eth9'
+      type 'dummy'
+      bootproto 'static'
+      ipv4addr '10.99.9.9'
+      mask '255.255.255.0'
+      bcast '10.99.9.255'
+      gateway '10.99.9.1'
+      metric '150'
+      defroute 'no'
+      onparent 'yes'
+      peerdns 'yes'
+    end
+
+    # Port-side bond membership: MASTER=/SLAVE= on ifcfg, controller: on nmstate.
+    osl_ifconfig 'eth10' do
+      device 'eth10'
+      type 'dummy'
+      bootproto 'none'
+      master 'bond0'
+      slave 'yes'
+    end
   end
 
   ALL_DEVICES = %w(
-    eth1 eth2 eth3 eth6 eth7 eth8 bond0 bond1 eth1.172 br172 br42 br43 br45
+    eth1 eth2 eth3 eth6 eth7 eth8 eth9 eth10 bond0 bond1 eth1.172 br172 br42
+    br43 br45
   ).freeze
 
   context 'almalinux 8' do
@@ -271,6 +296,22 @@ describe 'osl_ifconfig' do
         is_expected.to_not render_file("/etc/sysconfig/network-scripts/ifcfg-#{device}")
           .with_content(/^IPV6ADDR=$/)
       end
+    end
+
+    it 'renders the ifcfg-only keys' do
+      is_expected.to render_file('/etc/sysconfig/network-scripts/ifcfg-eth9')
+        .with_content(/^BROADCAST=10\.99\.9\.255$/)
+        .with_content(/^DEFROUTE=no$/)
+        .with_content(/^ONPARENT=yes$/)
+        .with_content(/^PEERDNS=yes$/)
+        .with_content(/^METRIC=150$/)
+        .with_content(/^GATEWAY=10\.99\.9\.1$/)
+    end
+
+    it 'renders bond membership from the port side' do
+      is_expected.to render_file('/etc/sysconfig/network-scripts/ifcfg-eth10')
+        .with_content(/^MASTER=bond0$/)
+        .with_content(/^SLAVE=yes$/)
     end
 
     # A bond master needs TYPE/BONDING_MASTER regardless of what it is named.
@@ -609,6 +650,14 @@ describe 'osl_ifconfig' do
         it "renders #{device}.yml" do
           is_expected.to render_file("/etc/nmstate/#{device}.yml").with_content(content)
         end
+      end
+
+      it 'suppresses the routes block when defroute is no' do
+        is_expected.to_not render_file('/etc/nmstate/eth9.yml').with_content(/routes:/)
+      end
+
+      it 'renders controller: from master' do
+        is_expected.to render_file('/etc/nmstate/eth10.yml').with_content(/^    controller: bond0$/)
       end
 
       # String matching alone missed secondary addresses escaping their block.
@@ -951,5 +1000,207 @@ describe 'osl_ifconfig validation' do
     end
 
     it { expect { chef_run }.to raise_error(RuntimeError, /must include mode=/) }
+  end
+end
+
+# The `nmstate` property overrides the platform default in both directions.
+describe 'osl_ifconfig nmstate override' do
+  step_into :osl_ifconfig
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(false)
+  end
+
+  context 'nmstate forced on for AlmaLinux 8' do
+    platform 'almalinux', '8'
+
+    recipe do
+      osl_ifconfig 'eth1' do
+        type 'dummy'
+        nmstate true
+      end
+    end
+
+    it { is_expected.to install_package('nmstate') }
+    it { is_expected.to create_template('/etc/nmstate/eth1.yml') }
+    it { is_expected.to_not create_template('/etc/sysconfig/network-scripts/ifcfg-eth1') }
+    # nmstatectl on EL8 predates the -q flag.
+    it { is_expected.to run_execute('nmstatectl apply /etc/nmstate/eth1.yml') }
+  end
+
+  context 'nmstate forced off for AlmaLinux 9' do
+    platform 'almalinux', '9'
+
+    recipe do
+      osl_ifconfig 'eth1' do
+        type 'dummy'
+        nmstate false
+      end
+    end
+
+    it { is_expected.to create_template('/etc/sysconfig/network-scripts/ifcfg-eth1') }
+    it { is_expected.to_not create_template('/etc/nmstate/eth1.yml') }
+    it { is_expected.to_not install_package('nmstate') }
+  end
+end
+
+describe 'osl_ifconfig properties the nmstate path ignores' do
+  platform 'almalinux', '9'
+  step_into :osl_ifconfig
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(false)
+  end
+
+  context 'ethtool_opts' do
+    recipe do
+      osl_ifconfig 'eth1' do
+        type 'dummy'
+        ethtool_opts '-K eth1 tso off'
+      end
+    end
+
+    it do
+      expect(Chef::Log).to receive(:warn).with(/ethtool_opts is ignored/)
+      chef_run
+    end
+
+    it { is_expected.to_not render_file('/etc/nmstate/eth1.yml').with_content(/ethtool/) }
+
+    # Honoured on ifcfg, so no warning there.
+    context 'on the ifcfg path' do
+      platform 'almalinux', '8'
+
+      it do
+        is_expected.to render_file('/etc/sysconfig/network-scripts/ifcfg-eth1')
+          .with_content(/^ETHTOOL_OPTS="-K eth1 tso off"$/)
+      end
+
+      it do
+        expect(Chef::Log).to_not receive(:warn).with(/ethtool_opts/)
+        chef_run
+      end
+    end
+  end
+
+  context 'onboot no on the ifcfg path' do
+    platform 'almalinux', '8'
+
+    recipe do
+      osl_ifconfig 'eth1' do
+        type 'dummy'
+        onboot 'no'
+      end
+    end
+
+    it { is_expected.to render_file('/etc/sysconfig/network-scripts/ifcfg-eth1').with_content(/^ONBOOT=no$/) }
+    it { is_expected.to_not run_execute('bring up eth1') }
+  end
+
+  context "bootproto 'dhcp'" do
+    recipe do
+      osl_ifconfig 'eth1' do
+        type 'dummy'
+        bootproto 'dhcp'
+      end
+    end
+
+    it do
+      expect(Chef::Log).to receive(:warn).with(/bootproto 'dhcp' is ignored/)
+      chef_run
+    end
+
+    it { is_expected.to render_file('/etc/nmstate/eth1.yml').with_content(/dhcp: false/) }
+  end
+end
+
+# target was renamed to ipv4addr; the alias has to keep resolving prefixes.
+describe 'osl_ifconfig deprecated target alias' do
+  platform 'almalinux', '9'
+  step_into :osl_ifconfig
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(false)
+  end
+
+  recipe do
+    osl_ifconfig 'eth1' do
+      type 'dummy'
+      target '10.1.30.20'
+      mask '255.255.255.0'
+    end
+  end
+
+  it do
+    is_expected.to render_file('/etc/nmstate/eth1.yml')
+      .with_content(/- ip: 10\.1\.30\.20/)
+      .with_content(/prefix-length: 24/)
+  end
+end
+
+describe 'osl_ifconfig template branches' do
+  platform 'almalinux', '9'
+  step_into :osl_ifconfig
+  cached(:subject) { chef_run }
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(false)
+  end
+
+  recipe do
+    # bridge options that are not stp: rendered alongside, with no stp block.
+    osl_ifconfig 'br50' do
+      type 'linux-bridge'
+      bridge_ports %w(eth1)
+      bridge_options('mac-ageing-time' => 300, 'multicast-snooping' => false)
+    end
+
+    # A scalar stp value rather than a hash.
+    osl_ifconfig 'br51' do
+      type 'linux-bridge'
+      bridge_ports %w(eth2)
+      bridge_options(stp: false)
+    end
+
+    # No ports, no options, no delay: the bridge key is omitted entirely.
+    osl_ifconfig 'br52' do
+      type 'linux-bridge'
+    end
+
+    # mode with no other bonding options: no options block under
+    # link-aggregation, and no port list.
+    osl_ifconfig 'bond2' do
+      bonding_opts 'mode=4'
+    end
+  end
+
+  it 'renders non-stp bridge options without an stp block' do
+    is_expected.to render_file('/etc/nmstate/br50.yml')
+      .with_content(/mac-ageing-time: 300/)
+      .with_content(/multicast-snooping: false/)
+    is_expected.to_not render_file('/etc/nmstate/br50.yml').with_content(/stp:/)
+  end
+
+  it 'normalises a scalar stp value' do
+    is_expected.to render_file('/etc/nmstate/br51.yml')
+      .with_content(/^      options:\n        stp:\n          enabled: false$/)
+  end
+
+  it 'omits the bridge key when there is nothing to put under it' do
+    is_expected.to_not render_file('/etc/nmstate/br52.yml').with_content(/bridge:/)
+  end
+
+  it 'omits the options and port keys when a bond has only a mode' do
+    is_expected.to render_file('/etc/nmstate/bond2.yml').with_content(/^      mode: 4$/)
+    is_expected.to_not render_file('/etc/nmstate/bond2.yml').with_content(/^      options:$/)
+    is_expected.to_not render_file('/etc/nmstate/bond2.yml').with_content(/^      port:$/)
+  end
+
+  %w(br50 br51 br52 bond2).each do |device|
+    it "renders parseable YAML for #{device}" do
+      is_expected.to render_file("/etc/nmstate/#{device}.yml").with_content { |content|
+        expect { YAML.safe_load(content) }.to_not raise_error
+      }
+    end
   end
 end
