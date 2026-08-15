@@ -115,17 +115,17 @@ suites:
       - almalinux-9
       - almalinux-10
   - name: osl_ifconfig
-    excludes:
-      - debian-12
-      - debian-13
-      - ubuntu-24.04
+    includes:
+      - almalinux-8
+      - almalinux-9
+      - almalinux-10
     run_list:
       - recipe[osl-resources-test::osl_ifconfig]
   - name: osl_ifconfig_non_idempotent
-    excludes:
-      - debian-12
-      - debian-13
-      - ubuntu-24.04
+    includes:
+      - almalinux-8
+      - almalinux-9
+      - almalinux-10
     run_list:
       - recipe[osl-resources-test::osl_ifconfig_non_idempotent]
     provisioner:
