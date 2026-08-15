@@ -17,6 +17,27 @@ control 'osl_ifconfig' do
     end
   end
 
+  # An admin-down interface still carrying addresses passes every `ip addr`
+  # assertion below, so check the link itself.
+  %w(eth4 eth5 eth9).each do |i|
+    describe command("ip -0 -o link show dev #{i}") do
+      its('stdout') { should match /,UP,/ }
+      its('stdout') { should match /state (UP|UNKNOWN)/ }
+    end
+  end
+
+  # A missing mask used to render a silent /32 with no on-link subnet route.
+  describe command('ip -4 -o addr show dev eth9') do
+    its('stdout') { should match %r{inet 172.16.51.11/24} }
+    its('stdout') { should_not match %r{inet 172.16.51.11/32} }
+  end
+
+  describe command('ip -0 -o link show dev eth9') do
+    its('stdout') { should match /mtu 1400/ }
+    # hwaddr sets the MAC only on nmstate, so the fixture omits it on EL8.
+    its('stdout') { should match /00:1a:4b:a6:a7:c9/ } if os.release.to_i >= 9
+  end
+
   # Test Multiple IPs
   describe command('ip -o addr show dev eth5') do
     its('stdout') { should match %r{inet 10.1.30.20/24} }
@@ -54,6 +75,24 @@ control 'osl_ifconfig' do
   # br10 should have an IP address
   describe command('ip -4 -o addr show dev br10') do
     its('stdout') { should match %r{inet 172.16.18.1/24} }
+  end
+
+  # br44 never lists eth11; eth11 names br44. Regression test for controller:.
+  describe interface('br44') do
+    it { should exist }
+  end
+
+  describe command('bridge link show dev eth11') do
+    its('stdout') { should match /master br44/ }
+  end
+
+  # `delay '0'` was dropped on nmstate, leaving NM's 15s forward delay, so
+  # these bridges spent ~30s non-forwarding after boot. nmstate refuses
+  # forward-delay 0 (range 2-30), so it maps to STP off.
+  %w(br10 br172 br44).each do |b|
+    describe file("/sys/class/net/#{b}/bridge/stp_state") do
+      its('content') { should match /^0$/ }
+    end
   end
 
   # br42 bridge options tests (nmstate only, AL9+)

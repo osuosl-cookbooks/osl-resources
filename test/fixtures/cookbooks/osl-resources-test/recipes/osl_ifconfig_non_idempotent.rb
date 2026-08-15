@@ -25,6 +25,7 @@ osl_ifconfig 'eth2' do
   nm_controlled 'no'
   type 'dummy'
   ipv4addr '10.1.30.20'
+  mask '255.255.255.0'
   action :add
 end
 
@@ -33,6 +34,7 @@ osl_ifconfig 'eth2-delete' do
   nm_controlled 'no'
   type 'dummy'
   ipv4addr '10.1.30.20'
+  mask '255.255.255.0'
   action :delete
 end
 
