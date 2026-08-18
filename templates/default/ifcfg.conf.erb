@@ -4,6 +4,7 @@ BROADCAST=<%= @bcast %>
 <% end -%>
 <% if @bonding_opts -%>
 BONDING_OPTS="<%= @bonding_opts %>"
+BONDING_MASTER=yes
 <% end -%>
 <% if @bootproto -%>
 BOOTPROTO=<%= @bootproto %>
@@ -29,11 +30,17 @@ GATEWAY=<%= @gateway %>
 <% if @hwaddr -%>
 HWADDR=<%= @hwaddr %>
 <% end -%>
-<% if @ipv6addr -%>
-IPV6ADDR=<%= @ipv6addr[0] %>
+<%
+  # ifcfg carries one primary address; the rest join ipv6addrsec rather than
+  # being dropped.
+  v6 = Array(@ipv6addr)
+  v6sec = v6.drop(1) + Array(@ipv6addrsec)
+-%>
+<% unless v6.empty? -%>
+IPV6ADDR=<%= v6.first %>
 <% end -%>
-<% if @ipv6addrsec -%>
-IPV6ADDR_SECONDARIES='<%= @ipv6addrsec.join(' ') %>'
+<% unless v6sec.empty? -%>
+IPV6ADDR_SECONDARIES='<%= v6sec.join(' ') %>'
 <% end -%>
 <% if @ipv6_defaultgw -%>
 IPV6_DEFAULTGW=<%= @ipv6_defaultgw %>
@@ -44,14 +51,23 @@ IPV6INIT=<%= @ipv6init %>
 <% if @ipv6_autoconf -%>
 IPV6_AUTOCONF=<%= @ipv6_autoconf %>
 <% end -%>
-<% unless @mask.empty? -%>
-<% @mask.each_with_index do |mask, idx| -%>
-<% if idx == 0 -%>
-NETMASK=<%= mask %>
-<% else -%>
-NETMASK<%= idx %>=<%= mask %>
-<% end -%>
-<% end -%>
+<%
+  # A lone mask covers every address, as on the nmstate path. Addresses with
+  # their own CIDR get a PREFIX<n>= below instead.
+  addrs = Array(@ipv4addr)
+  masks = Array(@mask)
+  netmasks = if addrs.empty?
+               masks
+             else
+               addrs.each_index.map do |i|
+                 next if addrs[i].to_s.include?('/')
+                 masks[i] || (masks.one? ? masks.first : nil)
+               end
+             end
+-%>
+<% netmasks.each_with_index do |mask, idx| -%>
+<% next if mask.nil? -%>
+NETMASK<%= idx.zero? ? '' : idx %>=<%= mask %>
 <% end -%>
 <% if @master -%>
 MASTER=<%= @master %>
@@ -80,13 +96,11 @@ PEERDNS=<%= @peerdns %>
 <% if @slave -%>
 SLAVE=<%= @slave %>
 <% end -%>
-<% unless @ipv4addr.empty? -%>
-<% @ipv4addr.each_with_index do |ip, idx| -%>
-<% if idx == 0 -%>
-IPADDR=<%= ip %>
-<% else -%>
-IPADDR<%= idx %>=<%= ip %>
-<% end -%>
+<% addrs.each_with_index do |ip, idx| -%>
+<% addr, cidr = ip.to_s.split('/') -%>
+IPADDR<%= idx.zero? ? '' : idx %>=<%= addr %>
+<% if cidr -%>
+PREFIX<%= idx.zero? ? '' : idx %>=<%= cidr %>
 <% end -%>
 <% end -%>
 <% if @type -%>

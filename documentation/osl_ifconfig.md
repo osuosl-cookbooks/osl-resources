@@ -1,14 +1,41 @@
 # osl_ifconfig
 
 On AlmaLinux 8, this resource uses the network-scripts package in conjunction with ifup/ifdown.
-On AlmaLinux 9, this resource uses nmstate to manage interfaces
+On AlmaLinux 9 and newer, this resource uses nmstate to manage interfaces. The `nmstate`
+property overrides that choice if you need to pin one path explicitly.
 
 ## Actions
 
-- `:create`: Creates an interface (default action)
+- `:add`: Creates an interface (default action)
 - `:delete`: Deletes an interface
 - `:enable`: Enables an interface
 - `:disable`: Disables an interface
+
+## Address prefixes
+
+Every `ipv4addr` needs a prefix, either from `mask` or written into the address as
+`10.1.30.20/24`. A single `mask` covers every address on the interface. An address with no
+prefix from either source raises at converge time rather than silently defaulting to `/32`,
+which would bring the interface up with no on-link subnet route.
+
+`ipv6addr` and `ipv6addrsec` take their prefix from the address only; `mask` holds IPv4 dotted
+netmasks and is not consulted for IPv6. A bare IPv6 address is assumed to be `/64`, matching
+how ifcfg-rh has always read `IPV6ADDR=`, and logs a warning. Write the prefix explicitly if
+it is anything else — a loopback `::1` wants `/128`.
+
+Gateways (`gateway`, `ipv6_defaultgw`) take a bare address; any prefix written on them is
+stripped, since a next hop has no prefix.
+
+## Bringing interfaces up
+
+`:add` is level-triggered. Writing the config notifies an immediate apply, and a second guarded
+apply runs whenever the interface is not administratively up, so a host whose config is already
+correct but whose interface is down (after a reboot, a failed apply, or an out-of-band
+`ip link set down`) is repaired on the next converge rather than reporting a green no-op.
+
+On the ifcfg path the bring-up is `ifup` followed by `ip link set up`: under NetworkManager,
+`ifup` on a connection that is already active exits 0 without raising the kernel admin flag,
+so it alone cannot repair an active-but-down device.
 
 ## Properties
 
@@ -28,7 +55,7 @@ Note: All ifcfg options can be found within `/usr/share/doc/initscripts-*/syscon
 | `ethtool_opts`   | String        |               | ifcfg option (ETHTOOL_OPTS)                                     |
 | `force`          | true, false   |               | Force enable or disable action if interface is in desired state |
 | `gateway`        | String        |               | ifcfg option (GATEWAY)                                          |
-| `hwaddr`         | String        |               | ifcfg option (HWADDR)                                           |
+| `hwaddr`         | String        |               | ifcfg option (HWADDR): matches the device's MAC, does not set it |
 | `ipv4addr`       | String, Array |               | ifcfg option (IPADDR)                                           |
 | `ipv6addrsec`    | Array         |               | ifcfg option (IPV6ADDR_SECONDARIES)                             |
 | `ipv6addr`       | String, Array |               | ifcfg option (IPV6ADDR)                                         |
@@ -48,7 +75,14 @@ Note: All ifcfg options can be found within `/usr/share/doc/initscripts-*/syscon
 | `userctl`        | String        |               | ifcfg option (USERCTL)                                          |
 | `vlan`           | String        |               | ifcfg option (VLAN)                                             |
 
-### AlmaLinux 9 (nmstate)
+Setting `bonding_opts` also emits `BONDING_MASTER=yes` and infers `TYPE=Bond`, so a bond
+master does not have to be named `bondN` to be recognised. Note that `hwaddr` means
+different things on the two paths: ifcfg's `HWADDR=` pins the config to the NIC that
+already has that MAC (ifup refuses a device whose MAC differs), while nmstate's
+`mac-address:` actively sets the MAC on the interface. An `ipv4addr` written as
+`10.1.30.20/24` renders as `IPADDR=`/`PREFIX=`; `mask` renders as `NETMASK=`.
+
+### AlmaLinux 9 and newer (nmstate)
 
 Note: Documentation on nmstate can be found at https://nmstate.io/
 
@@ -73,6 +107,34 @@ Note: Documentation on nmstate can be found at https://nmstate.io/
 | `onboot`         | String        | `yes`         | Start interface on boot                                       |
 | `type`           | String        |               | https://nmstate.io/devel/yaml_api.html#type                   |
 | `vlan`           | String        |               | https://nmstate.io/devel/yaml_api.html#vlan-interface         |
+| `bridge_options` | Hash          |               | https://nmstate.io/devel/yaml_api.html#linux-bridge-interface |
+| `delay`          | String        |               | ifcfg `DELAY=`: `'0'` turns STP off, 2-30 turns STP on with that forward delay |
+| `master`         | String        |               | Controller interface for this port (rendered as `controller:`) |
+| `slave`          | String        |               | Accepted for ifcfg parity; membership comes from `master`     |
+| `metric`         | String        | `100`         | Metric applied to the default routes this interface installs  |
+| `defroute`       | String        |               | `'no'` suppresses the default routes entirely                 |
+| `nmstate`        | true, false   | `>= EL9`      | Force the nmstate or the ifcfg path                           |
+| `force`          | true, false   | `false`       | Ignore the link-state guard on `:enable`/`:disable`           |
+
+`bridge` and `master` both express member-side membership and render as nmstate's
+`controller:` key, matching what `BRIDGE=`/`MASTER=` do on the ifcfg path. You can attach a
+port either by naming it in the controller's `bridge_ports`/`bond_ports` or by setting
+`bridge`/`master` on the port itself. A bridge named by `bridge` is created on the spot if
+it does not exist yet, matching how EL8's `ifup` behaved, so declaration order does not
+matter. A bond named by `master` must be declared before its ports, since a bond cannot be
+created without its mode.
+
+`ethtool_opts` is only honoured on the ifcfg path; on nmstate it is ignored with a warning.
+`bootproto 'dhcp'` is likewise ifcfg-only.
+
+`hwaddr` warns on the nmstate path, because the two paths fail in opposite directions:
+ifcfg's `HWADDR=` *matches* (a stale value leaves the interface down), while nmstate
+defaults to `identifier: name` and *sets* `mac-address:` (a stale value is pushed onto the
+NIC). Use it only when you mean to change the MAC. nmstate's MAC-based interface matching
+is a separate feature (`identifier: mac-address`) that this resource does not expose.
+
+Bonding option values are passed through verbatim, so nmstate's named spellings work:
+`mode=802.3ad`, `mode=active-backup`, `xmit_hash_policy=layer3+4`, `lacp_rate=fast`.
 
 ## Examples
 
@@ -108,6 +170,7 @@ osl_ifconfig 'eth3' do
     10.1.30.20
     10.1.30.21
   )
+  mask '255.255.255.0'
   ipv6init 'yes'
   ipv6addr 'fe80::3/64'
   ipv6addrsec %w(
@@ -144,7 +207,7 @@ osl_ifconfig 'bond0' do
   mask '255.255.255.0'
   network '172.16.20.0'
   bootproto 'static'
-  bonding_opts 'mode=0 miimon=100 lacp_rate=0'
+  bonding_opts 'mode=active-backup miimon=100 primary=eth2'
   bond_ports %w(eth2 eth3)
 end
 ```
@@ -175,3 +238,49 @@ osl_ifconfig 'br172' do
   bootproto 'none'
 end
 ```
+
+## Persistence across reboots
+
+The kitchen suites verify a freshly-converged machine. To check that the
+configuration also survives a reboot, do it by hand -- there is no automated
+reboot in the suites:
+
+```
+kitchen converge osl-ifconfig-almalinux-9
+kitchen verify   osl-ifconfig-almalinux-9      # baseline, must be green
+kitchen exec     osl-ifconfig-almalinux-9 -c 'sudo systemctl reboot'
+# wait for it to come back, then, with no converge in between:
+kitchen verify   osl-ifconfig-almalinux-9
+```
+
+Do not converge between the reboot and the second verify; a converge would
+re-apply everything and prove nothing. Repeat on `almalinux-10`.
+
+Two mechanisms make this work on AlmaLinux 9 and newer. `nmstatectl apply`
+writes NetworkManager connection profiles with autoconnect enabled, and
+because `dummy` is one of NetworkManager's software device types it recreates
+even the dummy interfaces from those profiles. The test dummies that
+`osl_ifconfig` does not manage come back from the `osl_fakenic ... persist
+true` units. The `/etc/nmstate/*.yml` files are inert once applied and prove
+nothing about boot.
+
+**AlmaLinux 8 is converge-only.** Nothing brings an ifcfg-managed interface
+back at boot: `network.service` ships disabled, `ifup` has no `ifup-dummy` and
+cannot create the device, and NetworkManager's ifcfg reader does not
+understand `TYPE=dummy` (and skips the file entirely when
+`NM_CONTROLLED=no`). A reboot on EL8 leaves the suite's interfaces gone.
+
+## What kitchen does not cover
+
+Deliberate gaps, so they stay distinguishable from accidental ones:
+
+| Case | Why not |
+|---|---|
+| `gateway` installing a live IPv4 default route | A `0.0.0.0/0` via a dummy can outrank the VM's own default route and kill the kitchen SSH transport. Covered at unit level, and through `defroute 'no'` absence assertions. |
+| `bootproto 'dhcp'` | Needs a DHCP server on the segment. |
+| `ipv6_autoconf 'yes'` actually configuring an address | Needs a router-advertisement source. |
+| `ethtool_opts` | ifcfg-only, and dummies support almost no ethtool operations. |
+| `peerdns` | Only observable through DHCP-supplied resolvers. |
+| `userctl`, `onparent`, `network` | ifcfg passthrough with no kernel-observable effect. |
+| 802.3ad bonds, active-backup failover | Needs a switch peer and carrier control; dummies have permanent carrier. |
+| Out-of-band drift on an interface that stays up | The resource converges on file state plus liveness, not running network state. |

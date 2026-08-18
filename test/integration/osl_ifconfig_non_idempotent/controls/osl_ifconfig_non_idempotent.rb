@@ -18,13 +18,11 @@ control 'osl_ifconfig_non_idempotent' do
       describe interface(i) do
         it { should exist }
       end
+    end
 
-      describe command('ip -0 -o addr show dev eth1') do
-        its('stdout') { should_not match /BROADCAST,NOARP,UP,LOWER_UP/ }
-        its('stdout') { should match /state DOWN/ }
-      end
-
-      describe command('ip -0 -o addr show dev eth2') do
+    # eth3 is the :enable case, asserted UP below.
+    %w(eth1 eth2).each do |i|
+      describe command("ip -0 -o addr show dev #{i}") do
         its('stdout') { should_not match /BROADCAST,NOARP,UP,LOWER_UP/ }
         its('stdout') { should match /state DOWN/ }
       end
@@ -42,7 +40,7 @@ control 'osl_ifconfig_non_idempotent' do
 
   # Test delete
   describe command('ip -o addr show dev eth2') do
-    its('stdout') { should_not match %r{inet 10.1.30.20/8} }
+    its('stdout') { should_not match %r{inet 10.1.30.20/24} }
   end
 
   # Test enable
