@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.18.0 (2026-08-18)
+-------------------
+- Fix nmstate and ifcfg correctness bugs in osl_ifconfig
+
 2.17.1 (2026-08-12)
 -------------------
 - Install the extended edition of Hugo
