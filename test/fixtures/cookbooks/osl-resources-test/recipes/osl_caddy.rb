@@ -30,9 +30,7 @@ osl_caddy_site 'hash.example.org' do
         '+X-Content-Type-Options nosniff',
         '-Server',
         'X-Frame-Options SAMEORIGIN',
-        { 'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains; preload' },
         'Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"',
-
       ],
       'tls' => {
         'protocols' => 'tls1.2 tls1.3',
