@@ -170,6 +170,8 @@ module OSLResources
         uri = URI("https://api.github.com/repos/#{repo}/releases")
         response = JSON.parse(Net::HTTP.get(uri))
         response.each do |rel|
+          # Some releases can have a null name
+          next unless rel[key]
           # Match version given
           if rel[key].match?(/^v#{version}/)
             # Remove leading 'v' from name
