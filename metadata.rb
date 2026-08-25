@@ -10,6 +10,7 @@ version          '2.18.0'
 
 depends          'ark'
 depends          'line'
+depends          'osl-firewall'
 depends          'osl-repos'
 depends          'yum-osuosl'
 

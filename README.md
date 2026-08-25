@@ -15,6 +15,7 @@ The following platforms and versions are tested and supported using [test-kitche
 
 ## Resources
 
+- [osl_anubis](documentation/osl_anubis.md)
 - [osl_authorized_keys](documentation/osl_authorized_keys.md)
 - [osl_chrony](documentation/osl_chrony.md)
 - [osl_chrony_server](documentation/osl_chrony_server.md)
