@@ -3,6 +3,7 @@ module OSLResources
     module Helpers
       require 'ipaddr'
       require 'iniparse'
+      require 'securerandom'
 
       def osl_systemd_unit_enabled?(unit)
         require 'mixlib/shellout'
@@ -189,8 +190,16 @@ module OSLResources
           (data)/meta/ai-block-aggressive.yaml
           (data)/crawlers/_allow-good.yaml
           (data)/clients/x-firefox-ai.yaml
+          (data)/crawlers/xai.yaml
           (data)/common/keep-internet-working.yaml
         )
+      end
+
+      # Reuse the persisted key so restarts keep validating already-issued
+      # cookies; only generate one when there is nothing usable on disk.
+      def osl_anubis_key(path)
+        existing = ::File.read(path).strip if ::File.exist?(path)
+        existing.to_s.empty? ? SecureRandom.hex(32) : existing
       end
 
       private
