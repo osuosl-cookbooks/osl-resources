@@ -182,6 +182,32 @@ control 'osl_anubis' do
     its('addresses') { should include '0.0.0.0' }
   end
 
+  # anubis exports no anubis_* metrics until it has served traffic, so drive a
+  # challenge here too. Nothing proxies this instance, so set X-Real-IP as
+  # nginx does for the first one, otherwise anubis rejects the request.
+  generated_challenge = http('http://127.0.0.1:8933/',
+                             headers: {
+                               'User-Agent' => 'Mozilla/5.0',
+                               'Host' => 'anubis-test',
+                               'X-Real-IP' => '127.0.0.1',
+                             })
+
+  describe generated_challenge do
+    its('status') { should cmp 200 }
+    its('body') { should match(/id="anubis_challenge"/) }
+  end
+
+  # Each instance exports on the port it registers for prometheus to discover,
+  # so both are scraped independently rather than one standing in for the other.
+  describe http('http://127.0.0.1:9091/metrics') do
+    its('status') { should cmp 200 }
+    its('body') { should match(/^anubis_challenges_issued/) }
+  end
+
+  describe http('http://127.0.0.1:9091/healthz') do
+    its('status') { should cmp 200 }
+  end
+
   describe command('iptables -S anubis-metrics-generated') do
     its('exit_status') { should eq 0 }
     its('stdout') { should match(/--dport 9091 -j osl_only/) }

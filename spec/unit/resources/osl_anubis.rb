@@ -102,6 +102,9 @@ describe 'osl_anubis' do
       )
     end
 
+    # Registered so the prometheus server can discover this instance
+    it { expect(chef_run.node['osl-resources']['anubis']['default']).to eq('9090') }
+
     it { is_expected.to enable_service 'anubis@default.service' }
     it { is_expected.to start_service 'anubis@default.service' }
   end
@@ -194,6 +197,10 @@ describe 'osl_anubis' do
 
     it do
       is_expected.to accept_osl_firewall_port('anubis-metrics-default').with(ports: %w(9091))
+    end
+
+    it do
+      expect(chef_run.node['osl-resources']['anubis']['default']).to eq('9091')
     end
   end
 

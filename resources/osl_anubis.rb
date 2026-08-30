@@ -93,6 +93,11 @@ action :create do
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
 
+  # Registered so the prometheus server discovers every anubis instance, no
+  # matter which cookbook deployed it, without a per-node run-list change.
+  node.default['osl-resources']['anubis'][new_resource.name] =
+    new_resource.metrics_bind.split(':').last
+
   # anubis has no way to disable the metrics listener, so open it to OSL only
   osl_firewall_port "anubis-metrics-#{new_resource.name}" do
     ports [new_resource.metrics_bind.split(':').last]
