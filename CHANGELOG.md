@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.19.1 (2026-08-30)
+-------------------
+- Fix ruby-tagged yaml in anubis policy, and register metrics for prometheus
+
 2.19.0 (2026-08-25)
 -------------------
 - Update osl_anubis for anubis 1.27.0
