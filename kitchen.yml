@@ -243,6 +243,9 @@ suites:
   - name: osl_hugo
     run_list:
       - recipe[osl-resources-test::osl_hugo]
+  - name: osl_nc_secrets
+    run_list:
+      - recipe[osl-resources-test::osl_nc_secrets]
   - name: osl_pagefind
     run_list:
       - recipe[osl-resources-test::osl_pagefind]
