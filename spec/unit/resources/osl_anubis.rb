@@ -196,4 +196,41 @@ describe 'osl_anubis' do
       is_expected.to accept_osl_firewall_port('anubis-metrics-default').with(ports: %w(9091))
     end
   end
+
+  # Values from node attributes arrive as Mashes; YAML.dump tags those as
+  # !ruby/hash, which anubis cannot parse.
+  context 'almalinux with custom_bots and extra_config from node attributes' do
+    recipe do
+      node.default['test']['custom_bots'] = [
+        { 'name' => 'attr-bot', 'user_agent_regex' => 'AttrBot', 'action' => 'DENY' },
+      ]
+      node.default['test']['extra_config'] = {
+        'store' => { 'backend' => 'bbolt', 'parameters' => { 'path' => '/var/lib/anubis/x.bdb' } },
+      }
+
+      osl_anubis 'default' do
+        custom_bots node['test']['custom_bots']
+        extra_config node['test']['extra_config']
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it do
+      is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(/!ruby/)
+    end
+
+    [
+      /^  - name: attr-bot$/,
+      /^    user_agent_regex: AttrBot$/,
+      /^    action: DENY$/,
+      /^store:$/,
+      /^  backend: bbolt$/,
+      %r{^    path: "?/var/lib/anubis/x\.bdb"?$},
+    ].each do |line|
+      it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(line) }
+    end
+  end
 end
