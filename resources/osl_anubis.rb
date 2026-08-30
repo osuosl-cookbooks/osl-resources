@@ -82,14 +82,21 @@ action :create do
   template "/etc/anubis/botPolicies-#{new_resource.name}.yaml" do
     cookbook 'osl-resources'
     source 'anubis-botPolicies.yaml.erb'
+    # Converted to plain hashes: values coming from node attributes are Mashes,
+    # which YAML.dump tags as !ruby/hash and anubis cannot parse.
     variables(
       import_bots: new_resource.import_bots,
-      custom_bots: new_resource.custom_bots,
+      custom_bots: new_resource.custom_bots&.map(&:to_h),
       default_challenge: new_resource.default_challenge,
-      extra_config: new_resource.extra_config
+      extra_config: new_resource.extra_config&.to_h
     )
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
+
+  # Registered so the prometheus server discovers every anubis instance, no
+  # matter which cookbook deployed it, without a per-node run-list change.
+  node.default['osl-resources']['anubis'][new_resource.name] =
+    new_resource.metrics_bind.split(':').last
 
   # anubis has no way to disable the metrics listener, so open it to OSL only
   osl_firewall_port "anubis-metrics-#{new_resource.name}" do
