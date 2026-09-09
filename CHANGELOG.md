@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.19.2 (2026-09-09)
+-------------------
+- Chef 19 upgrade
+
 2.19.1 (2026-08-30)
 -------------------
 - Fix ruby-tagged yaml in anubis policy, and register metrics for prometheus
