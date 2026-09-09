@@ -509,7 +509,17 @@ module OSLResources
               # Let's assume if value is an array, each element is a *separate* invocation or a full line for that
               # directive
               value.each do |line_or_arg|
-                output << "#{indent}#{directive_name} #{line_or_arg}"
+                if line_or_arg.is_a?(Hash)
+                  # A Hash element is a block for this directive; interpolating
+                  # it directly would emit Ruby's inspect form, not Caddyfile.
+                  output << "#{indent}#{directive_name} {"
+                  line_or_arg.each do |arg, arg_value|
+                    output << "#{indent}  #{caddy_argument(arg, arg_value)}"
+                  end
+                  output << "#{indent}}"
+                else
+                  output << "#{indent}#{directive_name} #{line_or_arg}"
+                end
               end
             end
           when true, false, nil # Directive without arguments
@@ -519,6 +529,15 @@ module OSLResources
           end
         end
         output.join("\n")
+      end
+
+      # Caddy splits arguments on whitespace, so a value containing any has to
+      # be quoted to stay one argument. Self-quoted values are left alone.
+      def caddy_argument(arg, value)
+        return arg.to_s if [nil, true, false].include?(value)
+        value = value.to_s
+        value = "\"#{value}\"" if value.match?(/\s/) && !value.match?(/\A".*"\z/m)
+        "#{arg} #{value}"
       end
 
       def array_to_string(val)
