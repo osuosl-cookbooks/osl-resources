@@ -8,8 +8,8 @@ chef_version     '>= 16.0'
 description      'Holds base resources for the OSUOSL'
 version          '2.17.0'
 
-depends          'ark', '~> 6.0.33'
-depends          'line', '~> 5.0.1'
+depends          'ark', '~> 6.0'
+depends          'line', '~> 5.0'
 depends          'osl-repos'
 depends          'yum-osuosl'
 
