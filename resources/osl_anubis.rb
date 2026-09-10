@@ -115,3 +115,24 @@ action :restart do
     action :restart
   end
 end
+
+# Reverses :create. The anubis package stays put: the unit is templated, so
+# other instances on the same host may still be using it.
+action :remove do
+  service "anubis@#{new_resource.name}.service" do
+    action [:stop, :disable]
+  end
+
+  [
+    "/etc/anubis/#{new_resource.name}.env",
+    new_resource.policy_fname,
+    new_resource.ed25519_private_key_file,
+  ].each do |f|
+    file f do
+      action :delete
+    end
+  end
+
+  # osl_firewall_port has no removal action, so the metrics port stays open;
+  # it is osl_only and the listener is gone once the service is stopped.
+end

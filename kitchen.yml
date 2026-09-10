@@ -30,6 +30,19 @@ suites:
       - almalinux-10
     provisioner:
       data_bags_path: test/integration/data_bags
+  - name: osl_anubis_remove
+    run_list:
+      - recipe[osl-resources-test::osl_anubis_remove]
+    includes:
+      - almalinux-8
+      - almalinux-9
+      - almalinux-10
+    provisioner:
+      data_bags_path: test/integration/data_bags
+      # Create-and-remove in one run updates resources every converge, so
+      # idempotency is enforced in the osl_anubis suite instead.
+      enforce_idempotency: false
+      multiple_converge: 1
   - name: osl_authorized_keys
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys]

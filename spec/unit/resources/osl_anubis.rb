@@ -240,4 +240,29 @@ describe 'osl_anubis' do
       it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(line) }
     end
   end
+  context 'remove' do
+    recipe do
+      osl_anubis 'default' do
+        action :remove
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to stop_service 'anubis@default.service' }
+    it { is_expected.to disable_service 'anubis@default.service' }
+
+    %w(
+      /etc/anubis/default.env
+      /etc/anubis/botPolicies-default.yaml
+      /etc/anubis/default.key
+    ).each do |f|
+      it { is_expected.to delete_file f }
+    end
+
+    # The unit is templated, so other instances may still need the package
+    it { is_expected.to_not remove_package 'anubis' }
+  end
 end
