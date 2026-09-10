@@ -18,6 +18,11 @@ without it anubis rejects every request with
 
 - `:create`: Installs anubis and configures the instance (default)
 - `:restart`: Restarts the instance's service
+- `:remove`: Stops and disables the instance's service and deletes its env,
+  policy and key files. The `anubis` package is left installed, since the unit
+  is a template and other instances on the host may still need it. The metrics
+  firewall port also stays open -- `osl_firewall_port` has no removal action --
+  but it is `osl_only` and nothing listens on it once the service is stopped.
 
 ## Properties
 
