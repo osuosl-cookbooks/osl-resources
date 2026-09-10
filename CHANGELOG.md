@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.20.0 (2026-09-10)
+-------------------
+- osl_anubis: Add a :remove action
+
 2.19.2 (2026-09-09)
 -------------------
 - Chef 19 upgrade
