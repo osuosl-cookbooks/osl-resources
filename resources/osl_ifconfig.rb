@@ -88,6 +88,17 @@ action :add do
       notifies :run, "execute[#{apply}]", :immediately
     end
 
+    # NetworkManager adopts an interface that something raised before it
+    # started (netconsole, a fakenic unit, dracut) as externally configured
+    # and never activates the profile nmstate wrote, so the host boots with
+    # no addresses. This makes it activate the profile instead. Read at
+    # NetworkManager startup only, so no reload is needed. Not for lo, which
+    # NetworkManager configures itself.
+    file nm_device_conf do
+      content nm_device_conf_content
+      mode '0644'
+    end unless new_resource.device == 'lo'
+
     # Level-triggered repair: the notification above only fires on config
     # change, so a down interface with correct config is never brought up.
     execute "bring up #{new_resource.device}" do
@@ -136,6 +147,10 @@ action :delete do
       mode '0640'
       variables vars
       notifies :run, "execute[#{apply}]", :immediately
+    end
+
+    file nm_device_conf do
+      action :delete
     end
   else
     # ifdown dispatches on TYPE, so tear down before writing the stub or
@@ -213,6 +228,19 @@ action_class do
     "#{nmstatectl_cmd} #{nmstate_config}"
   end
 
+  def nm_device_conf
+    "/etc/NetworkManager/conf.d/osl-ifconfig-#{new_resource.device}.conf"
+  end
+
+  def nm_device_conf_content
+    <<~EOF
+      # NetworkManager device config written by Chef
+      [device-osl-ifconfig-#{new_resource.device}]
+      match-device=interface-name:#{new_resource.device}
+      keep-configuration=no
+    EOF
+  end
+
   # ifup on an already-active NetworkManager connection exits 0 without
   # raising the admin flag, so it cannot repair an active-but-down device.
   def ifup_cmd
@@ -226,6 +254,17 @@ action_class do
 
     package 'nmstate'
     directory '/etc/nmstate'
+
+    # NetworkManager's ifcfg-rh plugin, still the profile store on a host
+    # leapp upgraded from EL8, takes GATEWAY= and IPV6_DEFAULTGW= here as the
+    # default gateway of every profile that has none of its own, so each
+    # private interface grows a second default route. cloud-init wrote the
+    # file on EL8 and nothing owns it on EL9. Declared before the template so
+    # the apply it notifies cannot persist the inherited gateway.
+    line_delete_lines 'global gateway in /etc/sysconfig/network' do
+      path '/etc/sysconfig/network'
+      pattern '^(GATEWAY|IPV6_DEFAULTGW)='
+    end
   end
 
   # Resolved once and reused, so a bare IPv6 address warns once per converge.
@@ -312,7 +351,8 @@ action_class do
       mac_address: new_resource.hwaddr,
       metric: new_resource.metric,
       mtu: new_resource.mtu,
-      routes: routes && new_resource.defroute != 'no',
+      defroute: new_resource.defroute != 'no',
+      routes: routes,
       state: state,
       type: new_resource.type,
       vlan: new_resource.vlan,

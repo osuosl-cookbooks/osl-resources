@@ -94,7 +94,7 @@ Note: Documentation on nmstate can be found at https://nmstate.io/
 | `bridge_ports`   | String        | `[]`          | https://nmstate.io/devel/yaml_api.html#linux-bridge-interface |
 | `device`         | String        | Name Property | Ethernet device name                                          |
 | `ethtool_opts`   | String        |               | https://nmstate.io/devel/yaml_api.html#ethtool                |
-| `gateway`        | String        |               | Default IPv4 gateway IP address                               |
+| `gateway`        | String        |               | Default IPv4 gateway; declared per interface, see below       |
 | `hwaddr`         | String        |               | MAC Address                                                   |
 | `ipv4addr`       | String, Array | `[]`          | https://nmstate.io/devel/yaml_api.html#ip                     |
 | `ipv6addrsec`    | Array         |               | https://nmstate.io/devel/yaml_api.html#ip                     |
@@ -112,7 +112,7 @@ Note: Documentation on nmstate can be found at https://nmstate.io/
 | `master`         | String        |               | Controller interface for this port (rendered as `controller:`) |
 | `slave`          | String        |               | Accepted for ifcfg parity; membership comes from `master`     |
 | `metric`         | String        | `100`         | Metric applied to the default routes this interface installs  |
-| `defroute`       | String        |               | `'no'` suppresses the default routes entirely                 |
+| `defroute`       | String        |               | `'no'` removes this interface's default routes and adds none   |
 | `nmstate`        | true, false   | `>= EL9`      | Force the nmstate or the ifcfg path                           |
 | `force`          | true, false   | `false`       | Ignore the link-state guard on `:enable`/`:disable`           |
 
@@ -123,6 +123,29 @@ port either by naming it in the controller's `bridge_ports`/`bond_ports` or by s
 it does not exist yet, matching how EL8's `ifup` behaved, so declaration order does not
 matter. A bond named by `master` must be declared before its ports, since a bond cannot be
 created without its mode.
+
+Default routes are declared per interface. Every rendered file first marks any `0.0.0.0/0`
+and `::/0` route via the interface absent, then adds the ones `gateway` and
+`ipv6_defaultgw` declare, so a gateway that changes or disappears from the data bag is
+removed rather than left beside the new one. nmstate routes are additive otherwise, and a
+default route inherited from elsewhere survived every apply. `defroute 'no'` renders the
+absent half alone, which is what `DEFROUTE=no` meant on ifcfg. Routes to other
+destinations on the interface are not touched, so a stale `/32` host route to an old
+gateway has to be removed by hand.
+
+The resource also strips `GATEWAY=` and `IPV6_DEFAULTGW=` from `/etc/sysconfig/network`.
+On a host leapp upgraded from EL8, NetworkManager still stores its profiles through the
+ifcfg-rh plugin, which takes those values as the default gateway of every profile without
+one of its own, and each private interface grows a second default route. That runs before
+the template so the apply it notifies cannot persist the inherited gateway. It only covers
+the file; a profile that already inherited the gateway keeps it until the interface is
+next applied.
+
+Each managed interface except `lo` also gets `/etc/NetworkManager/conf.d/osl-ifconfig-<device>.conf`
+setting `keep-configuration=no` for that device. Without it, anything that raises the
+interface before NetworkManager starts (netconsole, a fakenic unit, an initramfs) makes
+NetworkManager adopt the interface as externally configured and skip the profile nmstate
+wrote, and the host boots with no addresses. `:delete` removes the file.
 
 `ethtool_opts` is only honoured on the ifcfg path; on nmstate it is ignored with a warning.
 `bootproto 'dhcp'` is likewise ifcfg-only.
