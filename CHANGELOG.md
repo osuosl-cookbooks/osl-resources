@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.21.0 (2026-09-16)
+-------------------
+- osl_ifconfig: Own each interface's default routes and boot activation
+
 2.20.0 (2026-09-10)
 -------------------
 - osl_anubis: Add a :remove action
