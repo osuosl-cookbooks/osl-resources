@@ -122,16 +122,28 @@ interfaces:
     type: linux-bridge
     state: up
 <% end -%>
-<% if @routes && (@gateway || (@ipv6_defaultgw && ipv6_on)) -%>
+<% if @routes -%>
+<%# Default routes are declared per interface: any default route the profile
+    carries via this device is removed first, then the declared ones are added
+    back. nmstate routes are otherwise additive, so a gateway inherited from
+    /etc/sysconfig/network or left over from a previous config survived every
+    apply. defroute "no" is the absent half alone, which is what DEFROUTE=no
+    meant on ifcfg. -%>
 routes:
   config:
-<% if @gateway -%>
+    - destination: 0.0.0.0/0
+      next-hop-interface: <%= @device %>
+      state: absent
+    - destination: "::/0"
+      next-hop-interface: <%= @device %>
+      state: absent
+<% if @defroute && @gateway -%>
     - destination: 0.0.0.0/0
       metric: <%= @metric || 100 %>
       next-hop-address: <%= @gateway %>
       next-hop-interface: <%= @device %>
 <% end -%>
-<% if @ipv6_defaultgw && ipv6_on -%>
+<% if @defroute && @ipv6_defaultgw && ipv6_on -%>
     - destination: "::/0"
       metric: <%= @metric || 100 %>
       next-hop-address: "<%= @ipv6_defaultgw %>"

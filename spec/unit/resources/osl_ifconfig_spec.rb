@@ -193,6 +193,7 @@ describe 'osl_ifconfig' do
     it { is_expected.to_not install_package('nmstate') }
     it { is_expected.to_not create_directory('/etc/nmstate') }
     it { is_expected.to_not create_template('/etc/nmstate/eth1.yml') }
+    it { is_expected.to_not create_file('/etc/NetworkManager/conf.d/osl-ifconfig-eth1.conf') }
 
     {
       'eth1' => <<~EOF,
@@ -361,6 +362,14 @@ describe 'osl_ifconfig' do
                 autoconf: false
                 enabled: false
                 address: []
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth1
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth1
+                state: absent
         EOF
         'eth2' => <<~EOF,
           # nmstate config file written by Chef
@@ -383,6 +392,12 @@ describe 'osl_ifconfig' do
                     prefix-length: 32
           routes:
             config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth2
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth2
+                state: absent
               - destination: "::/0"
                 metric: 100
                 next-hop-address: "2001:db8::1"
@@ -415,6 +430,12 @@ describe 'osl_ifconfig' do
                     prefix-length: 32
           routes:
             config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth3
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth3
+                state: absent
               - destination: "::/0"
                 metric: 100
                 next-hop-address: "2001:db8::1"
@@ -435,6 +456,14 @@ describe 'osl_ifconfig' do
                 autoconf: false
                 enabled: true
                 address: []
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth6
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth6
+                state: absent
         EOF
         'eth7' => <<~EOF,
           # nmstate config file written by Chef
@@ -451,6 +480,14 @@ describe 'osl_ifconfig' do
                 autoconf: true
                 enabled: true
                 address: []
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth7
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth7
+                state: absent
         EOF
         'eth8' => <<~EOF,
           # nmstate config file written by Chef
@@ -473,6 +510,12 @@ describe 'osl_ifconfig' do
                 address: []
           routes:
             config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth8
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth8
+                state: absent
               - destination: 0.0.0.0/0
                 metric: 200
                 next-hop-address: 10.9.9.1
@@ -503,6 +546,14 @@ describe 'osl_ifconfig' do
                 port:
                   - eth1
                   - eth2
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: bond0
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: bond0
+                state: absent
         EOF
         'bond1' => <<~EOF,
           # nmstate config file written by Chef
@@ -527,6 +578,14 @@ describe 'osl_ifconfig' do
                 port:
                   - eth1
                   - eth2
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: bond1
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: bond1
+                state: absent
         EOF
         'eth1.172' => <<~EOF,
           # nmstate config file written by Chef
@@ -550,6 +609,14 @@ describe 'osl_ifconfig' do
             - name: br172
               type: linux-bridge
               state: up
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: eth1.172
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: eth1.172
+                state: absent
         EOF
         'br172' => <<~EOF,
           # nmstate config file written by Chef
@@ -572,6 +639,14 @@ describe 'osl_ifconfig' do
                     enabled: false
                 port:
                   - name: eth1.172
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: br172
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: br172
+                state: absent
         EOF
         'br42' => <<~EOF,
           # nmstate config file written by Chef
@@ -597,6 +672,14 @@ describe 'osl_ifconfig' do
                     forward-delay: 2
                 port:
                   - name: eno1.42
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: br42
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: br42
+                state: absent
         EOF
         'br43' => <<~EOF,
           # nmstate config file written by Chef
@@ -622,6 +705,14 @@ describe 'osl_ifconfig' do
                     forward-delay: 2
                 port:
                   - name: eno1.43
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: br43
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: br43
+                state: absent
         EOF
         'br45' => <<~EOF,
           # nmstate config file written by Chef
@@ -645,6 +736,14 @@ describe 'osl_ifconfig' do
                     forward-delay: 4
                 port:
                   - name: eno1.45
+          routes:
+            config:
+              - destination: 0.0.0.0/0
+                next-hop-interface: br45
+                state: absent
+              - destination: "::/0"
+                next-hop-interface: br45
+                state: absent
         EOF
       }.each do |device, content|
         it "renders #{device}.yml" do
@@ -652,8 +751,23 @@ describe 'osl_ifconfig' do
         end
       end
 
-      it 'suppresses the routes block when defroute is no' do
-        is_expected.to_not render_file('/etc/nmstate/eth9.yml').with_content(/routes:/)
+      # DEFROUTE=no on ifcfg opted the interface out of the global gateway;
+      # here it is the absent entries alone, with the gateway never added.
+      it 'renders only absent default routes when defroute is no' do
+        is_expected.to render_file('/etc/nmstate/eth9.yml')
+          .with_content(%r{^    - destination: 0.0.0.0/0\n      next-hop-interface: eth9\n      state: absent$})
+        is_expected.to_not render_file('/etc/nmstate/eth9.yml').with_content(/next-hop-address/)
+      end
+
+      it 'strips the global gateway NetworkManager would inherit' do
+        is_expected.to edit_line_delete_lines('global gateway in /etc/sysconfig/network')
+          .with(path: '/etc/sysconfig/network', pattern: '^(GATEWAY|IPV6_DEFAULTGW)=')
+      end
+
+      it 'strips the global gateway before writing any config' do
+        resources = chef_run.resource_collection.all_resources.map(&:to_s)
+        expect(resources.index('delete_lines[global gateway in /etc/sysconfig/network]'))
+          .to be < resources.index('template[/etc/nmstate/eth1.yml]')
       end
 
       it 'renders controller: from master' do
@@ -677,9 +791,40 @@ describe 'osl_ifconfig' do
           is_expected.to run_execute("bring up #{device}")
             .with(command: "nmstatectl apply -q /etc/nmstate/#{device}.yml")
         end
+
+        # Anything that raises the device before NetworkManager starts makes
+        # it adopt the device as external and skip the profile after a reboot.
+        it "makes NetworkManager activate the profile for #{device} at boot" do
+          is_expected.to create_file("/etc/NetworkManager/conf.d/osl-ifconfig-#{device}.conf")
+            .with(content: <<~EOF)
+              # NetworkManager device config written by Chef
+              [device-osl-ifconfig-#{device}]
+              match-device=interface-name:#{device}
+              keep-configuration=no
+            EOF
+        end
       end
     end
   end
+end
+
+describe 'osl_ifconfig loopback' do
+  platform 'almalinux', '9'
+  step_into :osl_ifconfig
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(true)
+  end
+
+  recipe do
+    osl_ifconfig 'lo' do
+      ipv4addr '127.0.0.2/8'
+    end
+  end
+
+  # NetworkManager configures lo itself; telling it not to keep that state
+  # would take 127.0.0.1 away at boot.
+  it { is_expected.to_not create_file('/etc/NetworkManager/conf.d/osl-ifconfig-lo.conf') }
 end
 
 describe 'osl_ifconfig level-triggered repair' do
@@ -758,6 +903,8 @@ describe 'osl_ifconfig teardown' do
 
     # nmstate rejects a route via an interface the same document marks absent.
     it { is_expected.to_not render_file('/etc/nmstate/bond0.yml').with_content(/routes:/) }
+
+    it { is_expected.to delete_file('/etc/NetworkManager/conf.d/osl-ifconfig-bond0.conf') }
 
     it 'renders parseable YAML' do
       is_expected.to render_file('/etc/nmstate/bond0.yml').with_content { |content|
