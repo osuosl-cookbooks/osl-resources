@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.21.1 (2026-09-18)
+-------------------
+- Turn on Caddy request metrics by default
+
 2.21.0 (2026-09-16)
 -------------------
 - osl_ifconfig: Own each interface's default routes and boot activation
