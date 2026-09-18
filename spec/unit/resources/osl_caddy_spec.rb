@@ -30,6 +30,7 @@ describe 'osl-resources-test::osl_caddy' do
           source: 'Caddyfile.erb',
           variables: {
             kitchen: false,
+            metrics: true,
             global_options: [],
           }
         )

@@ -6,6 +6,9 @@
   acme_ca_root /opt/pebble/test/certs/pebble.minica.pem
   ocsp_stapling off
 <% end -%>
+<% if @metrics -%>
+  metrics
+<% end -%>
 <% @global_options.each do |o| -%>
   <%= o %>
 <% end -%>

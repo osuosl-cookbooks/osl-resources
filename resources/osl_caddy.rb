@@ -4,6 +4,8 @@ default_action :install
 unified_mode true
 
 property :global_options, Array, default: []
+# Caddy 2.8+ exports its request counters only when this global option is set.
+property :metrics, [true, false], default: true
 
 action :install do
   yum_repository 'caddy' do
@@ -21,6 +23,7 @@ action :install do
     source 'Caddyfile.erb'
     variables(
       kitchen: kitchen?,
+      metrics: new_resource.metrics,
       global_options: new_resource.global_options
     )
     notifies :reload, 'service[caddy]'
