@@ -18,6 +18,7 @@ control 'osl_caddy' do
           acme_ca https://127.0.0.1:14000/dir
           acme_ca_root /opt/pebble/test/certs/pebble.minica.pem
           ocsp_stapling off
+          metrics
         }
 
         import /etc/caddy/sites/*
@@ -112,5 +113,10 @@ control 'osl_caddy' do
         its('stdout') { should match /Hello hash world!/ }
       end
     end
+  end
+
+  # The counter only exists once metrics is on and a request has been served.
+  describe command 'curl -s -o /dev/null http://127.0.0.1/; curl -s http://127.0.0.1:2019/metrics' do
+    its('stdout') { should match(/^caddy_http_requests_total\{/) }
   end
 end
