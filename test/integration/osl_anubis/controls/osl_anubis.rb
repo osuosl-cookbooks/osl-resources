@@ -3,6 +3,9 @@ control 'osl_anubis' do
     it { should be_installed }
   end
 
+  # The resource sets GOMEMLIMIT to half the host's RAM
+  memory_limit = "#{command("awk '/MemTotal/ {print $2}' /proc/meminfo").stdout.to_i / 2048}MiB"
+
   describe file '/etc/anubis/default.env' do
     it { should be_owned_by 'root' }
     it { should be_grouped_into 'root' }
@@ -20,6 +23,7 @@ control 'osl_anubis' do
         ED25519_PRIVATE_KEY_HEX=4f2b8c1d9e3a7056b4c8d2f1a903e5b7c6d4082f1e9a3b5c7d08f2a4e6b1c3d5
         POLICY_FNAME=/etc/anubis/botPolicies-default.yaml
         TARGET=http://127.0.0.1:8080
+        GOMEMLIMIT=#{memory_limit}
         SLOG_LEVEL=DEBUG
       EOF
     end
@@ -153,6 +157,20 @@ control 'osl_anubis' do
     its('content') { should match(/^REDIRECT_DOMAINS=anubis-test$/) }
     # The generated key is handed over inline; DynamicUser cannot read a file
     its('content') { should match(/^ED25519_PRIVATE_KEY_HEX=[0-9a-f]{64}$/) }
+    its('content') { should match(/^GOMEMLIMIT=#{memory_limit}$/) }
+  end
+
+  # The default store is bbolt in the unit's StateDirectory; the first instance
+  # above overrides it with the memory backend through extra_config instead.
+  describe file '/etc/anubis/botPolicies-generated.yaml' do
+    its('content') { should match(%r{^store:\n  backend: bbolt\n  parameters:\n    path: "?/var/lib/anubis/generated/anubis\.bdb"?$}) }
+    its('content') { should_not match(/# Extra config/) }
+  end
+
+  # anubis creates the database when it opens the store at start
+  describe file '/var/lib/anubis/generated/anubis.bdb' do
+    it { should exist }
+    its('size') { should be > 0 }
   end
 
   # The env file and the persisted key file must agree, or a restart would

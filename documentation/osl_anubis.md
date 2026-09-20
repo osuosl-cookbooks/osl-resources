@@ -40,10 +40,12 @@ without it anubis rejects every request with
 | `extra_config`            | Hash           |                                    | no       | Additional top-level policy-file keys (`store`, `metrics`, `honeypot`, ...)       |
 | `extra_env`               | Hash           |                                    | no       | Additional environment variables, for settings with no property                  |
 | `import_bots`             | Array          | `osl_anubis_default_bots`          | no       | `(data)/...` bot policy snippets to import                                       |
+| `memory_limit`            | String         | half the host's RAM                | no       | `GOMEMLIMIT` for the Go runtime, e.g. `3GiB`. See [Memory and storage](#memory-and-storage) |
 | `metrics_bind`            | String         | `:9090`                            | no       | Prometheus listener address; give each instance its own port                     |
 | `policy_fname`            | String         | `/etc/anubis/botPolicies-<name>.yaml` | no    | Path to the generated policy file                                                |
 | `redirect_domains`        | String         |                                    | no       | Comma-separated domains anubis may redirect to; see below                        |
 | `serve_robots_txt`        | `true`/`false` | `false`                            | no       | Serve a `robots.txt` disallowing AI scrapers                                     |
+| `store`                   | Hash           | bbolt in `/var/lib/anubis/<name>/` | no       | The policy file's `store` block. See [Memory and storage](#memory-and-storage)   |
 | `target`                  | String         |                                    | no       | Backend URL to reverse proxy valid requests to                                   |
 | `webmaster_email`         | String         |                                    | no       | Contact address shown on the reject page                                         |
 
@@ -58,8 +60,8 @@ osl_anubis 'default' do
 end
 ```
 
-A load-balanced host with custom rules and a persistent store. Every backend in
-the pool gets the same `ed25519_private_key_hex`:
+A load-balanced host with custom rules. Every backend in the pool gets the same
+`ed25519_private_key_hex`:
 
 ```ruby
 osl_anubis 'gitlab' do
@@ -75,14 +77,34 @@ osl_anubis 'gitlab' do
       'action' => 'ALLOW',
     },
   ]
-  extra_config(
-    'store' => {
-      'backend' => 'bbolt',
-      'parameters' => { 'path' => '/var/lib/anubis/gitlab/store.bdb' },
-    }
-  )
 end
 ```
+
+## Memory and storage
+
+Anubis keeps its challenge, cookie, DNS and Open Graph state in a store. Its
+default is the in-memory backend, which upstream documents as unsuitable for
+production traffic: on the OSUOSL load balancer that state grew to about 1 GiB
+of live heap in three days, and since the Go runtime lets resident memory run at
+roughly twice the live heap, the host went into swap.
+
+So the resource does two things by default:
+
+- `store` writes a `store` block with the bbolt backend, keeping the state on
+  disk at `/var/lib/anubis/<name>/anubis.bdb`. That is the unit's
+  `StateDirectory`, so it is writable by the `DynamicUser` and survives
+  restarts. Each instance needs its own database, since bbolt takes an
+  exclusive lock. A `store` key in `extra_config` replaces the default, so
+  existing callers keep whatever they configured.
+- `memory_limit` sets `GOMEMLIMIT` in the env file to half the host's RAM. It
+  is a soft limit: the runtime collects harder as it approaches it rather than
+  letting the heap double first. If live data exceeds it anubis keeps running
+  but spends more CPU on garbage collection, so raise it, or set it explicitly
+  on hosts that share memory with a heavier neighbour. A `GOMEMLIMIT` in
+  `extra_env` wins over the property.
+
+The upstream in-memory backend can still be selected with
+`store('backend' => 'memory')` for a throwaway instance.
 
 ## Signing keys
 

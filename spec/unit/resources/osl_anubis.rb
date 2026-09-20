@@ -7,6 +7,7 @@ describe 'osl_anubis' do
     end
 
     platform 'almalinux'
+    automatic_attributes['memory']['total'] = '8388608kB'
     cached(:subject) { chef_run }
     step_into :osl_anubis
 
@@ -30,7 +31,7 @@ describe 'osl_anubis' do
           cookie_expiration_time: '168h',
           cookie_partitioned: 'true',
           ed25519_private_key_hex: subject.file('/etc/anubis/default.key').content,
-          extra_env: nil,
+          extra_env: { 'GOMEMLIMIT' => '4096MiB' },
           metrics_bind: ':9090',
           policy_fname: '/etc/anubis/botPolicies-default.yaml',
           redirect_domains: nil,
@@ -44,6 +45,9 @@ describe 'osl_anubis' do
     it do
       expect(chef_run.template('/etc/anubis/default.env')).to notify('service[anubis@default.service]').to(:restart)
     end
+
+    # Half of the 8 GiB the node reports, as a soft limit for the Go runtime
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=4096MiB$/) }
 
     it do
       is_expected.to create_file('/etc/anubis/default.key').with(
@@ -86,6 +90,7 @@ describe 'osl_anubis' do
           custom_bots: nil,
           default_challenge: { 'algorithm' => 'fast', 'difficulty' => 4 },
           extra_config: nil,
+          store: { 'backend' => 'bbolt', 'parameters' => { 'path' => '/var/lib/anubis/default/anubis.bdb' } },
         }
       )
     end
@@ -93,6 +98,15 @@ describe 'osl_anubis' do
     it do
       expect(chef_run.template('/etc/anubis/botPolicies-default.yaml')).to \
         notify('service[anubis@default.service]').to(:restart)
+    end
+
+    # State goes to the unit's StateDirectory rather than the in-memory store
+    [
+      /^store:$/,
+      /^  backend: bbolt$/,
+      %r{^    path: "?/var/lib/anubis/default/anubis\.bdb"?$},
+    ].each do |line|
+      it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(line) }
     end
 
     it do
@@ -155,6 +169,7 @@ describe 'osl_anubis' do
     end
 
     platform 'almalinux'
+    automatic_attributes['memory']['total'] = '8388608kB'
     cached(:subject) { chef_run }
     step_into :osl_anubis
 
@@ -182,6 +197,7 @@ describe 'osl_anubis' do
           cookie_partitioned: 'true',
           ed25519_private_key_hex: '4f2b8c1d9e3a7056b4c8d2f1a903e5b7c6d4082f1e9a3b5c7d08f2a4e6b1c3d5',
           extra_env: {
+            'GOMEMLIMIT' => '4096MiB',
             'SLOG_LEVEL' => 'DEBUG',
             'CUSTOM_REAL_IP_HEADER' => 'X-Real-IP',
           },
@@ -239,6 +255,44 @@ describe 'osl_anubis' do
     ].each do |line|
       it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(line) }
     end
+
+    # The store from extra_config replaces the default rather than joining it
+    it { expect(subject.template('/etc/anubis/botPolicies-default.yaml').variables[:store]).to be_nil }
+    it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(%r{anubis/default/anubis\.bdb}) }
+  end
+
+  context 'almalinux with memory_limit and store overrides' do
+    recipe do
+      osl_anubis 'default' do
+        memory_limit '3GiB'
+        store('backend' => 'memory')
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=3GiB$/) }
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^store:\n  backend: memory$/) }
+    it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(/bbolt/) }
+  end
+
+  context 'almalinux with GOMEMLIMIT in extra_env' do
+    recipe do
+      osl_anubis 'default' do
+        memory_limit '3GiB'
+        extra_env('GOMEMLIMIT' => '2GiB')
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    # extra_env is the escape hatch, so it wins over the property
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=2GiB$/) }
+    it { is_expected.to_not render_file('/etc/anubis/default.env').with_content(/3GiB/) }
   end
   context 'remove' do
     recipe do

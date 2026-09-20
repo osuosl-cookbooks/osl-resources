@@ -195,6 +195,16 @@ module OSLResources
         )
       end
 
+      # Half the host's RAM in MiB for GOMEMLIMIT. Ohai reports the total in kB.
+      def osl_anubis_memory_limit
+        "#{node['memory']['total'].to_i / 2048}MiB"
+      end
+
+      # The unit's StateDirectory=anubis/%i, writable by its DynamicUser
+      def osl_anubis_default_store(name)
+        { 'backend' => 'bbolt', 'parameters' => { 'path' => "/var/lib/anubis/#{name}/anubis.bdb" } }
+      end
+
       # Reuse the persisted key so restarts keep validating already-issued
       # cookies; only generate one when there is nothing usable on disk.
       def osl_anubis_key(path)
