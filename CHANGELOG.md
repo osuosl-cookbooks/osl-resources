@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.22.0 (2026-09-20)
+-------------------
+- osl_anubis: default to the bbolt store and set GOMEMLIMIT
+
 2.21.1 (2026-09-18)
 -------------------
 - Turn on Caddy request metrics by default
