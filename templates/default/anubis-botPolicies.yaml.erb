@@ -28,6 +28,11 @@ thresholds:
       difficulty: <%= @default_challenge['difficulty'] %>
 
 dnsbl: false
+<% if @store -%>
+
+store:
+<%= YAML.dump(@store).sub(/\A---\s*\n/, '').rstrip.gsub(/^/, '  ') %>
+<% end -%>
 <% if @extra_config -%>
 
 # Extra config

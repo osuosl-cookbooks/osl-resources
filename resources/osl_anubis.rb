@@ -18,10 +18,16 @@ property :default_challenge, Hash, default: { 'algorithm' => 'fast', 'difficulty
 # key; left unset, one is generated into ed25519_private_key_file on first run
 property :ed25519_private_key_hex, String, sensitive: true
 property :ed25519_private_key_file, String, default: lazy { "/etc/anubis/#{name}.key" }
+# Soft limit for the Go runtime, half the host's RAM by default. Without one
+# resident memory runs at about twice the live heap, which put lb1 into swap.
+property :memory_limit, String, default: lazy { osl_anubis_memory_limit }
 property :metrics_bind, String, default: ':9090'
 property :policy_fname, String, default: lazy { "/etc/anubis/botPolicies-#{name}.yaml" }
 property :redirect_domains, String
 property :serve_robots_txt, [true, false], default: false
+# The in-memory store is not meant for production traffic. bbolt keeps the
+# state on disk in the unit's StateDirectory instead of on the heap.
+property :store, Hash, default: lazy { osl_anubis_default_store(name) }
 property :target, String
 property :webmaster_email, String
 
@@ -68,7 +74,8 @@ action :create do
       cookie_expiration_time: new_resource.cookie_expiration_time,
       cookie_partitioned: new_resource.cookie_partitioned.to_s,
       ed25519_private_key_hex: key,
-      extra_env: new_resource.extra_env,
+      # An explicit GOMEMLIMIT in extra_env still wins over the property
+      extra_env: { 'GOMEMLIMIT' => new_resource.memory_limit }.merge(new_resource.extra_env.to_h),
       metrics_bind: new_resource.metrics_bind,
       policy_fname: new_resource.policy_fname,
       redirect_domains: new_resource.redirect_domains,
@@ -88,7 +95,9 @@ action :create do
       import_bots: new_resource.import_bots,
       custom_bots: new_resource.custom_bots&.map(&:to_h),
       default_challenge: new_resource.default_challenge,
-      extra_config: new_resource.extra_config&.to_h
+      extra_config: new_resource.extra_config&.to_h,
+      # A store given in extra_config keeps working and replaces the default
+      store: new_resource.extra_config&.to_h&.key?('store') ? nil : new_resource.store.to_h
     )
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
