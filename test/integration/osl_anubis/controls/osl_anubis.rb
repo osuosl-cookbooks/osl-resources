@@ -158,6 +158,8 @@ control 'osl_anubis' do
     # The generated key is handed over inline; DynamicUser cannot read a file
     its('content') { should match(/^ED25519_PRIVATE_KEY_HEX=[0-9a-f]{64}$/) }
     its('content') { should match(/^GOMEMLIMIT=#{memory_limit}$/) }
+    # This instance sets no extra_env, so it gets the resource's quieter default
+    its('content') { should match(/^SLOG_LEVEL=WARN$/) }
   end
 
   # The default store is bbolt in the unit's StateDirectory; the first instance
