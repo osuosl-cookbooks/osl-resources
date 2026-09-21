@@ -31,7 +31,7 @@ describe 'osl_anubis' do
           cookie_expiration_time: '168h',
           cookie_partitioned: 'true',
           ed25519_private_key_hex: subject.file('/etc/anubis/default.key').content,
-          extra_env: { 'GOMEMLIMIT' => '4096MiB' },
+          extra_env: { 'GOMEMLIMIT' => '4096MiB', 'SLOG_LEVEL' => 'WARN' },
           metrics_bind: ':9090',
           policy_fname: '/etc/anubis/botPolicies-default.yaml',
           redirect_domains: nil,
@@ -48,6 +48,9 @@ describe 'osl_anubis' do
 
     # Half of the 8 GiB the node reports, as a soft limit for the Go runtime
     it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=4096MiB$/) }
+
+    # Anubis logs a line per challenge decision at its own INFO default
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^SLOG_LEVEL=WARN$/) }
 
     it do
       is_expected.to create_file('/etc/anubis/default.key').with(
@@ -276,6 +279,20 @@ describe 'osl_anubis' do
     it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=3GiB$/) }
     it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^store:\n  backend: memory$/) }
     it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(/bbolt/) }
+  end
+
+  context 'almalinux with a log_level override' do
+    recipe do
+      osl_anubis 'default' do
+        log_level 'INFO'
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^SLOG_LEVEL=INFO$/) }
   end
 
   context 'almalinux with GOMEMLIMIT in extra_env' do

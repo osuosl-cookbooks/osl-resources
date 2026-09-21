@@ -40,6 +40,7 @@ without it anubis rejects every request with
 | `extra_config`            | Hash           |                                    | no       | Additional top-level policy-file keys (`store`, `metrics`, `honeypot`, ...)       |
 | `extra_env`               | Hash           |                                    | no       | Additional environment variables, for settings with no property                  |
 | `import_bots`             | Array          | `osl_anubis_default_bots`          | no       | `(data)/...` bot policy snippets to import                                       |
+| `log_level`               | String         | `WARN`                             | no       | `SLOG_LEVEL` for anubis. See [Logging](#logging)                                 |
 | `memory_limit`            | String         | half the host's RAM                | no       | `GOMEMLIMIT` for the Go runtime, e.g. `3GiB`. See [Memory and storage](#memory-and-storage) |
 | `metrics_bind`            | String         | `:9090`                            | no       | Prometheus listener address; give each instance its own port                     |
 | `policy_fname`            | String         | `/etc/anubis/botPolicies-<name>.yaml` | no    | Path to the generated policy file                                                |
@@ -105,6 +106,20 @@ So the resource does two things by default:
 
 The upstream in-memory backend can still be selected with
 `store('backend' => 'memory')` for a throwaway instance.
+
+## Logging
+
+Anubis writes a line per challenge decision at its own `INFO` default. On the
+OSUOSL load balancer that was four gigabytes a day into `/var/log/messages` and
+the same again on the loghost, so `log_level` defaults to `WARN` instead.
+Warnings and errors still log, including the `X-Real-Ip header is not set`
+misconfiguration message.
+
+Nothing is lost for triage. Every decision is exported as `anubis_policy_results`
+and `anubis_challenges_*` for Prometheus, and the request itself is in the
+reverse proxy's log. Set `log_level 'INFO'` on an instance you are debugging, or
+`'DEBUG'` for anubis' own verbose output. A `SLOG_LEVEL` in `extra_env` wins
+over the property.
 
 ## Signing keys
 

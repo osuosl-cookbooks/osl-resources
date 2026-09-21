@@ -18,6 +18,9 @@ property :default_challenge, Hash, default: { 'algorithm' => 'fast', 'difficulty
 # key; left unset, one is generated into ed25519_private_key_file on first run
 property :ed25519_private_key_hex, String, sensitive: true
 property :ed25519_private_key_file, String, default: lazy { "/etc/anubis/#{name}.key" }
+# One INFO line per challenge decision is 4 GB/day on a busy instance, and the
+# decisions we read are in prometheus as anubis_policy_results.
+property :log_level, String, default: 'WARN'
 # Soft limit for the Go runtime, half the host's RAM by default. Without one
 # resident memory runs at about twice the live heap, which put lb1 into swap.
 property :memory_limit, String, default: lazy { osl_anubis_memory_limit }
@@ -74,8 +77,9 @@ action :create do
       cookie_expiration_time: new_resource.cookie_expiration_time,
       cookie_partitioned: new_resource.cookie_partitioned.to_s,
       ed25519_private_key_hex: key,
-      # An explicit GOMEMLIMIT in extra_env still wins over the property
-      extra_env: { 'GOMEMLIMIT' => new_resource.memory_limit }.merge(new_resource.extra_env.to_h),
+      # An explicit value in extra_env still wins over either property
+      extra_env: { 'GOMEMLIMIT' => new_resource.memory_limit,
+                   'SLOG_LEVEL' => new_resource.log_level }.merge(new_resource.extra_env.to_h),
       metrics_bind: new_resource.metrics_bind,
       policy_fname: new_resource.policy_fname,
       redirect_domains: new_resource.redirect_domains,
