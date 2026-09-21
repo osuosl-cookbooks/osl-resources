@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.23.0 (2026-09-21)
+-------------------
+- osl_anubis: default SLOG_LEVEL to WARN
+
 2.22.0 (2026-09-20)
 -------------------
 - osl_anubis: default to the bbolt store and set GOMEMLIMIT
