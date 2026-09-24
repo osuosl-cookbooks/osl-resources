@@ -23,6 +23,9 @@ without it anubis rejects every request with
   is a template and other instances on the host may still need it. The metrics
   firewall port also stays open -- `osl_firewall_port` has no removal action --
   but it is `osl_only` and nothing listens on it once the service is stopped.
+  When no other instance's env file is left on the host, the shared
+  `valkey@anubis` is stopped and disabled too (its data directory and SELinux
+  port label stay).
 
 ## Properties
 
@@ -46,8 +49,12 @@ without it anubis rejects every request with
 | `policy_fname`            | String         | `/etc/anubis/botPolicies-<name>.yaml` | no    | Path to the generated policy file                                                |
 | `redirect_domains`        | String         |                                    | no       | Comma-separated domains anubis may redirect to; see below                        |
 | `serve_robots_txt`        | `true`/`false` | `false`                            | no       | Serve a `robots.txt` disallowing AI scrapers                                     |
-| `store`                   | Hash           | bbolt in `/var/lib/anubis/<name>/` | no       | The policy file's `store` block. See [Memory and storage](#memory-and-storage)   |
+| `store`                   | Hash           | `valkey@anubis`, or bbolt in `/var/lib/anubis/<name>/` | no | The policy file's `store` block. See [Memory and storage](#memory-and-storage) |
 | `target`                  | String         |                                    | no       | Backend URL to reverse proxy valid requests to                                   |
+| `valkey`                  | `true`/`false` | `true` on AlmaLinux 9.7+           | no       | Run `valkey@anubis` and default `store` to it                                    |
+| `valkey_config_version`   | Integer        | `1`                                | no       | Bump to push a valkey setting change to an existing node                         |
+| `valkey_maxmemory`        | String         | `2gb`                              | no       | valkey `maxmemory`                                                               |
+| `valkey_port`             | Integer        | `6390`                             | no       | Port `valkey@anubis` listens on, on `127.0.0.1`                                  |
 | `webmaster_email`         | String         |                                    | no       | Contact address shown on the reject page                                         |
 
 ## Examples
@@ -83,29 +90,68 @@ end
 
 ## Memory and storage
 
-Anubis keeps its challenge, cookie, DNS and Open Graph state in a store. Its
-default is the in-memory backend, which upstream documents as unsuitable for
-production traffic: on the OSUOSL load balancer that state grew to about 1 GiB
-of live heap in three days, and since the Go runtime lets resident memory run at
-roughly twice the live heap, the host went into swap.
+Anubis keeps its challenge, cookie, DNS and Open Graph state in a store. The
+store has to take a write for every challenge it issues, so under a crawl it is
+the busiest thing on the host. Two backends have failed at OSUOSL:
 
-So the resource does two things by default:
+- The upstream in-memory default grew to about 1 GiB of live heap in three days
+  on the load balancer, and since the Go runtime lets resident memory run at
+  roughly twice the live heap, the host went into swap.
+- bbolt, on disk, commits every challenge as its own fsync'd transaction behind
+  a single writer lock. Under a crawl the load balancer reached 185 MiB/s of
+  sustained writes and anubis stalled for up to 38 minutes at a time.
 
-- `store` writes a `store` block with the bbolt backend, keeping the state on
-  disk at `/var/lib/anubis/<name>/anubis.bdb`. That is the unit's
-  `StateDirectory`, so it is writable by the `DynamicUser` and survives
-  restarts. Each instance needs its own database, since bbolt takes an
-  exclusive lock. A `store` key in `extra_config` replaces the default, so
-  existing callers keep whatever they configured.
-- `memory_limit` sets `GOMEMLIMIT` in the env file to half the host's RAM. It
-  is a soft limit: the runtime collects harder as it approaches it rather than
-  letting the heap double first. If live data exceeds it anubis keeps running
-  but spends more CPU on garbage collection, so raise it, or set it explicitly
-  on hosts that share memory with a heavier neighbour. A `GOMEMLIMIT` in
-  `extra_env` wins over the property.
+So on AlmaLinux 9.7 and later, the first release with `valkey` in AppStream,
+`valkey` defaults to true and the resource runs a local valkey for the store,
+as the osl-valkey instance `valkey@anubis`:
 
-The upstream in-memory backend can still be selected with
+- It listens on `127.0.0.1` at `valkey_port` (6390) only, with no RDB
+  snapshots and no AOF, so nothing reaches disk and `vm.overcommit_memory` is
+  left alone. `maxmemory` is `valkey_maxmemory` with `allkeys-lru`.
+  Every key anubis writes carries its own TTL, so eviction only starts if
+  that limit fills.
+- valkey restarts on failure, and each `anubis@<name>.service` is ordered
+  after it, since anubis pings its store once at startup and exits if it is
+  not there.
+- A stale `/var/lib/anubis/<name>/anubis.bdb` from an earlier bbolt store is
+  deleted. Anubis holds the file open until it restarts onto valkey, so the
+  space comes back then.
+
+Things to know before relying on it:
+
+- Every anubis instance on a host shares `valkey@anubis`, so they must all
+  pass the same `valkey_*` settings. osl-valkey fails the converge if two
+  declarations disagree.
+- It is its own process with its own config (`/etc/valkey/anubis.conf`), data
+  directory and port, so it can sit beside another valkey on the host, such
+  as osl-openstack's coordination tier on the packaged `valkey.service`.
+- valkey's configuration is seeded once, not converged. Changing
+  `valkey_maxmemory` on an existing node does nothing until
+  `valkey_config_version` is bumped, which rewrites the config and restarts
+  valkey. The auth cookie is a signed JWT that needs no store, so a restart
+  only drops challenges that were in flight.
+- Pick another `valkey_port` if something else on the host already holds
+  6390. osl-nextcloud's valkey on AlmaLinux 10 is not managed by osl-valkey,
+  so its port is not checked.
+- A caller that must never fall back, like the load balancer, sets
+  `valkey true`, so a host without the package fails the converge rather than
+  quietly running bbolt.
+
+Elsewhere `valkey` defaults to false and `store` stays bbolt at
+`/var/lib/anubis/<name>/anubis.bdb`. That is the unit's `StateDirectory`, so it
+is writable by the `DynamicUser` and survives restarts, and each instance gets
+its own database since bbolt takes an exclusive lock.
+
+A `store` key in `extra_config` replaces the default either way, and the
+upstream in-memory backend can still be chosen with
 `store('backend' => 'memory')` for a throwaway instance.
+
+`memory_limit` sets `GOMEMLIMIT` in the env file to half the host's RAM. It is
+a soft limit: the runtime collects harder as it approaches it rather than
+letting the heap double first. If live data exceeds it anubis keeps running but
+spends more CPU on garbage collection, so raise it, or set it explicitly on
+hosts that share memory with a heavier neighbour. A `GOMEMLIMIT` in `extra_env`
+wins over the property.
 
 ## Logging
 
