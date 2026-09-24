@@ -129,7 +129,7 @@ action :create do
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
 
-  template "/etc/anubis/botPolicies-#{new_resource.name}.yaml" do
+  template new_resource.policy_fname do
     cookbook 'osl-resources'
     source 'anubis-botPolicies.yaml.erb'
     # Converted to plain hashes: values coming from node attributes are Mashes,

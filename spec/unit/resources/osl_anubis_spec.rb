@@ -383,6 +383,23 @@ describe 'osl_anubis' do
     it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^  backend: valkey$/) }
   end
 
+  # The policy is written where POLICY_FNAME points anubis, not a fixed path
+  context 'almalinux with a custom policy_fname' do
+    recipe do
+      osl_anubis 'default' do
+        policy_fname '/etc/anubis/custom.yaml'
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to create_template('/etc/anubis/custom.yaml') }
+    it { is_expected.to_not create_template('/etc/anubis/botPolicies-default.yaml') }
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(%r{^POLICY_FNAME=/etc/anubis/custom\.yaml$}) }
+  end
+
   context 'almalinux with valkey settings' do
     recipe do
       osl_anubis 'default' do
