@@ -12,7 +12,7 @@ depends 'ark'
 depends 'line'
 depends 'osl-firewall'
 depends 'osl-repos'
-depends 'osl-valkey'
+depends 'osl-valkey', '>= 2.0.0'
 depends 'yum-osuosl'
 
 supports 'almalinux', '~> 8.0'
