@@ -148,16 +148,17 @@ control 'osl_anubis' do
     its('processes') { should cmp 'nginx' }
   end
 
-  # Drive a challenge before scraping, so the counters have samples to export.
-  # nginx sets X-Real-IP; without it anubis rejects every request.
-  challenge = http('http://127.0.0.1/', headers: { 'User-Agent' => 'Mozilla/5.0', 'Host' => 'anubis-test' })
+  # A challenge through nginx, which sets X-Real-IP, so the counters have samples.
+  # --compressed: anubis 500s one in 64 challenges to clients that don't accept gzip.
+  challenge = command("curl -s --compressed -w '\\n%{http_code}' -H 'User-Agent: Mozilla/5.0' " \
+                      "-H 'Host: anubis-test' http://127.0.0.1/")
 
   describe challenge do
-    its('status') { should cmp 200 }
+    its('stdout') { should match(/\n200\z/) }
   end
 
   # Test that the challenge page includes the correct difficulty via nginx proxy
-  describe json(content: challenge.body.match(/id="anubis_challenge"[^>]*>([^<]+)</)[1]) do
+  describe json(content: challenge.stdout.match(/id="anubis_challenge"[^>]*>([^<]+)</)[1]) do
     its(%w(rules difficulty)) { should eq 3 }
   end
 
@@ -287,19 +288,12 @@ control 'osl_anubis' do
     its('addresses') { should include '0.0.0.0' }
   end
 
-  # anubis exports no anubis_* metrics until it has served traffic, so drive a
-  # challenge here too. Nothing proxies this instance, so set X-Real-IP as
-  # nginx does for the first one, otherwise anubis rejects the request.
-  generated_challenge = http('http://127.0.0.1:8933/',
-                             headers: {
-                               'User-Agent' => 'Mozilla/5.0',
-                               'Host' => 'anubis-test',
-                               'X-Real-IP' => '127.0.0.1',
-                             })
-
-  describe generated_challenge do
-    its('status') { should cmp 200 }
-    its('body') { should match(/id="anubis_challenge"/) }
+  # A challenge so this instance exports metrics; nothing proxies it, so send X-Real-IP.
+  # --compressed: anubis 500s one in 64 challenges to clients that don't accept gzip.
+  describe command("curl -s --compressed -w '\\n%{http_code}' -H 'User-Agent: Mozilla/5.0' " \
+                   "-H 'Host: anubis-test' -H 'X-Real-IP: 127.0.0.1' http://127.0.0.1:8933/") do
+    its('stdout') { should match(/\n200\z/) }
+    its('stdout') { should match(%r{id="anubis_challenge" type="application/json">\{}) }
   end
 
   # DENY answers 200 with the "Oh noes!" page and an empty challenge; the counter proves the rule
