@@ -6,6 +6,9 @@ control 'osl_anubis' do
   # The resource sets GOMEMLIMIT to half the host's RAM
   memory_limit = "#{command("awk '/MemTotal/ {print $2}' /proc/meminfo").stdout.to_i / 2048}MiB"
 
+  # valkey ships in AppStream from EL 9.7; before that the store stays bbolt
+  valkey = os.redhat? && Gem::Version.new(os.release) >= Gem::Version.new('9.7')
+
   describe file '/etc/anubis/default.env' do
     it { should be_owned_by 'root' }
     it { should be_grouped_into 'root' }
@@ -162,17 +165,66 @@ control 'osl_anubis' do
     its('content') { should match(/^SLOG_LEVEL=WARN$/) }
   end
 
-  # The default store is bbolt in the unit's StateDirectory; the first instance
-  # above overrides it with the memory backend through extra_config instead.
-  describe file '/etc/anubis/botPolicies-generated.yaml' do
-    its('content') { should match(%r{^store:\n  backend: bbolt\n  parameters:\n    path: "?/var/lib/anubis/generated/anubis\.bdb"?$}) }
-    its('content') { should_not match(/# Extra config/) }
-  end
+  # The first instance above overrides the store with the memory backend
+  # through extra_config; this one takes the resource's default.
+  if valkey
+    describe file '/etc/anubis/botPolicies-generated.yaml' do
+      its('content') { should match(%r{^store:\n  backend: valkey\n  parameters:\n    url: redis://127\.0\.0\.1:6390/0$}) }
+      its('content') { should_not match(/# Extra config/) }
+    end
 
-  # anubis creates the database when it opens the store at start
-  describe file '/var/lib/anubis/generated/anubis.bdb' do
-    it { should exist }
-    its('size') { should be > 0 }
+    describe service 'valkey@anubis' do
+      it { should be_enabled }
+      it { should be_running }
+    end
+
+    describe command 'systemctl show -p Restart valkey@anubis.service' do
+      its('stdout') { should eq "Restart=on-failure\n" }
+    end
+
+    describe command 'systemctl show -p After -p Wants anubis@generated.service' do
+      its('stdout') { should match(/^After=.*\bvalkey@anubis\.service\b/) }
+      its('stdout') { should match(/^Wants=.*\bvalkey@anubis\.service\b/) }
+    end
+
+    describe port 6390 do
+      it { should be_listening }
+      its('addresses') { should eq ['127.0.0.1'] }
+    end
+
+    # Nothing here forks, so the packaged server and overcommit stay untouched
+    describe service 'valkey' do
+      it { should_not be_running }
+    end
+
+    describe file '/etc/sysctl.d/99-chef-vm.overcommit_memory.conf' do
+      it { should_not exist }
+    end
+
+    {
+      'save' => '',
+      'maxmemory' => '2147483648',
+      'maxmemory-policy' => 'allkeys-lru',
+    }.each do |key, value|
+      describe command "valkey-cli -p 6390 CONFIG GET #{key}" do
+        its('stdout') { should eq "#{key}\n#{value}\n" }
+      end
+    end
+
+    describe file '/var/lib/anubis/generated/anubis.bdb' do
+      it { should_not exist }
+    end
+  else
+    describe file '/etc/anubis/botPolicies-generated.yaml' do
+      its('content') { should match(%r{^store:\n  backend: bbolt\n  parameters:\n    path: "?/var/lib/anubis/generated/anubis\.bdb"?$}) }
+      its('content') { should_not match(/# Extra config/) }
+    end
+
+    # anubis creates the database when it opens the store at start
+    describe file '/var/lib/anubis/generated/anubis.bdb' do
+      it { should exist }
+      its('size') { should be > 0 }
+    end
   end
 
   # The env file and the persisted key file must agree, or a restart would
@@ -215,6 +267,13 @@ control 'osl_anubis' do
   describe generated_challenge do
     its('status') { should cmp 200 }
     its('body') { should match(/id="anubis_challenge"/) }
+  end
+
+  # End to end: that challenge is now held in valkey, not on disk
+  if valkey
+    describe command "valkey-cli -p 6390 --scan --pattern 'challenge:*'" do
+      its('stdout') { should_not be_empty }
+    end
   end
 
   # Each instance exports on the port it registers for prometheus to discover,

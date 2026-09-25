@@ -205,6 +205,17 @@ module OSLResources
         { 'backend' => 'bbolt', 'parameters' => { 'path' => "/var/lib/anubis/#{name}/anubis.bdb" } }
       end
 
+      # valkey@anubis, shared by every anubis instance on the host
+      def osl_anubis_valkey_store(port)
+        { 'backend' => 'valkey', 'parameters' => { 'url' => "redis://127.0.0.1:#{port}/0" } }
+      end
+
+      # Checked on disk: an instance declared later in the run has already written
+      # its env file on any host that converged before
+      def osl_anubis_last_instance?(name)
+        (::Dir.glob('/etc/anubis/*.env') - ["/etc/anubis/#{name}.env"]).empty?
+      end
+
       # Reuse the persisted key so restarts keep validating already-issued
       # cookies; only generate one when there is nothing usable on disk.
       def osl_anubis_key(path)

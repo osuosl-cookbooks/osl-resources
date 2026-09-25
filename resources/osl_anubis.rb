@@ -28,10 +28,18 @@ property :metrics_bind, String, default: ':9090'
 property :policy_fname, String, default: lazy { "/etc/anubis/botPolicies-#{name}.yaml" }
 property :redirect_domains, String
 property :serve_robots_txt, [true, false], default: false
-# The in-memory store is not meant for production traffic. bbolt keeps the
-# state on disk in the unit's StateDirectory instead of on the heap.
-property :store, Hash, default: lazy { osl_anubis_default_store(name) }
+# The local valkey where the platform ships one, bbolt elsewhere. bbolt's single
+# fsync'd writer stalled lb1 under a crawl; the in-memory store put it in swap.
+property :store, Hash, default: lazy { valkey ? osl_anubis_valkey_store(valkey_port) : osl_anubis_default_store(name) }
 property :target, String
+# Run valkey@anubis and default the store to it. Every anubis instance on a host
+# shares it, so they must all agree on its settings.
+property :valkey, [true, false], default: lazy { osl_valkey_supported? }
+# osl_valkey seeds its config once; bump this for a setting change to reach a node
+property :valkey_config_version, Integer, default: 1
+property :valkey_maxmemory, String, default: '2gb'
+# 6380 is taken by a nextcloud valkey on proj-opf
+property :valkey_port, Integer, default: 6390
 property :webmaster_email, String
 
 action :create do
@@ -46,6 +54,37 @@ action :create do
   include_recipe 'yum-osuosl'
 
   package 'anubis'
+
+  # A store in extra_config replaces the store property, as the policy does
+  store = new_resource.extra_config.to_h['store'] || new_resource.store.to_h
+  backend = store.to_h['backend']
+
+  if new_resource.valkey && backend == 'valkey'
+    # In memory, never on disk: `save ""` turns off RDB snapshots. Every key
+    # anubis writes has a TTL, so eviction only starts if maxmemory fills.
+    osl_valkey 'anubis' do
+      instance true
+      port new_resource.valkey_port
+      bind '127.0.0.1'
+      firewall false
+      maxmemory new_resource.valkey_maxmemory
+      maxmemory_policy 'allkeys-lru'
+      save ''
+      config_version new_resource.valkey_config_version
+    end
+
+    # Anubis pings its store once at startup and exits if valkey is not up yet
+    osl_systemd_unit_drop_in 'after-valkey' do
+      unit_name "anubis@#{new_resource.name}.service"
+      content('Unit' => { 'After' => 'valkey@anubis.service', 'Wants' => 'valkey@anubis.service' })
+    end
+  end
+
+  # Left behind when an instance moves off bbolt. Anubis keeps the old file open
+  # until it restarts onto the new store, so the space comes back then.
+  file osl_anubis_default_store(new_resource.name)['parameters']['path'] do
+    action :delete
+  end unless backend == 'bbolt'
 
   # Persisted so a generated key survives restarts, keeping already-issued
   # cookies valid. An explicit key wins, so a load-balanced pair stays in sync.
@@ -90,7 +129,7 @@ action :create do
     notifies :restart, "service[anubis@#{new_resource.name}.service]"
   end
 
-  template "/etc/anubis/botPolicies-#{new_resource.name}.yaml" do
+  template new_resource.policy_fname do
     cookbook 'osl-resources'
     source 'anubis-botPolicies.yaml.erb'
     # Converted to plain hashes: values coming from node attributes are Mashes,
@@ -144,6 +183,13 @@ action :remove do
     file f do
       action :delete
     end
+  end
+
+  # valkey@anubis is shared, so it goes only with the host's last instance
+  osl_valkey 'anubis' do
+    instance true
+    action :delete
+    only_if { new_resource.valkey && osl_anubis_last_instance?(new_resource.name) }
   end
 
   # osl_firewall_port has no removal action, so the metrics port stays open;

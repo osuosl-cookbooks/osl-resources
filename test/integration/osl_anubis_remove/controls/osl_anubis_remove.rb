@@ -11,6 +11,14 @@ control 'osl_anubis_remove' do
     it { should be_running }
   end
 
+  # Every instance on a host shares valkey@anubis, so removing one leaves it up
+  if os.redhat? && Gem::Version.new(os.release) >= Gem::Version.new('9.7')
+    describe service 'valkey@anubis' do
+      it { should be_enabled }
+      it { should be_running }
+    end
+  end
+
   describe port 8933 do
     it { should be_listening }
   end

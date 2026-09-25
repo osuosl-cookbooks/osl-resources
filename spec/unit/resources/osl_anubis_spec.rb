@@ -93,7 +93,7 @@ describe 'osl_anubis' do
           custom_bots: nil,
           default_challenge: { 'algorithm' => 'fast', 'difficulty' => 4 },
           extra_config: nil,
-          store: { 'backend' => 'bbolt', 'parameters' => { 'path' => '/var/lib/anubis/default/anubis.bdb' } },
+          store: { 'backend' => 'valkey', 'parameters' => { 'url' => 'redis://127.0.0.1:6390/0' } },
         }
       )
     end
@@ -103,14 +103,38 @@ describe 'osl_anubis' do
         notify('service[anubis@default.service]').to(:restart)
     end
 
-    # State goes to the unit's StateDirectory rather than the in-memory store
-    [
-      /^store:$/,
-      /^  backend: bbolt$/,
-      %r{^    path: "?/var/lib/anubis/default/anubis\.bdb"?$},
-    ].each do |line|
-      it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(line) }
+    # EL 9.7+ gets valkey@anubis rather than bbolt
+    it do
+      is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(
+        "store:\n  backend: valkey\n  parameters:\n    url: redis://127.0.0.1:6390/0\n"
+      )
     end
+
+    it do
+      is_expected.to create_osl_valkey('anubis').with(
+        instance: true,
+        port: 6390,
+        bind: '127.0.0.1',
+        firewall: false,
+        maxmemory: '2gb',
+        maxmemory_policy: 'allkeys-lru',
+        save: '',
+        config: {},
+        config_version: 1
+      )
+    end
+
+    it { is_expected.to_not create_osl_systemd_unit_drop_in('restart') }
+
+    it do
+      is_expected.to create_osl_systemd_unit_drop_in('after-valkey').with(
+        unit_name: 'anubis@default.service',
+        content: { 'Unit' => { 'After' => 'valkey@anubis.service', 'Wants' => 'valkey@anubis.service' } }
+      )
+    end
+
+    # The database a bbolt-backed instance left behind
+    it { is_expected.to delete_file '/var/lib/anubis/default/anubis.bdb' }
 
     it do
       is_expected.to accept_osl_firewall_port('anubis-metrics-default').with(
@@ -262,6 +286,10 @@ describe 'osl_anubis' do
     # The store from extra_config replaces the default rather than joining it
     it { expect(subject.template('/etc/anubis/botPolicies-default.yaml').variables[:store]).to be_nil }
     it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(%r{anubis/default/anubis\.bdb}) }
+
+    # That store is bbolt, so there is no valkey to manage and nothing stale
+    it { is_expected.to_not create_osl_valkey('anubis') }
+    it { is_expected.to_not delete_file '/var/lib/anubis/default/anubis.bdb' }
   end
 
   context 'almalinux with memory_limit and store overrides' do
@@ -279,6 +307,120 @@ describe 'osl_anubis' do
     it { is_expected.to render_file('/etc/anubis/default.env').with_content(/^GOMEMLIMIT=3GiB$/) }
     it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^store:\n  backend: memory$/) }
     it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(/bbolt/) }
+    it { is_expected.to_not create_osl_valkey('anubis') }
+    it { is_expected.to delete_file '/var/lib/anubis/default/anubis.bdb' }
+  end
+
+  # valkey ships in AppStream from EL 9.7; fauxhai's EL9 is 9.1, so pin a real one
+  context 'almalinux 9.8' do
+    recipe do
+      osl_anubis 'default'
+    end
+
+    platform 'almalinux', '9'
+    automatic_attributes['platform_version'] = '9.8'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to create_osl_valkey('anubis') }
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^  backend: valkey$/) }
+  end
+
+  # Anywhere without the valkey package the instance stays on bbolt
+  {
+    'almalinux 8' => %w(almalinux 8),
+    'almalinux 9 before 9.7' => %w(almalinux 9),
+  }.each do |desc, (plat, ver)|
+    context desc do
+      recipe do
+        osl_anubis 'default'
+      end
+
+      platform plat, ver
+      cached(:subject) { chef_run }
+      step_into :osl_anubis
+
+      it { is_expected.to_not create_osl_valkey('anubis') }
+      it { is_expected.to_not create_osl_systemd_unit_drop_in('after-valkey') }
+      it { is_expected.to_not delete_file '/var/lib/anubis/default/anubis.bdb' }
+
+      it do
+        is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(
+          %r{^store:\n  backend: bbolt\n  parameters:\n    path: "?/var/lib/anubis/default/anubis\.bdb"?$}
+        )
+      end
+    end
+  end
+
+  context 'almalinux with valkey turned off' do
+    recipe do
+      osl_anubis 'default' do
+        valkey false
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to_not create_osl_valkey('anubis') }
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^  backend: bbolt$/) }
+  end
+
+  # A caller that must have valkey, like the LBs, forces it on
+  context 'almalinux 8 with valkey forced on' do
+    recipe do
+      osl_anubis 'default' do
+        valkey true
+      end
+    end
+
+    platform 'almalinux', '8'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to create_osl_valkey('anubis') }
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/^  backend: valkey$/) }
+  end
+
+  # The policy is written where POLICY_FNAME points anubis, not a fixed path
+  context 'almalinux with a custom policy_fname' do
+    recipe do
+      osl_anubis 'default' do
+        policy_fname '/etc/anubis/custom.yaml'
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to create_template('/etc/anubis/custom.yaml') }
+    it { is_expected.to_not create_template('/etc/anubis/botPolicies-default.yaml') }
+    it { is_expected.to render_file('/etc/anubis/default.env').with_content(%r{^POLICY_FNAME=/etc/anubis/custom\.yaml$}) }
+  end
+
+  context 'almalinux with valkey settings' do
+    recipe do
+      osl_anubis 'default' do
+        valkey_maxmemory '512mb'
+        valkey_config_version 2
+        valkey_port 6391
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it do
+      is_expected.to create_osl_valkey('anubis').with(
+        maxmemory: '512mb',
+        port: 6391,
+        config_version: 2
+      )
+    end
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(%r{url: redis://127\.0\.0\.1:6391/0$}) }
   end
 
   context 'almalinux with a log_level override' do
@@ -335,5 +477,54 @@ describe 'osl_anubis' do
 
     # The unit is templated, so other instances may still need the package
     it { is_expected.to_not remove_package 'anubis' }
+  end
+
+  # valkey@anubis is shared, so it goes only with the last instance on the host
+  {
+    'the last instance' => [%w(/etc/anubis/default.env), true],
+    'one of several instances' => [%w(/etc/anubis/default.env /etc/anubis/keeper.env), false],
+  }.each do |desc, (env_files, deleted)|
+    context "remove #{desc}" do
+      recipe do
+        osl_anubis 'default' do
+          action :remove
+        end
+      end
+
+      platform 'almalinux'
+      cached(:subject) { chef_run }
+      step_into :osl_anubis
+
+      before do
+        allow(Dir).to receive(:glob).and_call_original
+        allow(Dir).to receive(:glob).with('/etc/anubis/*.env').and_return(env_files)
+      end
+
+      if deleted
+        it { is_expected.to delete_osl_valkey('anubis').with(instance: true) }
+      else
+        it { is_expected.to_not delete_osl_valkey('anubis') }
+      end
+    end
+  end
+
+  # No valkey where the platform has none, whatever else is left
+  context 'remove the last instance on almalinux 8' do
+    recipe do
+      osl_anubis 'default' do
+        action :remove
+      end
+    end
+
+    platform 'almalinux', '8'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    before do
+      allow(Dir).to receive(:glob).and_call_original
+      allow(Dir).to receive(:glob).with('/etc/anubis/*.env').and_return(%w(/etc/anubis/default.env))
+    end
+
+    it { is_expected.to_not delete_osl_valkey('anubis') }
   end
 end
