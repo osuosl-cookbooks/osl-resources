@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.24.1 (2026-09-25)
+-------------------
+- osl_anubis: deny a stale-browser scraper pool by default
+
 2.24.0 (2026-09-25)
 -------------------
 - osl_anubis: default the store to a local valkey instance
