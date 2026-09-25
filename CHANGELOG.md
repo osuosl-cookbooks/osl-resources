@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.24.0 (2026-09-25)
+-------------------
+- osl_anubis: default the store to a local valkey instance
+
 2.23.0 (2026-09-21)
 -------------------
 - osl_anubis: default SLOG_LEVEL to WARN
