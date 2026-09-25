@@ -38,6 +38,7 @@ without it anubis rejects every request with
 | `cookie_partitioned`      | `true`/`false` | `true`                             | no       | Partitioned (CHIPS) cookie flag; matches the upstream default since v1.27.0      |
 | `custom_bots`             | Array          |                                    | no       | Extra bot rules, appended after the imports as raw hashes                        |
 | `default_challenge`       | Hash           | `fast`, difficulty `4`             | no       | Algorithm and difficulty for the single weight threshold                         |
+| `deny_user_agents`        | Array          | `osl_anubis_stale_browser_user_agents` | no   | Exact, non-empty user agents to DENY after the imports and ahead of custom rules; `[]` turns the rule off |
 | `ed25519_private_key_file`| String         | `/etc/anubis/<name>.key`           | no       | Where a generated key is persisted between runs                                  |
 | `ed25519_private_key_hex` | String         | generated                          | no       | Hex signing key; set only for load-balanced pairs. See [Signing keys](#signing-keys) |
 | `extra_config`            | Hash           |                                    | no       | Additional top-level policy-file keys (`store`, `metrics`, `honeypot`, ...)       |
@@ -259,3 +260,17 @@ and are not imported by default. Add them explicitly when needed:
 ```ruby
 import_bots osl_anubis_default_bots + %w((data)/clients/small-internet-browsers/_permissive.yaml)
 ```
+
+### Denied user agents
+
+`deny_user_agents` renders a `deny-user-agents` rule right after the imports, so
+those clients are denied before any custom rule or threshold sees them. The default,
+`osl_anubis_stale_browser_user_agents`, is the ten user agents a residential scraper pool
+sent in September 2026: Chrome 118–120, Edge 119–120 and Firefox 120–121 from late 2023,
+rotated in equal shares from about 900,000 addresses. It solved the challenge, hit
+openzfs.org and uboot-gitlab, and drove web1 to 503s. The regex matches each string whole,
+so no current browser can match. anubis answers a DENY with HTTP 200 by default; count it
+with `anubis_policy_results{rule="bot/deny-user-agents"}`.
+
+Pass `deny_user_agents []` to turn it off, or a different list to replace it.
+

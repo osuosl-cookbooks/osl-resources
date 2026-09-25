@@ -1,3 +1,30 @@
+# osl_anubis denies these by default (osl_anubis_stale_browser_user_agents)
+stale_uas = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+]
+# The rendered regex, spelt out rather than rebuilt with the helper's escaping
+stale_re = '^(' + [
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/118\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36 Edg/119\.0\.0\.0',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36 Edg/120\.0\.0\.0',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10_15_7\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10_15_7\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64; rv:120\.0\) Gecko/20100101 Firefox/120\.0',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64; rv:121\.0\) Gecko/20100101 Firefox/121\.0',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10\.15; rv:121\.0\) Gecko/20100101 Firefox/121\.0',
+].join('|') + ')$'
+
 control 'osl_anubis' do
   describe package 'anubis' do
     it { should be_installed }
@@ -46,6 +73,12 @@ control 'osl_anubis' do
           - import: (data)/clients/x-firefox-ai.yaml
           - import: (data)/crawlers/xai.yaml
           - import: (data)/common/keep-internet-working.yaml
+
+          # deny_user_agents: exact user agents, denied before any other rule
+          - name: deny-user-agents
+            user_agent_regex: >-
+              #{stale_re}
+            action: DENY
 
           # Custom bots
           - name: static-assets
@@ -115,16 +148,17 @@ control 'osl_anubis' do
     its('processes') { should cmp 'nginx' }
   end
 
-  # Drive a challenge before scraping, so the counters have samples to export.
-  # nginx sets X-Real-IP; without it anubis rejects every request.
-  challenge = http('http://127.0.0.1/', headers: { 'User-Agent' => 'Mozilla/5.0', 'Host' => 'anubis-test' })
+  # A challenge through nginx, which sets X-Real-IP, so the counters have samples.
+  # --compressed: anubis 500s one in 64 challenges to clients that don't accept gzip.
+  challenge = command("curl -s --compressed -w '\\n%{http_code}' -H 'User-Agent: Mozilla/5.0' " \
+                      "-H 'Host: anubis-test' http://127.0.0.1/")
 
   describe challenge do
-    its('status') { should cmp 200 }
+    its('stdout') { should match(/\n200\z/) }
   end
 
   # Test that the challenge page includes the correct difficulty via nginx proxy
-  describe json(content: challenge.body.match(/id="anubis_challenge"[^>]*>([^<]+)</)[1]) do
+  describe json(content: challenge.stdout.match(/id="anubis_challenge"[^>]*>([^<]+)</)[1]) do
     its(%w(rules difficulty)) { should eq 3 }
   end
 
@@ -254,19 +288,23 @@ control 'osl_anubis' do
     its('addresses') { should include '0.0.0.0' }
   end
 
-  # anubis exports no anubis_* metrics until it has served traffic, so drive a
-  # challenge here too. Nothing proxies this instance, so set X-Real-IP as
-  # nginx does for the first one, otherwise anubis rejects the request.
-  generated_challenge = http('http://127.0.0.1:8933/',
-                             headers: {
-                               'User-Agent' => 'Mozilla/5.0',
-                               'Host' => 'anubis-test',
-                               'X-Real-IP' => '127.0.0.1',
-                             })
+  # A challenge so this instance exports metrics; nothing proxies it, so send X-Real-IP.
+  # --compressed: anubis 500s one in 64 challenges to clients that don't accept gzip.
+  describe command("curl -s --compressed -w '\\n%{http_code}' -H 'User-Agent: Mozilla/5.0' " \
+                   "-H 'Host: anubis-test' -H 'X-Real-IP: 127.0.0.1' http://127.0.0.1:8933/") do
+    its('stdout') { should match(/\n200\z/) }
+    its('stdout') { should match(%r{id="anubis_challenge" type="application/json">\{}) }
+  end
 
-  describe generated_challenge do
-    its('status') { should cmp 200 }
-    its('body') { should match(/id="anubis_challenge"/) }
+  # DENY answers 200 with the "Oh noes!" page and an empty challenge; the counter proves the rule
+  describe http('http://127.0.0.1:8933/',
+                headers: {
+                  'User-Agent' => stale_uas.first,
+                  'Host' => 'anubis-test',
+                  'X-Real-IP' => '127.0.0.1',
+                }) do
+    its('body') { should match(%r{<title>Oh noes!</title>}) }
+    its('body') { should match(%r{id="anubis_challenge" type="application/json">null}) }
   end
 
   # End to end: that challenge is now held in valkey, not on disk
@@ -281,6 +319,7 @@ control 'osl_anubis' do
   describe http('http://127.0.0.1:9091/metrics') do
     its('status') { should cmp 200 }
     its('body') { should match(/^anubis_challenges_issued/) }
+    its('body') { should match(/^anubis_policy_results\{action="DENY",[^}]*rule="bot\/deny-user-agents"\} [1-9]/) }
   end
 
   describe http('http://127.0.0.1:9091/healthz') do

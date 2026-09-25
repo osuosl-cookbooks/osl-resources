@@ -195,6 +195,29 @@ module OSLResources
         )
       end
 
+      # A residential scraper pool that solves the challenge sends only these, exact
+      # strings from late-2023 browsers, so no current browser can ever match
+      def osl_anubis_stale_browser_user_agents
+        [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+        ]
+      end
+
+      # Anchored whole-string match with every RE2 metacharacter escaped; spaces are
+      # left bare (Go would accept \ too) so the rendered policy stays readable
+      def osl_anubis_user_agent_regex(user_agents)
+        "^(#{user_agents.map { |ua| ua.gsub(/[\\.+*?()|\[\]{}^$]/) { |c| "\\#{c}" } }.join('|')})$"
+      end
+
       # Half the host's RAM in MiB for GOMEMLIMIT. Ohai reports the total in kB.
       def osl_anubis_memory_limit
         "#{node['memory']['total'].to_i / 2048}MiB"

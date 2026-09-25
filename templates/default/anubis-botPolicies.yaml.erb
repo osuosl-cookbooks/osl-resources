@@ -5,6 +5,14 @@ bots:
 <% @import_bots.each do |b| -%>
   - import: <%= b %>
 <% end -%>
+<% if @deny_user_agent_regex -%>
+
+  # deny_user_agents: exact user agents, denied before any other rule
+  - name: deny-user-agents
+    user_agent_regex: >-
+      <%= @deny_user_agent_regex %>
+    action: DENY
+<% end -%>
 <% if @custom_bots -%>
 
   # Custom bots
