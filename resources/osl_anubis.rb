@@ -14,6 +14,11 @@ property :cookie_expiration_time, String, default: '168h'
 # Anubis enables the partitioned (CHIPS) flag by default as of v1.27.0
 property :cookie_partitioned, [true, false], default: true
 property :default_challenge, Hash, default: { 'algorithm' => 'fast', 'difficulty' => 4 }
+# Exact user agents to DENY after the imports, ahead of custom rules and thresholds;
+# [] turns the rule off. An empty entry would deny every client without a User-Agent.
+property :deny_user_agents, Array,
+         default: lazy { osl_anubis_stale_browser_user_agents },
+         callbacks: { 'entries must be non-empty strings' => ->(l) { l.all? { |ua| ua.is_a?(String) && !ua.strip.empty? } } }
 # Set this only when several hosts share a load balancer and so need the same
 # key; left unset, one is generated into ed25519_private_key_file on first run
 property :ed25519_private_key_hex, String, sensitive: true
@@ -138,6 +143,7 @@ action :create do
       import_bots: new_resource.import_bots,
       custom_bots: new_resource.custom_bots&.map(&:to_h),
       default_challenge: new_resource.default_challenge,
+      deny_user_agent_regex: (osl_anubis_user_agent_regex(new_resource.deny_user_agents) unless new_resource.deny_user_agents.empty?),
       extra_config: new_resource.extra_config&.to_h,
       # A store given in extra_config keeps working and replaces the default
       store: new_resource.extra_config&.to_h&.key?('store') ? nil : new_resource.store.to_h

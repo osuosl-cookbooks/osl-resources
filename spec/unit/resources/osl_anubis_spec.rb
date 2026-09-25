@@ -1,5 +1,19 @@
 require 'spec_helper'
 
+# The rendered default deny-user-agents regex, spelt out so a changed list fails here
+STALE_BROWSER_RE = '^(' + [
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/118\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36 Edg/119\.0\.0\.0',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36 Edg/120\.0\.0\.0',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10_15_7\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/119\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10_15_7\) AppleWebKit/537\.36 \(KHTML, like Gecko\) Chrome/120\.0\.0\.0 Safari/537\.36',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64; rv:120\.0\) Gecko/20100101 Firefox/120\.0',
+  'Mozilla/5\.0 \(Windows NT 10\.0; Win64; x64; rv:121\.0\) Gecko/20100101 Firefox/121\.0',
+  'Mozilla/5\.0 \(Macintosh; Intel Mac OS X 10\.15; rv:121\.0\) Gecko/20100101 Firefox/121\.0',
+].join('|') + ')$'
+
 describe 'osl_anubis' do
   context 'almalinux' do
     recipe do
@@ -92,9 +106,22 @@ describe 'osl_anubis' do
           ),
           custom_bots: nil,
           default_challenge: { 'algorithm' => 'fast', 'difficulty' => 4 },
+          deny_user_agent_regex: STALE_BROWSER_RE,
           extra_config: nil,
           store: { 'backend' => 'valkey', 'parameters' => { 'url' => 'redis://127.0.0.1:6390/0' } },
         }
+      )
+    end
+
+    # Right after the imports, so no custom rule or threshold sees these clients
+    it do
+      is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(
+        "  - import: (data)/common/keep-internet-working.yaml\n\n" \
+        "  # deny_user_agents: exact user agents, denied before any other rule\n" \
+        "  - name: deny-user-agents\n" \
+        "    user_agent_regex: >-\n" \
+        "      #{STALE_BROWSER_RE}\n" \
+        "    action: DENY\n"
       )
     end
 
@@ -286,6 +313,7 @@ describe 'osl_anubis' do
     # The store from extra_config replaces the default rather than joining it
     it { expect(subject.template('/etc/anubis/botPolicies-default.yaml').variables[:store]).to be_nil }
     it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(%r{anubis/default/anubis\.bdb}) }
+    it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(/deny-user-agents[\s\S]*# Custom bots/) }
 
     # That store is bbolt, so there is no valkey to manage and nothing stale
     it { is_expected.to_not create_osl_valkey('anubis') }
@@ -421,6 +449,65 @@ describe 'osl_anubis' do
       )
     end
     it { is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(%r{url: redis://127\.0\.0\.1:6391/0$}) }
+  end
+
+  context 'almalinux with deny_user_agents turned off' do
+    recipe do
+      osl_anubis 'default' do
+        deny_user_agents []
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content(/deny-user-agents/) }
+  end
+
+  # Every RE2 metacharacter is escaped so each entry matches literally; spaces stay bare
+  context 'almalinux with a custom deny_user_agents list' do
+    recipe do
+      osl_anubis 'default' do
+        deny_user_agents ['Evil Bot (+https://x.test/bot?a=[1]){2}', 'Odd*Bot|2^$ \\x']
+      end
+    end
+
+    platform 'almalinux'
+    cached(:subject) { chef_run }
+    step_into :osl_anubis
+
+    it do
+      is_expected.to render_file('/etc/anubis/botPolicies-default.yaml').with_content(
+        '      ^(Evil Bot \(\+https://x\.test/bot\?a=\[1\]\)\{2\}|Odd\*Bot\|2\^\$ \\\\x)$' + "\n"
+      )
+    end
+    it { is_expected.to_not render_file('/etc/anubis/botPolicies-default.yaml').with_content('Chrome/118') }
+  end
+
+  # An empty entry renders ^()$, which would deny every client without a User-Agent
+  context 'almalinux with an empty deny_user_agents entry' do
+    recipe do
+      osl_anubis 'default' do
+        deny_user_agents ['Other/2.0', ' ']
+      end
+    end
+
+    platform 'almalinux'
+
+    it { expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed, /deny_user_agents.*non-empty strings/) }
+  end
+
+  context 'almalinux with a nil deny_user_agents entry' do
+    recipe do
+      osl_anubis 'default' do
+        deny_user_agents [nil]
+      end
+    end
+
+    platform 'almalinux'
+
+    it { expect { chef_run }.to raise_error(Chef::Exceptions::ValidationFailed, /deny_user_agents.*non-empty strings/) }
   end
 
   context 'almalinux with a log_level override' do
