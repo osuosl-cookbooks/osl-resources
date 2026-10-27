@@ -66,6 +66,9 @@ describe 'osl-resources-test::osl_caddy' do
 
       it { expect(chef_run.osl_caddy_site('simple.example.org')).to notify('osl_caddy[default]').to(:reload) }
       it { expect(chef_run.osl_caddy_site('hash.example.org')).to notify('osl_caddy[default]').to(:reload) }
+      it { is_expected.to delete_osl_caddy_site('old.example.org') }
+      it { is_expected.to delete_file('/etc/caddy/sites/old.example.org.caddyfile') }
+      it { expect(chef_run.osl_caddy_site('old.example.org')).to notify('osl_caddy[default]').to(:reload) }
     end
   end
 end

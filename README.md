@@ -17,6 +17,8 @@ The following platforms and versions are tested and supported using [test-kitche
 
 - [osl_anubis](documentation/osl_anubis.md)
 - [osl_authorized_keys](documentation/osl_authorized_keys.md)
+- [osl_caddy](documentation/osl_caddy.md)
+- [osl_caddy_site](documentation/osl_caddy_site.md)
 - [osl_chrony](documentation/osl_chrony.md)
 - [osl_chrony_server](documentation/osl_chrony_server.md)
 - [osl_dnf_copr](documentation/osl_dnf_copr.md)

@@ -4,7 +4,7 @@ default_action :create
 unified_mode true
 
 property :site_name, String, name_property: true
-property :content, [String, Hash], required: true
+property :content, [String, Hash], required: [:create]
 
 action :create do
   if new_resource.content.is_a?(String)

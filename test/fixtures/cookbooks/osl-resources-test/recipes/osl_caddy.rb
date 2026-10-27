@@ -10,6 +10,12 @@ end
 
 osl_caddy 'default'
 
+# A renamed site's old file goes away without content, as in osl_gitlab's redirect_from.
+osl_caddy_site 'old.example.org' do
+  action :delete
+  notifies :reload, 'osl_caddy[default]'
+end
+
 osl_caddy_site 'simple.example.org' do
   content <<~EOF
     simple.example.org {

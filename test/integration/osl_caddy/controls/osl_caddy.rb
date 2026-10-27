@@ -85,6 +85,10 @@ control 'osl_caddy' do
     end
   end
 
+  describe file '/etc/caddy/sites/old.example.org.caddyfile' do
+    it { should_not exist }
+  end
+
   describe service 'caddy' do
     it { should be_enabled }
     it { should be_running }
