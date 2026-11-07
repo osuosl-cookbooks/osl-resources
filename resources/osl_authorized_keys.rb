@@ -34,7 +34,8 @@ action :remove do
   new_resource.key.each do |key|
     line_delete_lines "#{new_resource.user}-#{key_sha(key)}" do
       path "#{new_resource.dir_path}/authorized_keys"
-      pattern "^#{key}$"
+      # line wraps a String pattern in /.../ unescaped, so "+" in a key never matched
+      pattern(/^#{Regexp.escape(key)}$/)
     end
   end
 

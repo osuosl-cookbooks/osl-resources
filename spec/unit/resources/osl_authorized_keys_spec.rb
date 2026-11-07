@@ -46,6 +46,11 @@ describe 'osl_authorized_keys' do
       user 'test_user_3'
       action :remove
     end
+
+    osl_authorized_keys 'ssh-ed25519 AAAA+plus test@example.org' do
+      user 'test_user_3'
+      action :remove
+    end
   end
 
   it do
@@ -71,7 +76,7 @@ describe 'osl_authorized_keys' do
     it do
       is_expected.to edit_line_delete_lines("test_user_1-#{k['sum']}").with(
         path: '/home/test_user_1/.ssh/authorized_keys',
-        pattern: "^#{k['name']}$"
+        pattern: eq(/^#{Regexp.escape(k['name'])}$/)
       )
     end
   end
@@ -106,7 +111,14 @@ describe 'osl_authorized_keys' do
   it do
     is_expected.to edit_line_delete_lines('test_user_3-1388ac75').with(
       path: '/home/test_user_3/.ssh/authorized_keys',
-      pattern: '^key_2$'
+      pattern: eq(/^key_2$/)
+    )
+  end
+
+  it do
+    is_expected.to edit_line_delete_lines('test_user_3-f6e240e2').with(
+      path: '/home/test_user_3/.ssh/authorized_keys',
+      pattern: eq(/^ssh\-ed25519\ AAAA\+plus\ test@example\.org$/)
     )
   end
 
