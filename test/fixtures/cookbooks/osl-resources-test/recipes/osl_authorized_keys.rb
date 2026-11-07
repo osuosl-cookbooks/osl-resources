@@ -11,4 +11,5 @@ osl_authorized_keys 'test_user' do
   user 'test_user'
   group 'root'
   dir_path '/opt/test/.ssh'
+  exclusive false
 end

@@ -20,7 +20,7 @@ control 'osl_authorized_keys_remove' do
     its('owner') { should cmp 'test_user_2' }
     its('group') { should cmp 'test_user_2' }
   end
-  describe file('/home/test_user_2/authorized_keys') do
+  describe file('/home/test_user_2/.ssh/authorized_keys') do
     it { should_not exist }
   end
   describe file('/home/test_user_2/.ssh/id_rsa') do

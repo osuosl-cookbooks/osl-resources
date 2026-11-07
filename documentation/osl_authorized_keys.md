@@ -2,7 +2,8 @@
 
 ## Actions
 
-- `:add`: Adds keys to the user's `authorized_keys` file. With `exclusive true`, the file holds only the declared keys.
+- `:add`: Makes the user's `authorized_keys` file hold only the declared keys. With `exclusive false`, it only appends
+  missing keys.
 - `:remove`: Removes keys from the user's `authorized_keys` file. A line is removed only when it matches the key exactly.
 
 ## Properties
@@ -13,22 +14,24 @@
 | `user`       | String          |                      | yes      | The user who owns the `authorized_keys` file at `dir_path`                  |
 | `group`      | String          | `user`               |          | The group who owns the `authorized_keys` file at `dir_path`                 |
 | `dir_path`   | String          | `/home/#{user}/.ssh` |          | Path to the directory containing the `authorized_keys` file                 |
-| `exclusive`  | true, false     | `false`              |          | Make the file hold only the keys Chef declares, removing any other line     |
+| `exclusive`  | true, false     | `true`               |          | Make the file hold only the keys Chef declares, removing any other line     |
 
 ## Exclusive mode
 
-Without `exclusive`, `:add` only appends missing keys, so a key dropped from a data bag stays on the host until
-something removes it. With `exclusive true`, the file is rewritten to hold exactly the declared keys:
+By default the file is rewritten to hold exactly the declared keys, so a key dropped from a data bag is removed from
+the host on the next run. Set `exclusive false` only for a file that must keep keys Chef doesn't manage; `:add` then
+only appends missing keys, as it did before exclusive became the default.
 
 - Every exclusive `:add` for the same file in a run adds its keys to one file, so a per-key loop works. Keys are
   written once each, in the order the declarations ran, and the file is mode `0600`.
 - The file is written once, at the end of the Chef run. A run that fails leaves the old file in place, so a failure
   never writes part of a key list. Key changes land only on a clean run.
-- A non-exclusive `:add` on the same file raises, naming both resources, because the two would rewrite each other
-  on every run. Exclusive declarations for one file must also agree on `user` and `group`.
-- An exclusive declaration with no keys raises rather than emptying the file.
-- A `:remove` of a key that an exclusive declaration adds changes the file on every run; drop the key from the
-  exclusive list instead.
+- A `:remove` anywhere in the run takes its keys out of the written file, whether it comes before or after the
+  `:add`. When it removes every declared key, the merged write is skipped and any other lines in the file stay.
+- An `exclusive false` `:add` on the same file as an exclusive one raises, naming both resources, because the two
+  would rewrite each other on every run. Exclusive declarations for one file must also agree on `user` and `group`.
+- An exclusive declaration with no keys logs a warning and leaves the file as it is, so an empty or missing list
+  never wipes a user's keys.
 - Other resources writing the same file (a plain `file` or `template`) are not seen and will fight with it.
 
 ## Examples
@@ -60,13 +63,21 @@ Add three keys to a user's authorized_keys file with non-default `dir_path` and 
 end
 ```
 
-Keep only the keys from a data bag in a user's authorized_keys file:
+Keep only the keys from a data bag in a user's authorized_keys file (the default):
 
 ```ruby
 osl_authorized_keys 'example_user' do
   key data_bag_item('users', 'example_user')['ssh_keys']
   user 'example_user'
-  exclusive true
+end
+```
+
+Add a key but keep any other lines already in the file:
+
+```ruby
+osl_authorized_keys 'ssh-ed25519 ... x@test.org' do
+  user 'example_user'
+  exclusive false
 end
 ```
 

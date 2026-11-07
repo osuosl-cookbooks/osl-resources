@@ -10,7 +10,7 @@ property :key, [String, Array],
 property :user, String, required: true
 property :group, String, default: lazy { user }
 property :dir_path, String, default: lazy { "/home/#{user}/.ssh" }
-property :exclusive, [true, false], default: false
+property :exclusive, [true, false], default: true
 
 def authorized_keys_path
   ::File.join(dir_path, 'authorized_keys')
@@ -29,10 +29,11 @@ action :add do
   if new_resource.exclusive
     keys = new_resource.key.map(&:chomp).reject(&:empty?)
     if keys.empty?
-      raise "#{declaration_name} sets exclusive with no keys for #{new_resource.authorized_keys_path}; refusing to empty it"
+      Chef::Log.warn("#{declaration_name} is exclusive with no keys for #{new_resource.authorized_keys_path}; leaving the file as it is")
+    else
+      keys_state[:keys].concat(keys)
+      declare_exclusive_file
     end
-    keys_state[:keys].concat(keys)
-    declare_exclusive_file
   else
     new_resource.key.each do |key|
       line_append_if_no_line "#{new_resource.user}-#{key_sha(key)}" do
@@ -47,6 +48,10 @@ action :add do
 end
 
 action :remove do
+  # Removed keys win over any exclusive :add, before or after this one
+  state = keys_state
+  state[:removed].concat(new_resource.key.map(&:chomp))
+
   new_resource.key.each do |key|
     line_delete_lines "#{new_resource.user}-#{key_sha(key)}" do
       path "#{new_resource.dir_path}/authorized_keys"
@@ -55,14 +60,17 @@ action :remove do
     end
   end
 
+  # Keep both while the delayed exclusive write still has keys to put here
   file "#{new_resource.dir_path}/authorized_keys" do
     action :delete
     only_if { ::File.empty?("#{new_resource.dir_path}/authorized_keys") }
+    not_if { (state[:keys].uniq - state[:removed]).any? }
   end
 
   directory new_resource.dir_path do
     action :delete
     only_if { ::Dir.empty?(new_resource.dir_path) }
+    not_if { (state[:keys].uniq - state[:removed]).any? }
   end
 end
 
@@ -82,7 +90,7 @@ action_class do
 
   def keys_state
     node.run_state['osl_authorized_keys'] ||= {}
-    node.run_state['osl_authorized_keys'][new_resource.authorized_keys_path] ||= { keys: [], decls: [] }
+    node.run_state['osl_authorized_keys'][new_resource.authorized_keys_path] ||= { keys: [], removed: [], decls: [] }
   end
 
   # An exclusive file plus line appends would change every run, and merged
@@ -115,10 +123,11 @@ action_class do
     with_run_context(:root) do
       find_resource(:file, "osl_authorized_keys #{file_path}") do
         path file_path
-        content lazy { state[:keys].uniq.map { |k| "#{k}\n" }.join }
+        content lazy { (state[:keys].uniq - state[:removed]).map { |k| "#{k}\n" }.join }
         owner file_owner
         group file_group
         mode '0600'
+        only_if { (state[:keys].uniq - state[:removed]).any? }
         not_if { !$ERROR_INFO.nil? }
         action :nothing
         delayed_action :create

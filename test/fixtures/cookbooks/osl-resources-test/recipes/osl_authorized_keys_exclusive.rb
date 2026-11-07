@@ -24,5 +24,4 @@ end
 
 osl_authorized_keys 'key_2' do
   user 'test_user'
-  exclusive true
 end
