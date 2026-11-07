@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.25.0 (2026-11-07)
+-------------------
+- Make osl_authorized_keys exclusive by default and fix :remove
+
 2.24.2 (2026-10-27)
 -------------------
 - Let osl_caddy_site delete a site without content
