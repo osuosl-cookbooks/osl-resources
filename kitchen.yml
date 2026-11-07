@@ -46,6 +46,9 @@ suites:
   - name: osl_authorized_keys
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys]
+  - name: osl_authorized_keys_exclusive
+    run_list:
+      - recipe[osl-resources-test::osl_authorized_keys_exclusive]
   - name: osl_authorized_keys_remove
     run_list:
       - recipe[osl-resources-test::osl_authorized_keys_remove]
