@@ -357,4 +357,81 @@ RSpec.describe OSLResources::Cookbook::Helpers do
       it { expect(subject.send(:ifconfig_type)).to be_nil }
     end
   end
+
+  describe 'osl_ifconfig NetworkManager profile helpers' do
+    subject { DummyClass.new }
+
+    before { allow(subject).to receive(:node).and_return(subject) }
+
+    let(:vlan) { { uuid: 'u-vlan', ifname: 'ens35f0.43', controller: 'brq11a52c82-1e' } }
+
+    describe '#osl_nm_runtime_controller' do
+      it 'returns the profile and a controller with no saved profile' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([vlan])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to eq %w(u-vlan brq11a52c82-1e)
+      end
+
+      it 'leaves a controller with its own saved profile alone' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([vlan, { uuid: 'u-br', ifname: 'brq11a52c82-1e' }])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+
+      # EL8 saves the controller as a UUID; a saved profile with that UUID is declared.
+      it 'matches a controller UUID against saved profiles' do
+        port = vlan.merge(controller: 'u-br')
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([port, { uuid: 'u-br', ifname: 'br42' }])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+
+      it 'counts a controller UUID nothing saves as runtime' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([vlan.merge(controller: 'u-gone')])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to eq %w(u-vlan u-gone)
+      end
+
+      it 'returns nil without a controller' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([vlan.merge(controller: nil)])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+
+      it 'returns nil without a saved profile' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+
+      it 'warns and returns nil when two saved profiles name the device' do
+        allow(subject).to receive(:osl_nm_saved_profiles).and_return([vlan, vlan.merge(uuid: 'u-two')])
+        expect(Chef::Log).to receive(:warn).with(/2 saved NetworkManager profiles name ens35f0.43/)
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+
+      it 'reads the profiles on every call, so a change between resources is seen' do
+        expect(subject).to receive(:osl_nm_saved_profiles).twice.and_return([vlan], [])
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to eq %w(u-vlan brq11a52c82-1e)
+        expect(subject.send(:osl_nm_runtime_controller, 'ens35f0.43')).to be_nil
+      end
+    end
+
+    describe '#osl_nm_saved_profiles' do
+      it 'reads keyfiles and ifcfg files as bytes, never /run' do
+        allow(Dir).to receive(:glob).with('/etc/NetworkManager/system-connections/*.nmconnection')
+                                    .and_return(%w(/etc/NetworkManager/system-connections/ens35f0.43.nmconnection))
+        allow(Dir).to receive(:glob).with('/etc/sysconfig/network-scripts/ifcfg-*')
+                                    .and_return(%w(/etc/sysconfig/network-scripts/ifcfg-eth1.20))
+        allow(::File).to receive(:read).with('/etc/NetworkManager/system-connections/ens35f0.43.nmconnection', mode: 'rb')
+                                       .and_return("[connection]\nid=ens35f0.43\nuuid=u-vlan\ninterface-name=ens35f0.43\n".b + "ssid=\xff\xfe\n".b +
+                                                   "controller=brq11a52c82-1e\nport-type=bridge\n\n[vlan]\nid=43\n".b)
+        allow(::File).to receive(:read).with('/etc/sysconfig/network-scripts/ifcfg-eth1.20', mode: 'rb')
+                                       .and_return("DEVICE=eth1.20\nUUID=\"u-el8\"\nBRIDGE_UUID=u-gone\n")
+        expect(subject.send(:osl_nm_saved_profiles)).to eq [
+          { uuid: 'u-vlan', ifname: 'ens35f0.43', controller: 'brq11a52c82-1e' },
+          { uuid: 'u-el8', ifname: 'eth1.20', controller: 'u-gone' },
+        ]
+      end
+
+      it 'returns nothing when the profiles can not be read' do
+        allow(Dir).to receive(:glob).and_raise(Errno::EACCES)
+        expect(subject.send(:osl_nm_saved_profiles)).to eq []
+      end
+    end
+  end
 end
