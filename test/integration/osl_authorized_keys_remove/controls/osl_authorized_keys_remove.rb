@@ -7,6 +7,8 @@ control 'osl_authorized_keys_remove' do
     %w(key_1 key_3).each do |k|
       its('content') { should match /^#{k}$/ }
     end
+    its('content') { should_not match /^key_2$/ }
+    its('content') { should_not include 'ssh-ed25519 AAAA+plus test@example.org' }
     its('mode') { should cmp '0600' }
     its('owner') { should cmp 'test_user_1' }
     its('group') { should cmp 'test_user_1' }
@@ -18,7 +20,7 @@ control 'osl_authorized_keys_remove' do
     its('owner') { should cmp 'test_user_2' }
     its('group') { should cmp 'test_user_2' }
   end
-  describe file('/home/test_user_2/authorized_keys') do
+  describe file('/home/test_user_2/.ssh/authorized_keys') do
     it { should_not exist }
   end
   describe file('/home/test_user_2/.ssh/id_rsa') do

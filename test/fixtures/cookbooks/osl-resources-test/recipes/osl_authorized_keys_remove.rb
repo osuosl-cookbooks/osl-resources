@@ -2,11 +2,16 @@ user 'test_user_1'
 user 'test_user_2'
 
 osl_authorized_keys 'test_user_1' do
-  key %w(key_1 key_2 key_3)
+  key ['key_1', 'key_2', 'key_3', 'ssh-ed25519 AAAA+plus test@example.org']
   user 'test_user_1'
 end
 
 osl_authorized_keys 'key_2' do
+  user 'test_user_1'
+  action :remove
+end
+
+osl_authorized_keys 'ssh-ed25519 AAAA+plus test@example.org' do
   user 'test_user_1'
   action :remove
 end
