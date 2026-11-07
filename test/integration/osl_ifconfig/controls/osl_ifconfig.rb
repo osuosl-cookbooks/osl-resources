@@ -199,6 +199,29 @@ control 'osl_ifconfig' do
   # The other half of the boot story, the half osl_ifconfig owns: nmstate
   # writes autoconnect profiles, and NetworkManager recreates even the dummy
   # devices from them.
+  # eth13.20 stands in for a compute's provider VLAN: its saved profile never names the runtime-only brqtest.
+  describe command('nmcli -g connection.master,ipv4.method connection show eth13.20') do
+    its('stdout') { should eq "\ndisabled\n" }
+  end
+
+  # brqtest doesn't survive a reboot; the VLAN must come up on its own then.
+  if interface('brqtest').exists?
+    describe command('ip -o link show eth13.20') do
+      its('stdout') { should match /master brqtest / }
+    end
+  else
+    describe command('ip -o link show eth13.20') do
+      its('stdout') { should match /[<,]UP[,>]/ }
+      its('stdout') { should_not match /master / }
+    end
+  end
+
+  # A port only its bridge lists keeps that controller (EL8 saves it as the bridge's UUID).
+  br46 = [command('nmcli -g connection.uuid connection show br46').stdout.strip, 'br46']
+  describe command('nmcli -g connection.master connection show eth12') do
+    its('stdout.strip') { should be_in br46 }
+  end
+
   if os.release.to_i >= 9
     describe command('nmcli -t -f DEVICE,STATE connection show --active') do
       its('exit_status') { should eq 0 }
