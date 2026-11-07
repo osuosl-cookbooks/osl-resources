@@ -186,3 +186,50 @@ osl_ifconfig 'eth9' do
   nm_controlled 'yes'
   type 'dummy'
 end
+
+# eth13.20 stands in for an OpenStack compute's provider VLAN, which neutron puts in a brq bridge at runtime.
+# nmstate on every release here, as on the computes; an nmstate VLAN can't sit on EL8's unmanaged eth1.
+%w(eth12 eth13).each do |i|
+  osl_fakenic i
+end
+
+osl_ifconfig 'eth13' do
+  nmstate true
+  bootproto 'none'
+  type 'dummy'
+end
+
+osl_ifconfig 'eth13.20' do
+  nmstate true
+  bootproto 'none'
+  vlan 'yes'
+end
+
+# What neutron and the Sep 16 converge did: a bridge outside Chef, then an apply that saves it as the controller.
+execute 'put eth13.20 in brqtest outside Chef' do
+  command "ip link add brqtest type bridge && ip link set brqtest up && ip link set eth13.20 master brqtest && #{nmstatectl_cmd} /etc/nmstate/eth13.20.yml"
+  not_if { osl_netns_link_exists?('brqtest') }
+end
+
+# The template is unchanged, so no apply runs and the scrub is what fixes the saved profile.
+osl_ifconfig 'eth13.20 again' do
+  device 'eth13.20'
+  nmstate true
+  bootproto 'none'
+  vlan 'yes'
+end
+
+# A port only its bridge lists keeps that controller: br46 has a saved profile of its own.
+osl_ifconfig 'eth12' do
+  nmstate true
+  bootproto 'none'
+  type 'dummy'
+end
+
+osl_ifconfig 'br46' do
+  nmstate true
+  type 'linux-bridge'
+  bridge_ports %w(eth12)
+  bootproto 'none'
+  delay '0'
+end
