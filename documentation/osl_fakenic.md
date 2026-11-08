@@ -53,7 +53,9 @@ the device and the properties this resource owns, then stops.
 
 Set `persist false` to opt out. That also removes a unit an earlier run
 created, as does `:delete`, so a deleted interface cannot be resurrected by
-the next boot.
+the next boot. Use it for a dummy `osl_ifconfig` also manages: NetworkManager
+recreates that one from its profile, and leaves it unmanaged if a unit created it
+first.
 
 ```ruby
 osl_fakenic 'eth2' do

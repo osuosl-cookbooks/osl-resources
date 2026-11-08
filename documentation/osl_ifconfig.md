@@ -143,9 +143,11 @@ next applied.
 
 Each managed interface except `lo` also gets `/etc/NetworkManager/conf.d/osl-ifconfig-<device>.conf`
 setting `keep-configuration=no` for that device. Without it, anything that raises the
-interface before NetworkManager starts (netconsole, a fakenic unit, an initramfs) makes
+interface before NetworkManager starts (netconsole, an initramfs) makes
 NetworkManager adopt the interface as externally configured and skip the profile nmstate
-wrote, and the host boots with no addresses. `:delete` removes the file.
+wrote, and the host boots with no addresses. `:delete` removes the file. It does not help
+a software device (a dummy) created before NetworkManager: that stays unmanaged, so let
+NetworkManager create it from its profile (`osl_fakenic ... persist false`).
 
 nmstate keeps any setting the rendered file leaves out, so applying an interface while
 something else holds it in a bridge saves that bridge as the profile's controller. On an
@@ -299,10 +301,13 @@ re-apply everything and prove nothing. Repeat on `almalinux-10`.
 Two mechanisms make this work on AlmaLinux 9 and newer. `nmstatectl apply`
 writes NetworkManager connection profiles with autoconnect enabled, and
 because `dummy` is one of NetworkManager's software device types it recreates
-even the dummy interfaces from those profiles. The test dummies that
-`osl_ifconfig` does not manage come back from the `osl_fakenic ... persist
-true` units. The `/etc/nmstate/*.yml` files are inert once applied and prove
-nothing about boot.
+even the dummy interfaces from those profiles. The test dummies with no
+profile (eth6-eth8) come back from their `osl_fakenic` boot units. Every other
+fixture dummy uses `persist false`: with `keep-configuration=no`, NetworkManager
+leaves a software device that already exists when it starts unmanaged, so a
+unit that creates it first stops its profile from ever activating. That
+includes eth10, whose profile br42's apply writes as the bridge's port. The
+`/etc/nmstate/*.yml` files are inert once applied and prove nothing about boot.
 
 **AlmaLinux 8 is converge-only.** Nothing brings an ifcfg-managed interface
 back at boot: `network.service` ships disabled, `ifup` has no `ifup-dummy` and
