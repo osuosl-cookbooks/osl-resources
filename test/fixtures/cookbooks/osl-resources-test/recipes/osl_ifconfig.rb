@@ -1,10 +1,9 @@
-# osl_fakenic persists by default, so the dummies come back after a reboot.
-# Without that a manual reboot leaves this suite with no interfaces at all and
-# verify fails for reasons unrelated to osl_ifconfig. The units recreate only
-# the device -- everything on top comes back from the NetworkManager profiles
-# nmstatectl wrote.
+# A dummy with a NetworkManager profile gets no boot unit: NM recreates it, and leaves one that already exists unmanaged.
+# Only eth6-eth8, which nothing else owns, keep the unit that brings them back.
 (1..5).each do |i|
-  osl_fakenic "eth#{i}"
+  osl_fakenic "eth#{i}" do
+    persist false
+  end
 end
 
 osl_fakenic 'eth6' do
@@ -22,11 +21,11 @@ osl_fakenic 'eth8' do
   multicast true
 end
 
-# eth10 has no osl_ifconfig resource of its own -- it is br42's port, and the
-# fixture's only coverage of an unmanaged bridge port. Its unit is what brings
-# it back; do not "fix" this by adding an osl_ifconfig 'eth10'.
+# eth10 has no osl_ifconfig of its own: it is br42's port, from the profile br42's apply saves. Don't add one.
 %w(eth9 eth10 eth11).each do |i|
-  osl_fakenic i
+  osl_fakenic i do
+    persist false
+  end
 end
 
 osl_ifconfig 'eth1' do
@@ -190,7 +189,9 @@ end
 # eth13.20 stands in for an OpenStack compute's provider VLAN, which neutron puts in a brq bridge at runtime.
 # nmstate on every release here, as on the computes; an nmstate VLAN can't sit on EL8's unmanaged eth1.
 %w(eth12 eth13).each do |i|
-  osl_fakenic i
+  osl_fakenic i do
+    persist false
+  end
 end
 
 osl_ifconfig 'eth13' do

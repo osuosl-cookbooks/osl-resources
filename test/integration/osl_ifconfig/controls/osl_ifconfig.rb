@@ -1,9 +1,5 @@
-# This control must pass immediately after a converge AND after a manual
-# reboot of the converged node. Reboot survival comes from two mechanisms:
-# the osl_fakenic units recreate the dummy parents before NetworkManager
-# starts, and the NetworkManager profiles `nmstatectl apply` wrote reconfigure
-# everything on top of them. /etc/nmstate/*.yml is inert once applied and
-# proves nothing here.
+# Passes after a converge and after a reboot: NetworkManager recreates every dummy that has a profile, and
+# osl_fakenic units bring back eth6-eth8, which have none. /etc/nmstate/*.yml is inert once applied.
 #
 # AlmaLinux 8 is converge-only: ifup has no boot-time counterpart, since
 # network.service ships disabled, and NM's ifcfg reader does not understand
@@ -176,13 +172,17 @@ control 'osl_ifconfig' do
     its('stdout') { should match /00:1a:4b:a6:a7:c4/ }
   end
 
-  # Boot persistence plumbing. The assertions above are all live kernel state,
-  # so without these a converge-time regression -- unit never written, or
-  # written but not enabled -- would only surface after someone reboots.
-  (1..11).each do |i|
-    describe systemd_service("osl-fakenic-eth#{i}.service") do
+  # Only the dummies nothing else owns get a boot unit; one on a dummy with a profile leaves it unmanaged at boot.
+  %w(eth6 eth7 eth8).each do |i|
+    describe systemd_service("osl-fakenic-#{i}.service") do
       it { should be_installed }
       it { should be_enabled }
+    end
+  end
+
+  %w(eth1 eth2 eth3 eth4 eth5 eth9 eth10 eth11 eth12 eth13).each do |i|
+    describe file("/etc/systemd/system/osl-fakenic-#{i}.service") do
+      it { should_not exist }
     end
   end
 
