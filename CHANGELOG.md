@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.26.0 (2026-11-13)
+-------------------
+- Install Dart Sass with osl_hugo and pick the highest release
+
 2.25.0 (2026-11-07)
 -------------------
 - Make osl_authorized_keys exclusive by default and fix :remove
