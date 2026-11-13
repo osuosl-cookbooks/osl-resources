@@ -1351,3 +1351,140 @@ describe 'osl_ifconfig template branches' do
     end
   end
 end
+
+describe 'osl_ifconfig runtime controller scrub' do
+  step_into :osl_ifconfig
+  platform 'almalinux', '9'
+
+  let(:scrub) { "nmcli connection modify u-vlan connection.master '' connection.slave-type '' ipv4.method disabled" }
+  let(:runtime) { [{ uuid: 'u-vlan', ifname: 'eth5.43', controller: 'brq11a52c82-1e' }] }
+
+  before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_netns_link_admin_up?).and_return(true)
+  end
+
+  context 'a VLAN whose saved profile names a runtime-only bridge' do
+    before { allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return(runtime) }
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+        bootproto 'none'
+      end
+    end
+
+    %w(before after).each do |stage|
+      it do
+        is_expected.to run_execute("drop runtime controller from eth5.43 (#{stage} apply)")
+          .with(command: "#{scrub} ipv6.method disabled")
+      end
+    end
+
+    it do
+      is_expected.to run_execute('drop runtime controller from eth5.43 (after bring-up)')
+        .with(command: "#{scrub} ipv6.method disabled")
+    end
+
+    # The scrub must come before the template's apply and the bring-up.
+    it 'orders the scrubs around the apply' do
+      names = chef_run.resource_collection.all_resources.map(&:to_s)
+      before_i = names.index('execute[drop runtime controller from eth5.43 (before apply)]')
+      template_i = names.index('template[/etc/nmstate/eth5.43.yml]')
+      after_i = names.index('execute[drop runtime controller from eth5.43 (after apply)]')
+      expect(before_i).to be < template_i
+      expect(template_i).to be < after_i
+      bring_up_i = names.index('execute[bring up eth5.43]')
+      expect(after_i).to be < bring_up_i
+      expect(bring_up_i).to be < names.index('execute[drop runtime controller from eth5.43 (after bring-up)]')
+    end
+  end
+
+  context 'the bridge has a saved profile of its own' do
+    before do
+      allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles)
+        .and_return(runtime + [{ uuid: 'u-br', ifname: 'brq11a52c82-1e' }])
+    end
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+      end
+    end
+
+    it { is_expected.to_not run_execute('drop runtime controller from eth5.43 (before apply)') }
+    it { is_expected.to_not run_execute('drop runtime controller from eth5.43 (after apply)') }
+  end
+
+  context 'the saved profile names no controller' do
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+      end
+    end
+
+    it { is_expected.to_not run_execute('drop runtime controller from eth5.43 (before apply)') }
+  end
+
+  context 'the resource declares its bridge' do
+    before { allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return(runtime) }
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+        bridge 'brq11a52c82-1e'
+      end
+    end
+
+    it { expect(chef_run.find_resource(:execute, 'drop runtime controller from eth5.43 (before apply)')).to be_nil }
+    it { expect(chef_run.find_resource(:execute, 'drop runtime controller from eth5.43 (after apply)')).to be_nil }
+  end
+
+  context 'IPv6 is on for the interface' do
+    before { allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return(runtime) }
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+        ipv6init 'yes'
+      end
+    end
+
+    it do
+      is_expected.to run_execute('drop runtime controller from eth5.43 (after apply)')
+        .with(command: "#{scrub} ipv6.method link-local")
+    end
+  end
+
+  context 'an interface with addresses and an undeclared controller' do
+    before { allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return(runtime) }
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+        ipv4addr '10.1.0.5'
+        mask '255.255.255.0'
+      end
+    end
+
+    it { expect { chef_run }.to raise_error(RuntimeError, /names brq11a52c82-1e, which nothing declares, but it has addresses/) }
+  end
+
+  context 'enable' do
+    before do
+      allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return(runtime)
+      allow(::File).to receive(:exist?).and_call_original
+      allow(::File).to receive(:exist?).with('/etc/nmstate/eth5.43.yml').and_return(true)
+    end
+
+    recipe do
+      osl_ifconfig 'eth5.43' do
+        vlan 'yes'
+        force true
+        action :enable
+      end
+    end
+
+    it { is_expected.to run_execute('drop runtime controller from eth5.43 (before enable)') }
+    it { is_expected.to run_execute('drop runtime controller from eth5.43 (after enable)') }
+  end
+end

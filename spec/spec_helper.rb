@@ -22,6 +22,13 @@ ALL_PLATFORMS = [
   ALMA_8,
 ].freeze
 
+# osl_ifconfig reads the host's saved NetworkManager profiles; no example may read the workstation's own.
+RSpec.configure do |config|
+  config.before do
+    allow_any_instance_of(Chef::Resource).to receive(:osl_nm_saved_profiles).and_return([])
+  end
+end
+
 shared_context 'sysctl_stubs' do
   before do
     allow_any_instance_of(Chef::Resource).to receive(:shell_out).and_call_original
