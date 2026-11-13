@@ -9,7 +9,7 @@ property :version, String, default: '1'
 action :install do
   package 'tar'
 
-  pagefind_version = osl_github_latest_version('Pagefind/pagefind', new_resource.version)
+  pagefind_version = osl_github_latest_version('Pagefind/pagefind', new_resource.version, 'tag_name')
 
   ark 'pagefind' do
     url "https://github.com/Pagefind/pagefind/releases/download/v#{pagefind_version}/pagefind-v#{pagefind_version}-x86_64-unknown-linux-musl.tar.gz"
