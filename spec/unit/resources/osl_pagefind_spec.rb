@@ -10,7 +10,12 @@ describe 'osl_pagefind' do
     cached(:subject) { chef_run }
     step_into :osl_pagefind
 
-    github_releases = [{ name: 'v1.1.1' }, { name: 'v1.1.0' }, { name: 'v1.0.0' }]
+    github_releases = [
+      { tag_name: 'v1.2.0-beta.1', prerelease: true },
+      { tag_name: 'v1.1.1' },
+      { tag_name: 'v1.1.0' },
+      { tag_name: 'v1.0.0' },
+    ]
 
     before do
       allow(Net::HTTP).to receive(:get).and_return(github_releases.to_json)
