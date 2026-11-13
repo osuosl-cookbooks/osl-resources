@@ -165,22 +165,21 @@ module OSLResources
         output.join("\n")
       end
 
-      # Get latest version of repo release from Github
+      # Highest final release of a GitHub repo whose name (or tag_name) starts with the version prefix given.
+      # Unflagged RCs such as composer's 2.10.0-RC1 are dropped too, and the highest wins rather than the first
+      # listed, since projects with LTS branches publish them out of version order.
       def osl_github_latest_version(repo, version, key = 'name')
-        releases = []
         uri = URI("https://api.github.com/repos/#{repo}/releases")
         response = JSON.parse(Net::HTTP.get(uri))
-        response.each do |rel|
-          # Match version given
-          if rel[key].match?(/^v#{version}/)
-            # Remove leading 'v' from name
-            releases << rel[key][1..-1]
-          elsif rel[key].match?(/^#{version}/)
-            releases << rel[key]
-          end
+        prefix = /\Av?#{Regexp.escape(version)}(\.|\z)/
+        releases = response.filter_map do |rel|
+          next if rel['prerelease'] || rel['draft']
+          name = rel[key].to_s
+          next unless name.match?(prefix)
+          name.delete_prefix('v')
         end
-        # First one should be latest
-        releases.first
+        releases.select! { |v| Gem::Version.correct?(v) && !Gem::Version.new(v).prerelease? }
+        releases.max_by { |v| Gem::Version.new(v) }
       end
 
       def osl_anubis_default_bots

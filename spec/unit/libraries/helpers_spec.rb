@@ -30,6 +30,53 @@ RSpec.describe OSLResources::Cookbook::Helpers do
     end
   end
 
+  describe '#osl_github_latest_version' do
+    def stub_releases(releases)
+      allow(Net::HTTP).to receive(:get).and_return(releases.to_json)
+    end
+
+    it 'returns the highest final release, not the first listed' do
+      stub_releases([{ name: '2.11.2' }, { name: '2.2.32' }, { name: '2.11.1' }])
+      expect(subject.osl_github_latest_version('composer/composer', '2')).to eq '2.11.2'
+    end
+
+    it 'skips releases flagged as prerelease or draft' do
+      releases = [
+        { tag_name: 'v0.171.0', prerelease: true },
+        { tag_name: 'v0.170.1', draft: true },
+        { tag_name: 'v0.170.0' },
+      ]
+      stub_releases(releases)
+      expect(subject.osl_github_latest_version('gohugoio/hugo', '0', 'tag_name')).to eq '0.170.0'
+    end
+
+    it 'skips release candidates GitHub does not flag' do
+      stub_releases([{ name: '2.10.0-RC1' }, { name: '2.9.7' }])
+      expect(subject.osl_github_latest_version('composer/composer', '2')).to eq '2.9.7'
+    end
+
+    it 'strips a leading v' do
+      stub_releases([{ tag_name: 'v1.6.0' }])
+      expect(subject.osl_github_latest_version('Pagefind/pagefind', '1', 'tag_name')).to eq '1.6.0'
+    end
+
+    it 'matches the prefix on a version boundary' do
+      stub_releases([{ tag_name: '1.108.2' }, { tag_name: '1.10.0' }, { tag_name: '10.0.0' }])
+      expect(subject.osl_github_latest_version('sass/dart-sass', '1.10', 'tag_name')).to eq '1.10.0'
+      expect(subject.osl_github_latest_version('sass/dart-sass', '1', 'tag_name')).to eq '1.108.2'
+    end
+
+    it 'skips free-text names' do
+      stub_releases([{ name: 'v1.0.1 — A quick hotfix!' }, { name: 'v1.0.0' }])
+      expect(subject.osl_github_latest_version('Pagefind/pagefind', '1.0')).to eq '1.0.0'
+    end
+
+    it 'returns nil when nothing matches' do
+      stub_releases([{ tag_name: '1.108.2' }, { tag_name: nil }])
+      expect(subject.osl_github_latest_version('sass/dart-sass', '2', 'tag_name')).to be_nil
+    end
+  end
+
   # These take primitives rather than reading new_resource.
   describe 'osl_fakenic helpers' do
     subject { DummyClass.new }
