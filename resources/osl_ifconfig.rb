@@ -74,6 +74,9 @@ action :add do
     apply = nmstate_apply_cmd
     vars = nmstate_vars(enabled: true, state: nmstate_state, routes: true)
 
+    # Before any apply: one against a profile naming a vanished controller hangs.
+    nmstate_scrub_runtime_controller('before apply')
+
     # Declared ahead of the template so the :immediately notification always
     # resolves.
     execute apply do
@@ -99,12 +102,18 @@ action :add do
       mode '0644'
     end unless new_resource.device == 'lo'
 
+    # Every apply saves a runtime controller again, so check after it too.
+    nmstate_scrub_runtime_controller('after apply')
+
     # Level-triggered repair: the notification above only fires on config
     # change, so a down interface with correct config is never brought up.
     execute "bring up #{new_resource.device}" do
       command apply
       not_if { osl_netns_link_admin_up?(new_resource.device) }
     end if nmstate_state == 'up'
+
+    # The bring-up is an apply too, and may save a runtime controller again.
+    nmstate_scrub_runtime_controller('after bring-up') if nmstate_state == 'up'
   else
     config = ifcfg_config
     vars = ifcfg_vars
@@ -179,10 +188,14 @@ action :enable do
   if new_resource.nmstate
     config = nmstate_config
 
+    nmstate_scrub_runtime_controller('before enable')
+
     execute nmstate_apply_cmd do
       only_if { ::File.exist?(config) }
       not_if { osl_netns_link_admin_up?(new_resource.device) } unless new_resource.force
     end
+
+    nmstate_scrub_runtime_controller('after enable')
   else
     execute "ifup #{new_resource.device}" do
       command ifup_cmd
@@ -230,6 +243,35 @@ action_class do
 
   def nm_device_conf
     "/etc/NetworkManager/conf.d/osl-ifconfig-#{new_resource.device}.conf"
+  end
+
+  # Removes a controller nothing declared (neutron's brq) from the saved profile only; the live device stays
+  # enslaved until the next boot. A port Chef declares a controller for is never touched.
+  def nmstate_scrub_runtime_controller(stage)
+    return unless nmstate_controller.nil?
+
+    dev = new_resource.device
+    addresses = !(Array(new_resource.ipv4addr).empty? && Array(new_resource.ipv6addr).empty?)
+    ipv6 = if nmstate_ipv6_autoconf
+             'auto'
+           elsif nmstate_ipv6_enabled?
+             'link-local'
+           else
+             'disabled'
+           end
+
+    # The command is execute's identity, read even when the guard is false, so it must never raise.
+    execute "drop runtime controller from #{dev} (#{stage})" do
+      command(lazy do
+        "nmcli connection modify #{osl_nm_runtime_controller(dev)&.first} connection.master '' " \
+          "connection.slave-type '' ipv4.method disabled ipv6.method #{ipv6}"
+      end)
+      only_if do
+        found = osl_nm_runtime_controller(dev)
+        raise "osl_ifconfig[#{dev}]: its saved profile names #{found.last}, which nothing declares, but it has addresses" if found && addresses
+        found
+      end
+    end
   end
 
   def nm_device_conf_content

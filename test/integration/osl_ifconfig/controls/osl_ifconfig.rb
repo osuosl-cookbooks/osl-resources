@@ -1,9 +1,5 @@
-# This control must pass immediately after a converge AND after a manual
-# reboot of the converged node. Reboot survival comes from two mechanisms:
-# the osl_fakenic units recreate the dummy parents before NetworkManager
-# starts, and the NetworkManager profiles `nmstatectl apply` wrote reconfigure
-# everything on top of them. /etc/nmstate/*.yml is inert once applied and
-# proves nothing here.
+# Passes after a converge and after a reboot: NetworkManager recreates every dummy that has a profile, and
+# osl_fakenic units bring back eth6-eth8, which have none. /etc/nmstate/*.yml is inert once applied.
 #
 # AlmaLinux 8 is converge-only: ifup has no boot-time counterpart, since
 # network.service ships disabled, and NM's ifcfg reader does not understand
@@ -176,13 +172,17 @@ control 'osl_ifconfig' do
     its('stdout') { should match /00:1a:4b:a6:a7:c4/ }
   end
 
-  # Boot persistence plumbing. The assertions above are all live kernel state,
-  # so without these a converge-time regression -- unit never written, or
-  # written but not enabled -- would only surface after someone reboots.
-  (1..11).each do |i|
-    describe systemd_service("osl-fakenic-eth#{i}.service") do
+  # Only the dummies nothing else owns get a boot unit; one on a dummy with a profile leaves it unmanaged at boot.
+  %w(eth6 eth7 eth8).each do |i|
+    describe systemd_service("osl-fakenic-#{i}.service") do
       it { should be_installed }
       it { should be_enabled }
+    end
+  end
+
+  %w(eth1 eth2 eth3 eth4 eth5 eth9 eth10 eth11 eth12 eth13).each do |i|
+    describe file("/etc/systemd/system/osl-fakenic-#{i}.service") do
+      it { should_not exist }
     end
   end
 
@@ -199,6 +199,29 @@ control 'osl_ifconfig' do
   # The other half of the boot story, the half osl_ifconfig owns: nmstate
   # writes autoconnect profiles, and NetworkManager recreates even the dummy
   # devices from them.
+  # eth13.20 stands in for a compute's provider VLAN: its saved profile never names the runtime-only brqtest.
+  describe command('nmcli -g connection.master,ipv4.method connection show eth13.20') do
+    its('stdout') { should eq "\ndisabled\n" }
+  end
+
+  # brqtest doesn't survive a reboot; the VLAN must come up on its own then.
+  if interface('brqtest').exists?
+    describe command('ip -o link show eth13.20') do
+      its('stdout') { should match /master brqtest / }
+    end
+  else
+    describe command('ip -o link show eth13.20') do
+      its('stdout') { should match /[<,]UP[,>]/ }
+      its('stdout') { should_not match /master / }
+    end
+  end
+
+  # A port only its bridge lists keeps that controller (EL8 saves it as the bridge's UUID).
+  br46 = [command('nmcli -g connection.uuid connection show br46').stdout.strip, 'br46']
+  describe command('nmcli -g connection.master connection show eth12') do
+    its('stdout.strip') { should be_in br46 }
+  end
+
   if os.release.to_i >= 9
     describe command('nmcli -t -f DEVICE,STATE connection show --active') do
       its('exit_status') { should eq 0 }

@@ -654,6 +654,58 @@ module OSLResources
         cmd.exitstatus.zero? ? cmd.stdout : nil
       end
 
+      # [profile uuid, controller] when the device's saved NetworkManager profile names a controller with no saved
+      # profile of its own (neutron's brq bridges live only in /run); nil otherwise. Read fresh on every call.
+      def osl_nm_runtime_controller(device)
+        profiles = osl_nm_saved_profiles
+        mine = profiles.select { |p| p[:ifname] == device }
+        if mine.size > 1
+          Chef::Log.warn("osl_ifconfig: #{mine.size} saved NetworkManager profiles name #{device}; not checking its controller")
+          return
+        end
+        prof = mine.first
+        return if prof.nil? || prof[:uuid].to_s.empty? || prof[:controller].to_s.empty?
+        ctrl = prof[:controller]
+        return if profiles.any? { |p| p[:ifname] == ctrl || p[:uuid] == ctrl }
+        [prof[:uuid], ctrl]
+      end
+
+      # Saved profiles only: keyfiles and ifcfg-rh files under /etc, never NetworkManager's in-memory /run ones.
+      # Read as bytes: a keyfile may hold a non-UTF-8 SSID, and the keys compared are ASCII.
+      def osl_nm_saved_profiles
+        keyfiles = Dir.glob('/etc/NetworkManager/system-connections/*.nmconnection').map do |f|
+          c = osl_nm_keyfile_section(::File.read(f, mode: 'rb'), 'connection')
+          { uuid: c['uuid'], ifname: c['interface-name'], controller: c['controller'] || c['master'] }
+        end
+        ifcfgs = Dir.glob('/etc/sysconfig/network-scripts/ifcfg-*').map do |f|
+          v = osl_nm_ifcfg_vars(::File.read(f, mode: 'rb'))
+          { uuid: v['UUID'], ifname: v['DEVICE'] || ::File.basename(f).delete_prefix('ifcfg-'),
+            controller: v['BRIDGE'] || v['MASTER'] || v['BRIDGE_UUID'] || v['MASTER_UUID'] }
+        end
+        keyfiles + ifcfgs
+      rescue SystemCallError, ArgumentError
+        []
+      end
+
+      def osl_nm_keyfile_section(text, name)
+        section = nil
+        text.each_line.with_object({}) do |line, vars|
+          line = line.strip
+          if (m = line.match(/\A\[(.+)\]\z/))
+            section = m[1]
+          elsif section == name && (m = line.match(/\A([^=#;]+)=(.*)\z/))
+            vars[m[1].strip] = m[2].strip
+          end
+        end
+      end
+
+      def osl_nm_ifcfg_vars(text)
+        text.each_line.with_object({}) do |line, vars|
+          m = line.strip.match(/\A([A-Z0-9_]+)=(.*)\z/)
+          vars[m[1]] = m[2].delete_prefix('"').delete_suffix('"').delete_prefix("'").delete_suffix("'") if m
+        end
+      end
+
       # osl_sysfs_param helpers. sysfs entries are not regular files, so the
       # file resource's content staging, backup and atomic rename machinery
       # does not work against them. Read and write them with native Ruby file
