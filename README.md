@@ -21,6 +21,7 @@ The following platforms and versions are tested and supported using [test-kitche
 - [osl_caddy_site](documentation/osl_caddy_site.md)
 - [osl_chrony](documentation/osl_chrony.md)
 - [osl_chrony_server](documentation/osl_chrony_server.md)
+- [osl_cinc_client_updater](documentation/osl_cinc_client_updater.md)
 - [osl_dnf_copr](documentation/osl_dnf_copr.md)
 - [osl_fakenic](documentation/osl_fakenic.md)
 - [osl_hugo](documentation/osl_hugo.md)
