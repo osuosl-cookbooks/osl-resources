@@ -2,6 +2,7 @@ module OSLResources
   module Cookbook
     module Helpers
       require 'ipaddr'
+      require 'json'
       require 'iniparse'
       require 'securerandom'
 
@@ -706,6 +707,69 @@ module OSLResources
       # compatibility symlink at /usr/sbin. Resolve it rather than guess.
       def osl_fakenic_ip_path
         which('ip') || '/usr/sbin/ip'
+      end
+
+      # osl_cinc_client_updater helpers
+      def osl_cinc_client_query_script
+        <<~RUBY
+          require 'json'
+          require 'mixlib/install'
+          opts = Mixlib::Install.detect_platform.merge(product_name: 'cinc', channel: ARGV[1].to_sym, product_version: ARGV[0])
+          installer = Mixlib::Install.new(opts)
+          artifact = Array(installer.artifact_info).first
+          puts JSON.generate(version: artifact.version, url: artifact.url, install_command: installer.install_command)
+        RUBY
+      end
+
+      # Runs in a fresh Ruby so it never loads a second mixlib-install into the Chef process
+      def osl_cinc_client_artifact(version, channel)
+        cmd = shell_out(Gem.ruby, '-e', osl_cinc_client_query_script, version, channel, timeout: 120)
+        if cmd.error?
+          Chef::Log.warn("Cinc Client lookup failed: #{cmd.stderr}")
+          return
+        end
+        JSON.parse(cmd.stdout)
+      rescue JSON::ParserError => e
+        Chef::Log.warn("Cinc Client lookup returned bad JSON: #{e}")
+        nil
+      end
+
+      # The iteration is the 2 in cinc-19.4.46-2.el9.x86_64.rpm or cinc_19.4.46-2_amd64.deb
+      def osl_cinc_client_iteration(url, version)
+        ::File.basename(url)[/#{Regexp.escape(version)}[-_](\d+)(?=[-_.])/, 1]&.to_i
+      end
+
+      def osl_cinc_client_installed_iteration
+        if platform_family?('debian')
+          cmd = shell_out('dpkg-query', '-W', '-f=${Version}', 'cinc')
+          cmd.stdout[/-(\d+)\z/, 1]&.to_i unless cmd.error?
+        else
+          cmd = shell_out('rpm', '-q', '--qf', '%{RELEASE}', 'cinc')
+          cmd.stdout[/\A\d+/]&.to_i unless cmd.error?
+        end
+      end
+
+      # A version change always updates; the same version only moves to a higher iteration
+      def osl_cinc_client_update_needed?(current_version, new_version, current_iteration, new_iteration)
+        return true if current_version.nil? || current_version != new_version
+        return false if current_iteration.nil? || new_iteration.nil?
+        new_iteration > current_iteration
+      end
+
+      def osl_cinc_client_post_install(action, exec_command, exec_args)
+        if action == 'exec' && (Chef::Config[:interval] || Chef::Config[:client_fork])
+          Chef::Log.warn('post_install_action "exec" is not supported when forked, using "kill"')
+          action = 'kill'
+        end
+
+        if action == 'exec'
+          Chef::Log.warn('Replacing the Cinc Client process with the upgraded version and re-running')
+          Kernel.exec(exec_command, *exec_args)
+        else
+          Process.kill('KILL', Process.ppid) if Chef::Config[:client_fork] && Process.ppid != 1
+          Chef::Log.warn('New Cinc Client installed, forcing the Cinc Client to exit. Disregard any failure messages.')
+          exit(213)
+        end
       end
 
       # Recreates the device and nothing else, leaving addressing on top to

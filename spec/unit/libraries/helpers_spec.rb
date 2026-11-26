@@ -357,4 +357,61 @@ RSpec.describe OSLResources::Cookbook::Helpers do
       it { expect(subject.send(:ifconfig_type)).to be_nil }
     end
   end
+
+  describe 'osl_cinc_client helpers' do
+    describe '#osl_cinc_client_iteration' do
+      {
+        'https://packages.cinc.sh/files/stable/cinc/19.4.46/el/9/cinc-19.4.46-2.el9.x86_64.rpm' => 2,
+        'https://packages.cinc.sh/files/stable/cinc/19.4.46/debian/12/cinc_19.4.46-10_amd64.deb' => 10,
+        'https://packages.cinc.sh/files/stable/cinc/18.11.11/el/9/cinc-18.11.11-1.el9.x86_64.rpm' => 1,
+      }.each do |url, iteration|
+        it { expect(subject.send(:osl_cinc_client_iteration, url, url[%r{cinc/([\d.]+)/}, 1])).to eq iteration }
+      end
+      it { expect(subject.send(:osl_cinc_client_iteration, 'https://example.com/cinc.rpm', '19.4.46')).to be_nil }
+    end
+
+    describe '#osl_cinc_client_update_needed?' do
+      it { expect(subject.send(:osl_cinc_client_update_needed?, nil, '19.4.46', 1, 2)).to eq true }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '18.11.11', '19.4.46', 1, 2)).to eq true }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '19.4.46', '19.4.46', 1, 2)).to eq true }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '19.4.46', '19.4.46', 2, 2)).to eq false }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '19.4.46', '19.4.46', 3, 2)).to eq false }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '19.4.46', '19.4.46', nil, 2)).to eq false }
+      it { expect(subject.send(:osl_cinc_client_update_needed?, '19.4.46', '19.4.46', 1, nil)).to eq false }
+    end
+
+    describe '#osl_cinc_client_post_install' do
+      before do
+        allow(Kernel).to receive(:exec)
+        allow(Process).to receive(:kill)
+        allow(Chef::Config).to receive(:[]).and_call_original
+        allow(Chef::Config).to receive(:[]).with(:interval).and_return(nil)
+        allow(Chef::Config).to receive(:[]).with(:client_fork).and_return(false)
+      end
+
+      it 'exits for kill' do
+        expect { subject.send(:osl_cinc_client_post_install, 'kill', 'cinc-client', []) }.to raise_error(SystemExit) { |e| expect(e.status).to eq 213 }
+        expect(Process).to_not have_received(:kill)
+      end
+
+      it 'kills the supervisor when forked' do
+        allow(Chef::Config).to receive(:[]).with(:client_fork).and_return(true)
+        allow(Process).to receive(:ppid).and_return(1234)
+        expect { subject.send(:osl_cinc_client_post_install, 'kill', 'cinc-client', []) }.to raise_error(SystemExit)
+        expect(Process).to have_received(:kill).with('KILL', 1234)
+      end
+
+      it 're-executes for exec' do
+        subject.send(:osl_cinc_client_post_install, 'exec', '/usr/bin/cinc-client', %w(-z))
+        expect(Kernel).to have_received(:exec).with('/usr/bin/cinc-client', '-z')
+      end
+
+      it 'kills instead of exec when forked' do
+        allow(Chef::Config).to receive(:[]).with(:client_fork).and_return(true)
+        allow(Process).to receive(:ppid).and_return(1)
+        expect { subject.send(:osl_cinc_client_post_install, 'exec', '/usr/bin/cinc-client', []) }.to raise_error(SystemExit)
+        expect(Kernel).to_not have_received(:exec)
+      end
+    end
+  end
 end

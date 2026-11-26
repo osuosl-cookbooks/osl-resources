@@ -75,6 +75,24 @@ suites:
       - almalinux-8
       - almalinux-9
       - almalinux-10
+  - name: osl_cinc_client_updater
+    run_list:
+      - recipe[osl-resources-test::osl_cinc_client_updater]
+    provisioner:
+      solo_rb:
+        exit_status: :enabled
+        client_fork: false
+  - name: osl_cinc_client_updater_upgrade
+    run_list:
+      - recipe[osl-resources-test::osl_cinc_client_updater_upgrade]
+    includes:
+      - almalinux-9
+      - debian-12
+    provisioner:
+      product_version: '18'
+      solo_rb:
+        exit_status: :enabled
+        client_fork: false
   - name: osl_conntrackd
     run_list:
       - recipe[osl-resources-test::osl_conntrackd]
