@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the osl-resources cookbook.
 
+2.27.0 (2026-11-26)
+-------------------
+- Add osl_cinc_client_updater for Linux hosts
+
 2.26.0 (2026-11-13)
 -------------------
 - Install Dart Sass with osl_hugo and pick the highest release
